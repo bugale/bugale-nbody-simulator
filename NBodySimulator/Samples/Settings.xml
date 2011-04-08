@@ -1,0 +1,23 @@
+<Settings>
+	<Width>1024</Width>
+	<Height>768</Height>
+	<Version>Default</Version>
+	<TwoDimensional>true</TwoDimensional>
+	<SpeedTester>false</SpeedTester>
+	<SpeedTesterRounds>10000000</SpeedTesterRounds>
+	<ShowTrail>true</ShowTrail>
+	<SaveTrail>true</SaveTrail>
+	<Pause>false</Pause>
+	<RefreshScreen>true</RefreshScreen>
+	<Fullscreen>false</Fullscreen>
+	<Timeout>0</Timeout>
+	<MaxTrailDots>100000</MaxTrailDots>
+	<CaptureScreen>false</CaptureScreen>
+	<SecondsPerCapture>0</SecondsPerCapture>
+	<FramesPerSecond>100000</FramesPerSecond>
+	<DeltaTime>0.1</DeltaTime>
+	<G>6.67428E-11</G>
+	<MetersPerPixel>36906376272</MetersPerPixel>
+	<X>0</X>
+	<Y>0</Y>
+</Settings>
