@@ -338,6 +338,76 @@ void Engine::NextFrameHermite3D()
             this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY; this->bodies[j]._forceZ -= dRZ;
         }
 }
+void Engine::NextFrameHermite2DThreadInitializeFrame(int thread, int total)
+{
+	int first = ((thread    ) * this->num_of_bodies) / total;
+	int last =  ((thread + 1) * this->num_of_bodies) / total;
+	for (int i = first; i < last; i++) //Initialize current calculation
+	{
+		//Calculate the new position and velocity of every body.
+		this->bodies[i]._velocityX = this->bodies[i]._l_velocityX + (this->bodies[i]._l_forceX    + this->bodies[i]._forceX   ) * this->dt_div_2mass[i] + (this->bodies[i]._l_jerkX  - this->bodies[i]._jerkX ) * this->dt_squared_div_12mass[i];
+		this->bodies[i]._velocityY = this->bodies[i]._l_velocityY + (this->bodies[i]._l_forceY    + this->bodies[i]._forceY   ) * this->dt_div_2mass[i] + (this->bodies[i]._l_jerkY  - this->bodies[i]._jerkY ) * this->dt_squared_div_12mass[i];
+		this->bodies[i]._positionX = this->bodies[i]._l_positionX + (this->bodies[i]._l_velocityX + this->bodies[i]._velocityX) * this->dt_div_2        + (this->bodies[i]._l_forceX - this->bodies[i]._forceX) * this->dt_squared_div_12mass[i];
+		this->bodies[i]._positionY = this->bodies[i]._l_positionY + (this->bodies[i]._l_velocityY + this->bodies[i]._velocityY) * this->dt_div_2        + (this->bodies[i]._l_forceY - this->bodies[i]._forceY) * this->dt_squared_div_12mass[i];
+		
+		//Duplicate some data
+		this->bodies[i]._l_forceX    = this->bodies[i]._forceX;
+		this->bodies[i]._l_forceY    = this->bodies[i]._forceY;
+		this->bodies[i]._l_jerkX     = this->bodies[i]._jerkX;
+		this->bodies[i]._l_jerkY     = this->bodies[i]._jerkY;
+		this->bodies[i]._l_positionX = this->bodies[i]._positionX;
+		this->bodies[i]._l_positionY = this->bodies[i]._positionY;
+		this->bodies[i]._l_velocityX = this->bodies[i]._velocityX;
+		this->bodies[i]._l_velocityY = this->bodies[i]._velocityY;
+
+		//Zeroing
+		this->bodies[i]._forceX = 0; this->bodies[i]._forceY = 0;
+		this->bodies[i]._jerkX  = 0; this->bodies[i]._jerkY  = 0;
+
+		//Calculate pre-position and pre-velocity
+		this->bodies[i]._t_positionX = this->bodies[i]._l_positionX + this->bodies[i]._l_velocityX * this->dt             + this->bodies[i]._l_forceX * this->dt_squared_div_2mass[i] + this->bodies[i]._l_jerkX * this->dt_pow_3_div_6mass[i];
+		this->bodies[i]._t_positionY = this->bodies[i]._l_positionY + this->bodies[i]._l_velocityY * this->dt             + this->bodies[i]._l_forceY * this->dt_squared_div_2mass[i] + this->bodies[i]._l_jerkY * this->dt_pow_3_div_6mass[i];
+		this->bodies[i]._t_velocityX = this->bodies[i]._l_velocityX + this->bodies[i]._l_forceX    * this->dt_div_mass[i] + this->bodies[i]._l_jerkX  * this->dt_squared_div_2mass[i];
+		this->bodies[i]._t_velocityY = this->bodies[i]._l_velocityY + this->bodies[i]._l_forceY    * this->dt_div_mass[i] + this->bodies[i]._l_jerkY  * this->dt_squared_div_2mass[i];
+	}
+}
+void Engine::NextFrameHermite2DThreadRun(int thread, int total)
+{
+	double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
+	double dVX, dVY; //used to find the Vji for the hermite formula.
+	double dRdV_mul_three_div_length_pow_2; //(dR dot-multiply dV) multiplied by the minus-second(-2) power of the length of the Rji vector multiplied by 3 for the hermite formula.
+	double inv_length_pow_2; //The minus-second(-2) power of the length of the Rji vector.
+    double inv_length_pow_3; //The minus-third(-3) power of the length of the Rji vector.
+    double force_div_length; //The force(newtons) of gravitation between the two bodies, divided by the length of the Rji vector. The Rji vector is multiplied by this value to generate the force vector.
+	int first = ((thread    ) * this->num_of_bodies) / total;
+	int last =  ((thread + 1) * this->num_of_bodies) / total;
+    for (int i = first; i < last; i++)
+        for (int j = 0; j < this->num_of_bodies; j++) //Run on every two bodies
+        {
+            //Generate Rji and Vji vectors
+            dRX = this->bodies[j]._t_positionX - this->bodies[i]._t_positionX;
+            dRY = this->bodies[j]._t_positionY - this->bodies[i]._t_positionY;
+            dVX = this->bodies[j]._t_velocityX - this->bodies[i]._t_velocityX;
+            dVY = this->bodies[j]._t_velocityY - this->bodies[i]._t_velocityY;
+
+            //Generate lengths - the distance between the bodies pow -2 and -3
+            inv_length_pow_2 = (dRX * dRX) + (dRY * dRY);
+			if (inv_length_pow_2 != 0) inv_length_pow_2 = 1 / inv_length_pow_2;
+            inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
+
+			//Calculate the jerk and the force size
+			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY) * 3 * inv_length_pow_2;
+
+			//Add the calculated jerk
+			this->bodies[i]._jerkX += (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
+			this->bodies[i]._jerkY += (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;
+
+            //Add the force vector to the bodies
+            this->bodies[i]._forceX += dRX * force_div_length;
+			this->bodies[i]._forceY += dRY * force_div_length;
+        }
+}
 
 void Engine::InitializeHermite2D()
 {
@@ -546,4 +616,45 @@ void Engine::InitializeHermite3D()
             this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY; this->bodies[j]._forceZ -= dRZ;
         }
 	this->first_hermite = false;
+}
+
+void Engine::Hermite2DThread(Engine* engine, int thread, int total, volatile bool* done, bool* exit)
+{
+	while(!*exit)
+	{
+		engine->NextFrameHermite2DThreadInitializeFrame(thread, total);
+		*done = true;
+		while (*done);
+		engine->NextFrameHermite2DThreadRun(thread, total);
+		*done = true;
+		while (*done);
+	}
+}
+
+void Engine::Hermite2DThreaded(Engine* engine, SharedData* shared, int threads)
+{
+	engine->InitializeHermite2D();
+	shared->calculations++;
+	volatile bool* bool_array = (bool*)malloc(sizeof(bool) * threads);
+	for (int i = 0; i < threads; i++) bool_array[i] = false;
+	for (int i = 0; i < threads; i++) boost::thread(Engine::Hermite2DThread, engine, i, threads, &(bool_array[i]), &shared->exit);
+	volatile bool cont;
+	while (!shared->exit)
+	{
+		cont = false;
+		while (!cont)
+		{
+			cont = true;
+			for (int i = 0; i < threads; i++) cont &= bool_array[i];
+		}
+		for (int i = 0; i < threads; i++) bool_array[i] = false;
+		cont = false;
+		while (!cont)
+		{
+			cont = true;
+			for (int i = 0; i < threads; i++) cont &= bool_array[i];
+		}
+		for (int i = 0; i < threads; i++) bool_array[i] = false;
+		shared->calculations++;
+	}
 }

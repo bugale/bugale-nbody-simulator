@@ -28,14 +28,15 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.grd_settings = new System.Windows.Forms.PropertyGrid();
             this.splt_main = new System.Windows.Forms.SplitContainer();
+            this.btn_save = new System.Windows.Forms.Button();
             this.btn_del = new System.Windows.Forms.Button();
             this.btn_new = new System.Windows.Forms.Button();
             this.btn_down = new System.Windows.Forms.Button();
             this.btn_up = new System.Windows.Forms.Button();
             this.lbx_main = new System.Windows.Forms.ListBox();
-            this.btn_save = new System.Windows.Forms.Button();
             this.splt_main.Panel1.SuspendLayout();
             this.splt_main.Panel2.SuspendLayout();
             this.splt_main.SuspendLayout();
@@ -76,6 +77,16 @@
             this.splt_main.Size = new System.Drawing.Size(396, 530);
             this.splt_main.SplitterDistance = 260;
             this.splt_main.TabIndex = 1;
+            // 
+            // btn_save
+            // 
+            this.btn_save.Location = new System.Drawing.Point(325, 198);
+            this.btn_save.Name = "btn_save";
+            this.btn_save.Size = new System.Drawing.Size(59, 47);
+            this.btn_save.TabIndex = 5;
+            this.btn_save.Text = "Save";
+            this.btn_save.UseVisualStyleBackColor = true;
+            this.btn_save.Click += new System.EventHandler(this.btn_save_Click);
             // 
             // btn_del
             // 
@@ -130,16 +141,6 @@
             this.lbx_main.TabIndex = 0;
             this.lbx_main.SelectedIndexChanged += new System.EventHandler(this.lbx_main_SelectedIndexChanged);
             // 
-            // btn_save
-            // 
-            this.btn_save.Location = new System.Drawing.Point(325, 198);
-            this.btn_save.Name = "btn_save";
-            this.btn_save.Size = new System.Drawing.Size(59, 47);
-            this.btn_save.TabIndex = 5;
-            this.btn_save.Text = "Save";
-            this.btn_save.UseVisualStyleBackColor = true;
-            this.btn_save.Click += new System.EventHandler(this.btn_save_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -147,9 +148,9 @@
             this.ClientSize = new System.Drawing.Size(396, 530);
             this.Controls.Add(this.splt_main);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.ShowIcon = false;
             this.Text = "Bugale N-Body Data Editor";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.splt_main.Panel1.ResumeLayout(false);

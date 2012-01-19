@@ -56,6 +56,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS /MP /D_SECURE_SCL=0 %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -72,6 +73,11 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS /MP /D_SECURE_SCL=0 %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -89,6 +95,7 @@
     <ClInclude Include="Header Files\SharedData.h" />
     <ClInclude Include="Header Files\SharedFunctions.h" />
     <ClInclude Include="Header Files\Threads.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SharedHeader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +111,9 @@
     <ClCompile Include="Source Files\Graphic2D.cpp" />
     <ClCompile Include="Source Files\SharedFunctions.cpp" />
     <ClCompile Include="Source Files\BinaryOutputManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="BugaleNBodySimulator.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

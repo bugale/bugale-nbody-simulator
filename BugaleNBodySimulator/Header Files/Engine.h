@@ -47,8 +47,13 @@ public:
 	void NextFrameLeapfrog3D();
 	void NextFrameHermite2D();
 	void NextFrameHermite3D();
+	void NextFrameHermite2DThreadInitializeFrame(int thread, int total);
+	void NextFrameHermite2DThreadRun(int thread, int total);
 
 	void InitializeHermite2D();
 	void InitializeHermite3D();
 
+	static void Hermite2DThread(Engine* engine, int thread, int total, volatile bool* done, bool* exit);
+
+	static void Hermite2DThreaded(Engine* engine, SharedData* shared, int threads);
 };

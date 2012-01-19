@@ -23,10 +23,13 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->sin_field_of_view = 2 * sin(graphic2d->data->field_of_view * M_PI / (180 * 2));
 
 	graphic2d->trail_curpos = 0;
-	graphic2d->trailX = (double*)malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
-	graphic2d->trailY = (double*)malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
-	for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailX[i] = (DBL_MAX + 1);
-	for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailY[i] = (DBL_MAX + 1);
+	if (graphic2d->data->max_trails != 0)
+	{
+		graphic2d->trailX = (double*)malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
+		graphic2d->trailY = (double*)malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
+		for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailX[i] = (DBL_MAX + 1);
+		for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailY[i] = (DBL_MAX + 1);
+	}
 
 	graphic2d->camera_positionX = data->camera_positionX;
 	graphic2d->camera_positionY = data->camera_positionY;
@@ -210,7 +213,7 @@ void Graphic2DSetCamera()
 {
 	glLoadIdentity();
 	gluLookAt(graphic2d->camera_positionX, graphic2d->camera_positionY, graphic2d->camera_positionZ,
-			  0,                           0,                           0,
+			  graphic2d->camera_positionX, graphic2d->camera_positionY, 0,
 			  0,                           1,                           0);
 }
 void Graphic2DFinalizeFrame()
@@ -491,6 +494,7 @@ void Graphic2DDrawMinText()
 }
 void Graphic2DDrawTrails()
 {
+	if (graphic2d->data->max_trails == 0) return;
 	if (!graphic2d->show_trails) return;
 	for (int trail = graphic2d->trail_curpos; trail < graphic2d->data->max_trails; trail++)
 		for (int body = 0; body < graphic2d->data->num_of_bodies; body++)
@@ -521,6 +525,7 @@ void Graphic2DDrawTrails()
 }
 void Graphic2DSaveTrails()
 {
+	if (graphic2d->data->max_trails == 0) return;
 	if (graphic2d->shared->pause) return;
 	for (int body = 0; body < graphic2d->data->num_of_bodies; body++)
 	{

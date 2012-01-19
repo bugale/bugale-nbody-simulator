@@ -34,9 +34,8 @@ struct Graphic3D
 	double width_meters;
 	double cam_target_distance;
 
-
-	//Keyboard target control
-	long long* keyboard_move_starttime; bool* keyboard_move_started; double* keyboard_move_start_value; //X0 - zoom, 0X - minus, 1X - plus
+	//Keyboard zoom
+	long long keyboard_zoom_starttime; bool keyboard_zoom_started; bool keyboard_zoom_in; double keyboard_zoom_positionX_start_value;  double keyboard_zoom_positionY_start_value;  double keyboard_zoom_positionZ_start_value;
 	
 	//Trails
 	int trail_curpos;
@@ -44,6 +43,10 @@ struct Graphic3D
 
 	//Mouse camera control
 	int mouse_curX; int mouse_curY;
+	int mouse_startX; int mouse_startY;
+	bool mouse_pressed; bool mouse_left;
+	double mouse_start_value_upX; double mouse_start_value_upY; double mouse_start_value_upZ;
+	double mouse_start_value_forwardX; double mouse_start_value_forwardY; double mouse_start_value_forwardZ;
 
 	//Show Body
 	int body_index;
@@ -60,6 +63,8 @@ void Graphic3DKeyboardHandler   (unsigned char key, int x, int y);
 void Graphic3DKeyboardUpHandler (unsigned char key, int x, int y);
 void Graphic3DSKeyboardHandler  (          int key, int x, int y);
 void Graphic3DSKeyboardUpHandler(          int key, int x, int y);
+void Graphic3DMouseHandler      (int button, int state, int x, int y);
+void Graphic3DMotionHandler     (int x, int y);
 
 void Graphic3DClearScreen();
 void Graphic3DSetCamera();
@@ -88,6 +93,12 @@ void Graphic3DDrawMinText();
 void Graphic3DDrawTrails();
 void Graphic3DSaveTrails();
 void Graphic3DDrawBody(double X, double Y, double Z, double radius, double R, double G, double B, double A, bool trail);
+void Graphic3DProcessCameraZoom(double duration);
+void Graphic3DProcessCameraMoveHorizontal(double angleHorizontal);
+void Graphic3DProcessCameraMoveVertical(double angleVertical, double forwardX, double forwardY, double forwardZ);
+void Graphic3DProcessTargetMoveHorizontal(double angleHorizontal);
+void Graphic3DProcessTargetMoveVertical(double angleVertical, double forwardX, double forwardY, double forwardZ);
+void Graphic3DFixIndefinedValues();
 
 void Graphic3DSetOrthographicProjection();
 void Graphic3DRestorePerspectiveProjection();

@@ -3,7 +3,7 @@ using System.Drawing;
 using System;
 using System.Collections.Generic;
 
-public enum AlgorithmType { Leapfrog = 0, Hermite = 1 }
+public enum AlgorithmType { ForwardEuler = 0, Hermite = 1 }
 public class MainSettings
 {
     private int width;
@@ -48,7 +48,7 @@ public class MainSettings
         this.two_dimensional_binary = false;
         this.fullscreen = false;
         this.log = false;
-        this.algorithm = AlgorithmType.Leapfrog;
+        this.algorithm = AlgorithmType.Hermite;
         this.g = 0;
         this.dt = 0;
         this.graphic_max_rate = 0;

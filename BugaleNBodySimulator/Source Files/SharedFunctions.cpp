@@ -62,3 +62,12 @@ void reset_shared_data(SharedData* shared)
 	shared->exit = false;
 	shared->reached_max_calculations = false;
 }
+double getAngle(double x, double y)
+{
+	x /= sqrt(x*x+y*y);
+	y /= sqrt(x*x+y*y);
+	if (y == 0 && x == -1) return  M_PI;
+	if (y >  0)           return  acos(x);
+	if (y <  0)           return -acos(x);
+	return 0;
+}

@@ -106,7 +106,7 @@ void SharedCalculationsThread(Engine* engine, Data* data, SharedData* shared)
 		else
 		{
 			shared->ms_calculations += 500;
-			if (shared->ms_calculations >= 1000) shared->calculations_per_second = 0;
+			//if (shared->ms_calculations >= 1000) shared->calculations_per_second = 0;
 		}
 		if (shared->pause)
 		{

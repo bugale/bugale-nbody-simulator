@@ -23,10 +23,20 @@ namespace BugaleNBodyDataEditor
         {
             mainSettings = new MainSettings();
             bodies = new List<Body3D>();
-            byte[] bodies_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\bodies.dat");
-            byte[] settings_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\settings.dat");
-            if (System.IO.File.Exists(Application.StartupPath + "\\bodies.dat")) bodies = Body3D.ListFromBytes(bodies_data);
-            if (System.IO.File.Exists(Application.StartupPath + "\\settings.dat")) mainSettings.FromBytes(settings_data, BitConverter.ToDouble(bodies_data, 0));
+            byte[] bodies_data;
+            byte[] settings_data;
+            double g = mainSettings.G;
+            if (System.IO.File.Exists(Application.StartupPath + "\\bodies.dat"))
+            {
+                bodies_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\bodies.dat");
+                bodies = Body3D.ListFromBytes(bodies_data);
+                g = BitConverter.ToDouble(bodies_data, 0);
+            }
+            if (System.IO.File.Exists(Application.StartupPath + "\\settings.dat"))
+            {
+                settings_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\settings.dat");
+                mainSettings.FromBytes(settings_data, g);
+            }
             this.RefreshList();
             this.lbx_main.SelectedIndex = 0;
             this.grd_settings.SelectedObject = this.mainSettings;
@@ -50,21 +60,21 @@ namespace BugaleNBodyDataEditor
                 this.btn_new.Enabled = true;
                 if (this.changeGrid) this.grd_settings.SelectedObject = this.mainSettings;
             }
-            else if (this.lbx_main.SelectedIndex == 1)
-            {
-                this.btn_up.Enabled = false;
-                this.btn_down.Enabled = true;
-                this.btn_del.Enabled = true;
-                this.btn_new.Enabled = true;
-                if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[0];
-            }
             else if (this.lbx_main.SelectedIndex == this.bodies.Count)
             {
-                this.btn_up.Enabled = true;
+                this.btn_up.Enabled = this.bodies.Count != 1;
                 this.btn_down.Enabled = false;
                 this.btn_del.Enabled = true;
                 this.btn_new.Enabled = true;
                 if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[this.bodies.Count - 1];
+            }
+            else if (this.lbx_main.SelectedIndex == 1)
+            {
+                this.btn_up.Enabled = false;
+                this.btn_down.Enabled = this.bodies.Count != 1;
+                this.btn_del.Enabled = true;
+                this.btn_new.Enabled = true;
+                if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[0];
             }
             else if (this.lbx_main.SelectedIndex > 1 && this.lbx_main.SelectedIndex < this.bodies.Count)
             {

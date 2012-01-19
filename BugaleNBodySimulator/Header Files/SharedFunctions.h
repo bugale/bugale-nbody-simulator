@@ -9,3 +9,4 @@ long long get_current_time_usec();
 char* get_algorithm_name(char algorithm);
 void usleep(long long useconds);
 void reset_shared_data(SharedData* shared);
+double getAngle(double x, double y);
