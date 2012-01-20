@@ -40,6 +40,10 @@
 #include "Header Files\SharedFunctions.h"
 #endif
 
+#ifndef Errors_included
+#include "Header Files\Errors.h"
+#endif
+
 #ifndef SharedData_included
 #include "Header Files\SharedData.h"
 #endif

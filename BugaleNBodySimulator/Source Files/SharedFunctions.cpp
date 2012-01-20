@@ -2,8 +2,8 @@
 
 char* getpath(char* arg, char* file)
 {
-	string str = string(arg).substr(0, string(arg).find_last_of("\\/"));
-	string final = (str.append("\\").append((string)file));
+	std::string str = std::string(arg).substr(0, std::string(arg).find_last_of("\\/"));
+	std::string final = (str.append("\\").append((std::string)file));
 	char* ret = (char*)malloc(final.length());
 	final.copy(ret,	final.length(), 0);
 	ret[final.length()] = 0;

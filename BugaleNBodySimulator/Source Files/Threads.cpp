@@ -13,22 +13,26 @@ boost::thread thread_binary;
 
 void Run(char* running_file_name)
 {
+	InitializeConsole();
+	
+	Sleep(100);
+
 	shared = new SharedData();
 	reset_shared_data(shared);
 	data   = new Data(getpath(running_file_name, SETTINGS_FILENAME), getpath(running_file_name, BODIES_FILENAME));
 	bom    = new BinaryOutputManager(data, 100, getpath(running_file_name, BINARYOUTPUT_FILENAME));
 	engine = new Engine(data);
 
-	thread_log         = boost::thread(LogThread, getpath(running_file_name, LOG_FILENAME), engine, data, shared);
-	thread_graphic     = boost::thread(GraphicThread, data, shared);
-	thread_shared_calc = boost::thread(SharedCalculationsThread, engine, data, shared);
-	thread_calculation = boost::thread(CalculationThread, engine, data, shared);
-	thread_binary      = boost::thread(BinaryOutputThread, bom, data, shared);
+	if (data->error == Errors::NoError)
+	{
+		thread_log         = boost::thread(LogThread, getpath(running_file_name, LOG_FILENAME), engine, data, shared);
+		thread_graphic     = boost::thread(GraphicThread, data, shared);
+		thread_shared_calc = boost::thread(SharedCalculationsThread, engine, data, shared);
+		thread_calculation = boost::thread(CalculationThread, engine, data, shared);
+		thread_binary      = boost::thread(BinaryOutputThread, bom, data, shared);
+	}
+	else std::cout << Errors::returnError(data->error);
 
-	Sleep(100);
-
-	InitializeConsole();
-	
 	while (!shared->exit) Sleep(100);
 
 	ExitThreads();
@@ -36,7 +40,7 @@ void Run(char* running_file_name)
 void InitializeConsole()
 {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)ConsoleHandler, true);
-	SetConsoleTitle("Bugale N-Body Simulator");
+	SetConsoleTitle("Bugale N-Body Simulator Beta 0.2");
 	std::cout << "Press CTRL+Break or CTRL+C in the console to exit the program.\n\n";
 }
 bool WINAPI ConsoleHandler(DWORD c_event)

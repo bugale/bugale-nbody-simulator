@@ -1,11 +1,12 @@
 #define Data_included
 #include "..\SharedHeader.h"
 
-using namespace std;
-
 class Data
 {
 public:
+	int filelength;
+	int error;
+
 	int width;
 	int height;
 	bool two_dimensional_calculation;
@@ -53,4 +54,6 @@ private:
 	void readBody(unsigned char* data, int byte_index, Body3D* bodies, int body_index);
 	bool readBool(unsigned char* data, int byte_index, int bit_index);
 	unsigned char* readData(char* filename);
+	void validateData();
+	void validateBodies();
 };

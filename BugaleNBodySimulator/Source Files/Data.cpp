@@ -2,6 +2,7 @@
 
 Data::Data(char* settings_filename, char* bodies_filename)
 {
+	this->error = 0;
 	this->parseSettings(settings_filename);
 	this->parseBodies(bodies_filename);
 }
@@ -9,6 +10,19 @@ Data::Data(char* settings_filename, char* bodies_filename)
 void Data::parseSettings(char* filename)
 {
 	unsigned char* data = this->readData(filename);
+
+	//Check Error//
+	if (data == 0)
+	{
+		this->error = Errors::MissingSettingsFile;
+		return;
+	}
+	if (this->filelength != 166)
+	{
+		this->error = Errors::WrongSettingsFileSize;
+		return;
+	}
+
 	int cur = 0;
 
 	//Parse booleans
@@ -45,15 +59,44 @@ void Data::parseSettings(char* filename)
 	this->keyboard_move_speed1 = *(double   *)&data[cur]; cur += 8;
 	this->keyboard_zoom_speed0 = *(double   *)&data[cur]; cur += 8;
 	this->keyboard_zoom_speed1 = *(double   *)&data[cur]; cur += 8;
+
+	this->validateData();
 }
 void Data::parseBodies(char* filename)
 {
 	unsigned char* data = this->readData(filename);
+
+	//Check Error//
+	if (data == 0)
+	{
+		this->error = Errors::MissingBodyDataFile;
+		return;
+	}
+	if (this->filelength < 12)
+	{
+		this->error = Errors::WrongBodyDataFileSize;
+		return;
+	}
+
 	this->g = *(double*)&data[0];
 	this->num_of_bodies = *(int*)&data[8];
-	this->bodies = (Body3D*)malloc(num_of_bodies * sizeof(Body3D));
+
+	//Check Error//
+	if (this->num_of_bodies < 0)
+	{
+		this->error = Errors::NegativeBodyCount;
+	}
+	if (this->filelength != 12 + this->num_of_bodies * body_size)
+	{
+		this->error = Errors::WrongBodyDataFileSize2;
+		return;
+	}
+
+	this->bodies = (Body3D*)malloc(num_of_bodies * body_size);
 	for (int i = 0; i < this->num_of_bodies; i++)
 		readBody(data, i * body_size + 12, this->bodies, i);
+
+	this->validateBodies();
 }
 void Data::readBody(unsigned char* data, int byte_index, Body3D* bodies, int body_index)
 {
@@ -112,10 +155,37 @@ bool Data::readBool(unsigned char* data, int byte_index, int bit_index)
 unsigned char* Data::readData(char* filename)
 {
 	FILE* data_file = fopen(filename, "rb"); //Open as Read-Binary
-	fseek(data_file, 0, SEEK_END); //Seek to the End of the File
-	long length = ftell(data_file); //Get Current Position = End of the File = File Length
-	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * length);
-	rewind(data_file); //Go Back to the Start of the File
-	fread(data, 1, length, data_file); //Read the File
-	return data;
+	if (data_file)
+	{
+		fseek(data_file, 0, SEEK_END); //Seek to the End of the File
+		this->filelength = ftell(data_file); //Get Current Position = End of the File = File Length
+		unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * this->filelength);
+		rewind(data_file); //Go Back to the Start of the File
+		fread(data, 1, this->filelength, data_file); //Read the File
+		return data;
+	}
+	return 0;
+}
+void Data::validateData()
+{
+	if (this->width < 0)                 this->error = Errors::NoError;
+	if (this->height < 0)                this->error = Errors::NegativeHeight;
+	if (this->dt < 0)                    this->error = Errors::NegativeDT;
+	if (this->max_trails < 0)            this->error = Errors::NegativeMaxTrails;
+	if (this->sphere_slices <= 0)        this->error = Errors::NonPositiveSlices;
+	if (this->sphere_stacks <= 0)        this->error = Errors::NonPositiveStacks;
+	if (this->field_of_view <= 0)        this->error = Errors::NonPositiveFieldOfView;
+	if (this->keyboard_move_speed0 < 0)  this->error = Errors::NegativeMoveSpeed0;
+	if (this->keyboard_move_speed1 <= 0) this->error = Errors::NonPositiveMoveSpeed1;
+	if (this->keyboard_zoom_speed0 < 0)  this->error = Errors::NegativeZoomSpeed0;
+	if (this->keyboard_zoom_speed1 <= 0) this->error = Errors::NonPositiveZoomSpeed1;
+}
+void Data::validateBodies()
+{
+	for (int i = 0; i < this->num_of_bodies; i++)
+	{
+		if (this->bodies[i]._mass < 0) this->error = Errors::NegativeBodyMass;
+		if (this->bodies[i]._radius < 0) this->error = Errors::NegativeBodyRadius;
+		if (this->bodies[i]._trailwidth < 0) this->error = Errors::NegativeBodyTrailWidth;
+	}
 }
