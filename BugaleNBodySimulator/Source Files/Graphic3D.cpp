@@ -94,15 +94,16 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	char* instructions = (char*)malloc(4096);
 	instructions[0] = '\0';
 	sprintf(instructions, "%s%s", instructions, "3D Graphical Output Instructions:\n\n");
-	sprintf(instructions, "%s%s", instructions, "    ESC  : Close the Simulator\n");
-	sprintf(instructions, "%s%s", instructions, "   Arrows: Move Your Camera\n");
-	sprintf(instructions, "%s%s", instructions, "   + or -: Zoom In or Zoom Out\n");
-	sprintf(instructions, "%s%s", instructions, "     r   : Reset Your Camera Position\n");
-	sprintf(instructions, "%s%s", instructions, "     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n");
-	sprintf(instructions, "%s%s", instructions, "     t   : Toggle Trail Showal\n");
-	sprintf(instructions, "%s%s", instructions, "     c   : Toggle Screen Clearance After Every Frame\n");
-	sprintf(instructions, "%s%s", instructions, "     h   : Toggle Crosshair Showal\n");
-	sprintf(instructions, "%s%s", instructions, "     p   : Toggle Pause\n");
+	sprintf(instructions, "%s%s", instructions, "         ESC       : Close the Simulator\n");
+	sprintf(instructions, "%s%s", instructions, "   Left  Mouse Key : Move Your Camera Around the Target\n");
+	sprintf(instructions, "%s%s", instructions, "   Right Mouse Key : Move Your Target Around the Camera\n");
+	sprintf(instructions, "%s%s", instructions, "        + or -     : Zoom In or Zoom Out\n");
+	sprintf(instructions, "%s%s", instructions, "          r        : Reset Your Camera Position\n");
+	sprintf(instructions, "%s%s", instructions, "          m        : Toggle Minimal Text Mode = Much More Frames Per Second\n");
+	sprintf(instructions, "%s%s", instructions, "          t        : Toggle Trail Showal\n");
+	sprintf(instructions, "%s%s", instructions, "          c        : Toggle Screen Clearance After Every Frame\n");
+	sprintf(instructions, "%s%s", instructions, "          h        : Toggle Crosshair Showal\n");
+	sprintf(instructions, "%s%s", instructions, "          p        : Toggle Pause\n");
 	sprintf(instructions, "%s%s", instructions, "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n");
 	sprintf(instructions, "%s%s", instructions, "   Given Index on the Center of the Screen, or Press Space to Always show the\n");
 	sprintf(instructions, "%s%s", instructions, "   Body with the Given Index on the Center of the Screen and press again to\n");
@@ -266,7 +267,7 @@ void Graphic3DClearScreen()
 		if (!graphic3d->min_text)
 		{
 			glVertex3f(0, 0, 0);
-			glVertex3f(0, 16 * 13, 0);
+			glVertex3f(0, 17 * 13, 0);
 			glVertex3f(42 * 8, 16 * 13, 0);
 			glVertex3f(42 * 8, 0, 0);
 
@@ -551,9 +552,15 @@ void Graphic3DDrawText()
 	Graphic3DRenderBitmapString(0, curY += 13, string);
 
 	if (graphic3d->shared->calculated_energy)
-		sprintf(string, "Energy Error: %+E", graphic3d->shared->error);
+		sprintf(string, "Energy Error: %+E", graphic3d->shared->error_energy);
 	else
 		sprintf(string, "Energy Error: Pause to Calculate...");
+	Graphic3DRenderBitmapString(0, curY += 13, string);
+
+	if (graphic3d->shared->calculated_momentum)
+		sprintf(string, "Momentum Error: %+E", graphic3d->shared->error_momentum);
+	else
+		sprintf(string, "Momentum Error: Pause to Calculate...");
 	Graphic3DRenderBitmapString(0, curY += 13, string);
 
 	curY = graphic3d->height + 13 - 3;

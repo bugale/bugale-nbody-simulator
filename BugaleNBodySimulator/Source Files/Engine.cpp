@@ -64,7 +64,7 @@ double Engine::GetEnergySum2D()
 	double energy_pot = 0;
 	double dX, dY;
 	double length;
-	for (int i = 0; i < this->num_of_bodies; i++)
+	for (int i = 0; i < this->num_of_bodies - 1; i++)
 	{
 		for (int j = i + 1; j < this->num_of_bodies; j++)
 		{
@@ -84,7 +84,7 @@ double Engine::GetEnergySum3D()
 	double energy_pot = 0;
 	double dX, dY, dZ;
 	double length;
-	for (int i = 0; i < this->num_of_bodies; i++)
+	for (int i = 0; i < this->num_of_bodies - 1; i++)
 	{
 		for (int j = i + 1; j < this->num_of_bodies; j++)
 		{
@@ -108,7 +108,40 @@ double Engine::GetEnergyError3D()
 	return (this->GetEnergySum3D() - this->initial_energy_sum_3d) / this->initial_energy_sum_3d;
 }
 
-void Engine::NextFrameLeapfrog2D()
+double Engine::GetMomentumSum2D()
+{
+	double momentumX = 0;
+	double momentumY = 0;
+	for (int i = 0; i < this->num_of_bodies; i++)
+	{
+		momentumX += this->bodies[i]._mass * this->bodies[i]._velocityX;
+		momentumY += this->bodies[i]._mass * this->bodies[i]._velocityY;
+	}
+	return sqrt(momentumX*momentumX + momentumY*momentumY);
+}
+double Engine::GetMomentumSum3D()
+{
+	double momentumX = 0;
+	double momentumY = 0;
+	double momentumZ = 0;
+	for (int i = 0; i < this->num_of_bodies; i++)
+	{
+		momentumX += this->bodies[i]._mass * this->bodies[i]._velocityX;
+		momentumY += this->bodies[i]._mass * this->bodies[i]._velocityY;
+		momentumZ += this->bodies[i]._mass * this->bodies[i]._velocityZ;
+	}
+	return sqrt(momentumX*momentumX + momentumY*momentumY + momentumZ*momentumZ);
+}
+double Engine::GetMomentumError2D()
+{
+	return (this->GetMomentumSum2D() - this->initial_momentum_sum_2d) / this->initial_momentum_sum_2d;
+}
+double Engine::GetMomentumError3D()
+{
+	return (this->GetMomentumSum3D() - this->initial_momentum_sum_3d) / this->initial_momentum_sum_3d;
+}
+
+void Engine::NextFrameModifiedEuler2D()
 {
     double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
     double length_pow_3; //The third power of the length of the Rji vector.
@@ -148,7 +181,7 @@ void Engine::NextFrameLeapfrog2D()
         this->bodies[i]._forceX = 0; this->bodies[i]._forceY = 0;
     }
 }
-void Engine::NextFrameLeapfrog3D()
+void Engine::NextFrameModifiedEuler3D()
 {
     double dRX, dRY, dRZ; //used to find the connecting vector between two bodies. The Rji vector.
     double length_pow_3; //The third power of the length of the Rji vector.

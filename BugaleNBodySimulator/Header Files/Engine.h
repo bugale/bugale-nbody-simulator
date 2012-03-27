@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/*WARNING: use only one type of dimension(2d or 3d) and only one type of integration(leapfrog, hermite, etc.) for each intance of this class*/
+/*WARNING: use only one type of dimension(2d or 3d) and only one type of integration(ModifiedEuler, hermite, etc.) for each intance of this class*/
 
 #define Engine_included
 #include "..\SharedHeader.h"
@@ -33,6 +33,8 @@ public:
 	//Logic
 	double initial_energy_sum_2d;
 	double initial_energy_sum_3d;
+	double initial_momentum_sum_2d;
+	double initial_momentum_sum_3d;
 	bool first_hermite;
 
 	//Precalculations
@@ -53,16 +55,22 @@ public:
 	//Initialization
 	Engine(Data* data);
 	void Precalculations(); //Precalculate some constant expressions which are commonly used in the algorithms
-
+	
 	//Energy calculations
 	double GetEnergySum2D();
 	double GetEnergySum3D();
 	double GetEnergyError2D();
 	double GetEnergyError3D();
+
+	//Momentum calculations
+	double GetMomentumSum2D();
+	double GetMomentumSum3D();
+	double GetMomentumError2D();
+	double GetMomentumError3D();
 	
 	//Integration calculations
-	void NextFrameLeapfrog2D();
-	void NextFrameLeapfrog3D();
+	void NextFrameModifiedEuler2D();
+	void NextFrameModifiedEuler3D();
 	void NextFrameHermite2D();
 	void NextFrameHermite3D();
 	void NextFrameHermite2DThreadInitializeFrame(int thread, int total);

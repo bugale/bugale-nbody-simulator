@@ -38,11 +38,11 @@ void Run(char* running_file_name)
 	shared = new SharedData();
 	reset_shared_data(shared);
 	data   = new Data(getpath(running_file_name, SETTINGS_FILENAME), getpath(running_file_name, BODIES_FILENAME));
-	bom    = new BinaryOutputManager(data, 100, getpath(running_file_name, BINARYOUTPUT_FILENAME));
-	engine = new Engine(data);
 
 	if (data->error == Errors::NoError)
 	{
+		bom    = new BinaryOutputManager(data, 100, getpath(running_file_name, BINARYOUTPUT_FILENAME));
+		engine = new Engine(data);
 		thread_log         = boost::thread(LogThread, getpath(running_file_name, LOG_FILENAME), engine, data, shared);
 		thread_graphic     = boost::thread(GraphicThread, data, shared);
 		thread_shared_calc = boost::thread(SharedCalculationsThread, engine, data, shared);
@@ -87,8 +87,8 @@ void CalculationThread(Engine* engine, Data* data, SharedData* shared)
 	{
 		if (shared->pause) Sleep(100);
 		if (shared->pause) continue;
-		if ( data->two_dimensional_calculation && data->algorithm == 0) engine->NextFrameLeapfrog2D();
-		if (!data->two_dimensional_calculation && data->algorithm == 0) engine->NextFrameLeapfrog3D();
+		if ( data->two_dimensional_calculation && data->algorithm == 0) engine->NextFrameModifiedEuler2D();
+		if (!data->two_dimensional_calculation && data->algorithm == 0) engine->NextFrameModifiedEuler3D();
 		if ( data->two_dimensional_calculation && data->algorithm == 1) engine->NextFrameHermite2D();
 		if (!data->two_dimensional_calculation && data->algorithm == 1) engine->NextFrameHermite3D();
 
@@ -132,11 +132,18 @@ void SharedCalculationsThread(Engine* engine, Data* data, SharedData* shared)
 		}
 		if (shared->pause)
 		{
-			if ( data->two_dimensional_calculation) shared->error = engine->GetEnergyError2D();
-			if (!data->two_dimensional_calculation) shared->error = engine->GetEnergyError3D();
+			if ( data->two_dimensional_calculation) shared->error_energy = engine->GetEnergyError2D();
+			if (!data->two_dimensional_calculation) shared->error_energy = engine->GetEnergyError3D();
 			shared->calculated_energy = true;
+			if ( data->two_dimensional_calculation) shared->error_momentum = engine->GetMomentumError2D();
+			if (!data->two_dimensional_calculation) shared->error_momentum = engine->GetMomentumError3D();
+			shared->calculated_momentum = true;
 		}
-		else shared->calculated_energy = false;
+		else
+		{
+			shared->calculated_energy = false;
+			shared->calculated_momentum = false;
+		}
 		while (get_current_time_usec() - time < 500000) Sleep(1);
 	}
 }

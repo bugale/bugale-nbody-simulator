@@ -21,7 +21,7 @@ using System.Drawing;
 using System;
 using System.Collections.Generic;
 
-public enum AlgorithmType { ForwardEuler = 0, Hermite = 1 }
+public enum AlgorithmType { ModeifiedEuler = 0, Hermite = 1 }
 public class MainSettings
 {
     private int width;

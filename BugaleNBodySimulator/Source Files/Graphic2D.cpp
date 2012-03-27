@@ -207,8 +207,8 @@ void Graphic2DClearScreen()
 		if (!graphic2d->min_text)
 		{
 			glVertex3f(0, 0, 0);
-			glVertex3f(0, 13 * 13, 0);
-			glVertex3f(42 * 8, 13 * 13, 0);
+			glVertex3f(0, 14 * 13, 0);
+			glVertex3f(42 * 8, 14 * 13, 0);
 			glVertex3f(42 * 8, 0, 0);
 
 			glVertex3f(0, graphic2d->height - 13 * 5, 0);
@@ -474,9 +474,15 @@ void Graphic2DDrawText()
 	Graphic2DRenderBitmapString(0, curY += 13, string);
 
 	if (graphic2d->shared->calculated_energy)
-		sprintf(string, "Energy Error: %+E", graphic2d->shared->error);
+		sprintf(string, "Energy Error: %+E", graphic2d->shared->error_energy);
 	else
 		sprintf(string, "Energy Error: Pause to Calculate...");
+	Graphic2DRenderBitmapString(0, curY += 13, string);
+
+	if (graphic2d->shared->calculated_momentum)
+		sprintf(string, "Momentum Error: %+E", graphic2d->shared->error_momentum);
+	else
+		sprintf(string, "Moment Error: Pause to Calculate...");
 	Graphic2DRenderBitmapString(0, curY += 13, string);
 
 	curY = graphic2d->height + 13 - 3;

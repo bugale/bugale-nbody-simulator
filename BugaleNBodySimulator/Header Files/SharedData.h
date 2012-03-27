@@ -32,9 +32,11 @@ struct SharedData
 	long long real_start_time;
 	long long start_time; //Start time not including pauses
 	long long pause_start_time;
-	double error;
+	double error_energy;
+	double error_momentum;
 	bool pause;
 	bool exit;
 	bool calculated_energy;
+	bool calculated_momentum;
 	bool reached_max_calculations;
 };

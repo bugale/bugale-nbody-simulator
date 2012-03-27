@@ -54,7 +54,7 @@ char* get_algorithm_name(char algorithm)
 {
 	switch (algorithm)
 	{
-		case 0x00: return "Leapfrog";
+		case 0x00: return "ModifiedEuler";
 		case 0x01: return "Hermite";
 	}
 	return "";
@@ -75,7 +75,8 @@ void reset_shared_data(SharedData* shared)
 	shared->ms_calculations = 0;
 	shared->ms_frames = 0;
 	shared->start_time = get_current_time_usec();
-	shared->error = 0;
+	shared->error_energy = 0;
+	shared->error_momentum = 0;
 	shared->pause = false;
 	shared->exit = false;
 	shared->reached_max_calculations = false;

@@ -169,7 +169,7 @@ namespace BugaleNBodyDataEditor
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.Text = "Bugale N-Body Data Editor";
+            this.Text = "Bugale N-Body Data Editor Beta 0.2";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.splt_main.Panel1.ResumeLayout(false);
             this.splt_main.Panel2.ResumeLayout(false);

@@ -35,7 +35,7 @@ void Data::parseSettings(char* filename)
 		this->error = Errors::MissingSettingsFile;
 		return;
 	}
-	if (this->filelength != 166)
+	if (this->filelength != 182)
 	{
 		this->error = Errors::WrongSettingsFileSize;
 		return;
@@ -104,13 +104,13 @@ void Data::parseBodies(char* filename)
 	{
 		this->error = Errors::NegativeBodyCount;
 	}
-	if (this->filelength != 12 + this->num_of_bodies * body_size)
+	if (this->filelength < (8 + this->num_of_bodies * body_size))
 	{
 		this->error = Errors::WrongBodyDataFileSize2;
 		return;
 	}
 
-	this->bodies = (Body3D*)malloc(num_of_bodies * body_size);
+	this->bodies = (Body3D*)malloc(num_of_bodies * sizeof(Body3D));
 	for (int i = 0; i < this->num_of_bodies; i++)
 		readBody(data, i * body_size + 12, this->bodies, i);
 
