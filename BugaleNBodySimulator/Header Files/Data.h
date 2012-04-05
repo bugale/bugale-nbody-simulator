@@ -31,6 +31,11 @@ public:
 	bool two_dimensional_graphic;
 	bool two_dimensional_binary;
 	bool fullscreen;
+	bool clear_screen;
+	bool show_trails;
+	bool min_text;
+	bool crosshair;
+	bool paused;
 	bool log;
 	char algorithm;
 	double graphic_max_rate;
@@ -39,6 +44,7 @@ public:
 	int max_trails;
 
 	//Graphic output related
+	int stick_to_body;
     int sphere_slices;
     int sphere_stacks;
 	double field_of_view;

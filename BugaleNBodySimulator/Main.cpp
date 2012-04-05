@@ -20,6 +20,13 @@
 
 int main(int argc, char* argv[])
 {	
+	char* buffer = _getcwd(NULL, 0);
+	if (buffer == NULL)
+	{
+		std::cout << "Critical Error: _getcwd failed!";
+		while (true);
+	}
+	std::cout << "Working Directory: " << buffer << "\n";
 	Run(argv[0]);
 	return 0;
 }

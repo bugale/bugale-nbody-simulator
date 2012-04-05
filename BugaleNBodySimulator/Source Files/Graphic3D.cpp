@@ -22,6 +22,7 @@ Graphic3D* graphic3d;
 
 void NewGraphic3D(Data* data, SharedData* shared)
 {
+	log_line("Entered NewGraphic3D with data at 0x%08X and shared at 0x%08X.", data, shared);
 	if (data->graphic_max_rate == 0) return;
 
 	graphic3d = new Graphic3D();
@@ -31,12 +32,13 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->width = data->width;
 	graphic3d->height = data->height;
 	graphic3d->ratio = (double)data->width / (double)graphic3d->height;
-	graphic3d->title = "Bugale N-Body Simulation 3D Graphical Output";
+	graphic3d->title = "Bugale N-Body Simulator 3D Graphical Output Window";
 	graphic3d->fullscreen = data->fullscreen;
-	graphic3d->clear_screen = true;
-	graphic3d->show_trails = false;
-	graphic3d->min_text = false;
-	graphic3d->crosshair = true;
+	graphic3d->fullscreen = data->fullscreen;
+	graphic3d->clear_screen = data->clear_screen;
+	graphic3d->show_trails = data->show_trails;
+	graphic3d->min_text = data->min_text;
+	graphic3d->crosshair = data->crosshair;
 	graphic3d->sin_field_of_view = 2 * sin(graphic3d->data->field_of_view * M_PI / (180 * 2));
 	
 	graphic3d->camera_positionX = data->camera_positionX;
@@ -91,55 +93,79 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->stick_body_index = 0;
 	graphic3d->stick_body_index_entered = false;
 
-	char* instructions = (char*)malloc(4096);
-	instructions[0] = '\0';
-	sprintf(instructions, "%s%s", instructions, "3D Graphical Output Instructions:\n\n");
-	sprintf(instructions, "%s%s", instructions, "         ESC       : Close the Simulator\n");
-	sprintf(instructions, "%s%s", instructions, "   Left  Mouse Key : Move Your Camera Around the Target\n");
-	sprintf(instructions, "%s%s", instructions, "   Right Mouse Key : Move Your Target Around the Camera\n");
-	sprintf(instructions, "%s%s", instructions, "        + or -     : Zoom In or Zoom Out\n");
-	sprintf(instructions, "%s%s", instructions, "          r        : Reset Your Camera Position\n");
-	sprintf(instructions, "%s%s", instructions, "          m        : Toggle Minimal Text Mode = Much More Frames Per Second\n");
-	sprintf(instructions, "%s%s", instructions, "          t        : Toggle Trail Showal\n");
-	sprintf(instructions, "%s%s", instructions, "          c        : Toggle Screen Clearance After Every Frame\n");
-	sprintf(instructions, "%s%s", instructions, "          h        : Toggle Crosshair Showal\n");
-	sprintf(instructions, "%s%s", instructions, "          p        : Toggle Pause\n");
-	sprintf(instructions, "%s%s", instructions, "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n");
-	sprintf(instructions, "%s%s", instructions, "   Given Index on the Center of the Screen, or Press Space to Always show the\n");
-	sprintf(instructions, "%s%s", instructions, "   Body with the Given Index on the Center of the Screen and press again to\n");
-	sprintf(instructions, "%s%s", instructions, "   disable it.\n");
-	sprintf(instructions, "%s%s", instructions, "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
-	std::cout << instructions;
-	free(instructions);
+	std::cout << "3D Graphical Output Instructions:\n\n";
+	std::cout << "         ESC       : Close the Simulator\n";
+	std::cout << "   Left  Mouse Key : Move Your Camera Around the Target\n";
+	std::cout << "   Right Mouse Key : Move Your Target Around the Camera\n";
+	std::cout << "        + or -     : Zoom In or Zoom Out\n";
+	std::cout << "          r        : Reset Your Camera Position\n";
+	std::cout << "          m        : Toggle Minimal Text Mode = Much More Frames Per Second\n";
+	std::cout << "          t        : Toggle Trail Showal\n";
+	std::cout << "          c        : Toggle Screen Clearance After Every Frame\n";
+	std::cout << "          h        : Toggle Crosshair Showal\n";
+	std::cout << "          p        : Toggle Pause\n";
+	std::cout << "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n";
+	std::cout << "   Given Index on the Center of the Screen, or Press Space to Always show the\n";
+	std::cout << "   Body with the Given Index on the Center of the Screen and press again to\n";
+	std::cout << "   disable it.\n";
+	std::cout << "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n";
 
 	Graphic3DInitialize();
+	log_line("Ended NewGraphic3D.");
 }
 void Graphic3DInitialize()
 {
+	log_line("Entered Graphic3DInitialize.");
 	//Initialize GLUT and create the window
-	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA);
-	glutInitWindowPosition(0, 0);
+	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize    (graphic3d->width, graphic3d->height);
-	glutCreateWindow      (graphic3d->title);
+	graphic3d->singlebuf_window = glutCreateWindow(graphic3d->title);
 	glutIgnoreKeyRepeat   (1);
 	if (graphic3d->fullscreen) glutFullScreen();
 
 	//Handlers
-	glutDisplayFunc   (Graphic3DRenderHandler     );
-	glutReshapeFunc   (Graphic3DRatioHandler      );
-	glutKeyboardFunc  (Graphic3DKeyboardHandler   );
-	glutKeyboardUpFunc(Graphic3DKeyboardUpHandler );
-	glutSpecialFunc   (Graphic3DSKeyboardHandler  );
-	glutSpecialUpFunc (Graphic3DSKeyboardUpHandler);
-	glutMouseFunc     (Graphic3DMouseHandler      );
-	glutMotionFunc    (Graphic3DMotionHandler     );
+	glutDisplayFunc   (Graphic3DRenderHandlerSglBfr);
+	glutReshapeFunc   (Graphic3DRatioHandler       );
+	glutKeyboardFunc  (Graphic3DKeyboardHandler    );
+	glutKeyboardUpFunc(Graphic3DKeyboardUpHandler  );
+	glutSpecialFunc   (Graphic3DSKeyboardHandler   );
+	glutSpecialUpFunc (Graphic3DSKeyboardUpHandler );
+	glutMouseFunc     (Graphic3DMouseHandler       );
+	glutMotionFunc    (Graphic3DMotionHandler      );
+	
+	log_line("Graphic3DInitialize - single buffer window set at 0x%08X.", graphic3d->singlebuf_window);
+
+	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	graphic3d->doublebuf_window = glutCreateSubWindow(glutGetWindow(), 0, 0, graphic3d->width, graphic3d->height);
+	glutIgnoreKeyRepeat   (1);
+	if (graphic3d->fullscreen) glutFullScreen();
+
+	//Handlers
+	glutDisplayFunc   (Graphic3DRenderHandlerDblBfr);
+	glutReshapeFunc   (Graphic3DRatioHandler       );
+	glutKeyboardFunc  (Graphic3DKeyboardHandler    );
+	glutKeyboardUpFunc(Graphic3DKeyboardUpHandler  );
+	glutSpecialFunc   (Graphic3DSKeyboardHandler   );
+	glutSpecialUpFunc (Graphic3DSKeyboardUpHandler );
+	glutMouseFunc     (Graphic3DMouseHandler       );
+	glutMotionFunc    (Graphic3DMotionHandler      );
+	
+	log_line("Graphic3DInitialize - double buffer window set at 0x%08X.", graphic3d->doublebuf_window);
 
 	//Enter GLUT event processing cycle
+	glutSetWindow(graphic3d->doublebuf_window);
 	glutMainLoop();
+	log_line("Ended Graphic3DInitialize.");
 }
 
-void Graphic3DRenderHandler()
+void Graphic3DRenderHandlerDblBfr()
 {
+	if (!graphic3d->clear_screen)
+	{
+		glutPostRedisplay();
+		return;
+	}
 	Graphic3DProcessCameraMove();
 	Graphic3DCalculateTemp();
 	Graphic3DClearScreen();
@@ -147,8 +173,30 @@ void Graphic3DRenderHandler()
 
 	Graphic3DDrawTrails();
 	Graphic3DDrawBodies();
-	Graphic3DDrawCrosshair(true);
 	Graphic3DDrawBodyIndex();
+	Graphic3DDrawCrosshair(true);
+	Graphic3DDrawMinText();
+	Graphic3DDrawText();
+	Graphic3DSaveTrails();
+
+	Graphic3DFinalizeFrame();
+}
+void Graphic3DRenderHandlerSglBfr()
+{
+	if (graphic3d->clear_screen)
+	{
+		glutPostRedisplay();
+		return;
+	}
+	Graphic3DProcessCameraMove();
+	Graphic3DCalculateTemp();
+	Graphic3DClearScreen();
+	Graphic3DSetCamera();
+
+	Graphic3DDrawTrails();
+	Graphic3DDrawBodies();
+	Graphic3DDrawBodyIndex();
+	Graphic3DDrawCrosshair(true);
 	Graphic3DDrawMinText();
 	Graphic3DDrawText();
 	Graphic3DSaveTrails();
@@ -157,6 +205,7 @@ void Graphic3DRenderHandler()
 }
 void Graphic3DRatioHandler(int width, int height)
 {
+	log_line("Entered Graphic3DRatioHandler with width as %d and height as %d.", width, height);
 	if (height == 0) height++; //Prevent a division by zero.
 
 	graphic3d->width = width;
@@ -171,6 +220,7 @@ void Graphic3DRatioHandler(int width, int height)
 
 	//Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
+	log_line("Ended Graphic3DRatioHandler.");
 }
 void Graphic3DKeyboardHandler(unsigned char key, int x, int y)
 {
@@ -243,7 +293,7 @@ void Graphic3DMotionHandler(int x, int y)
 
 void Graphic3DClearScreen()
 {
-	if (graphic3d->clear_screen) glClear(GL_COLOR_BUFFER_BIT);
+	if (graphic3d->clear_screen) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	else
 	{
 		Graphic3DSetOrthographicProjection();
@@ -273,8 +323,8 @@ void Graphic3DClearScreen()
 
 			glVertex3f(0, graphic3d->height - 13 * 5, 0);
 			glVertex3f(0, graphic3d->height, 0);
-			glVertex3f(38 * 8, graphic3d->height, 0);
-			glVertex3f(38 * 8, graphic3d->height - 13 * 5, 0);
+			glVertex3f(63 * 8, graphic3d->height, 0);
+			glVertex3f(63 * 8, graphic3d->height - 13 * 5, 0);
 		}
 		if (graphic3d->min_text)
 		{
@@ -298,13 +348,16 @@ void Graphic3DFinalizeFrame()
 {
 	graphic3d->shared->frames++;
 	if (graphic3d->data->graphic_max_rate > 0) usleep((long long)1000000 / graphic3d->data->graphic_max_rate);
-	glFlush();
+	glFinish();
+	if (graphic3d->clear_screen) glutSwapBuffers();
 	glutPostRedisplay();
 }
 
 void Graphic3DExit()
 {
+	log_line("Entered Graphic3DExit.");
 	graphic3d->shared->exit = true;
+	log_line("Ended Graphic3DExit.");
 }
 void Graphic3DReset()
 {
@@ -338,6 +391,18 @@ void Graphic3DToggleShowTrails()
 void Graphic3DToggleClearScreen()
 {
 	graphic3d->clear_screen = !graphic3d->clear_screen;
+	if (graphic3d->clear_screen)
+	{
+		glutSetWindow(graphic3d->doublebuf_window);
+		glutShowWindow();
+	}
+	else
+	{
+		glutSetWindow(graphic3d->doublebuf_window);
+		glutHideWindow();
+		glutSetWindow(graphic3d->singlebuf_window);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 }
 void Graphic3DToggleCameraMove(char direction, bool pressed)
 {
@@ -428,16 +493,16 @@ void Graphic3DDrawBodies()
 {
 	for (int i = 0; i < graphic3d->data->num_of_bodies; i++)
 	{
-		if (!Graphic3DIsInSight(graphic3d->data->bodies[i]._positionX, graphic3d->data->bodies[i]._positionY, graphic3d->data->bodies[i]._positionZ, graphic3d->data->bodies[i]._radius)) continue;
-		Graphic3DDrawBody(graphic3d->data->bodies[i]._positionX,
-						  graphic3d->data->bodies[i]._positionY,
-						  graphic3d->data->bodies[i]._positionZ,
-						  graphic3d->data->bodies[i]._radius,
-				   (double)graphic3d->data->bodies[i]._colorR * 0.003921568,
-				   (double)graphic3d->data->bodies[i]._colorG * 0.003921568,
-				   (double)graphic3d->data->bodies[i]._colorB * 0.003921568,
-				   (double)graphic3d->data->bodies[i]._colorA * 0.003921568,
-						  false);
+		double x = graphic3d->data->bodies[i]._positionX;
+		double y = graphic3d->data->bodies[i]._positionY;
+		double z = graphic3d->data->bodies[i]._positionZ;
+		double r = graphic3d->data->bodies[i]._radius;
+		if (!Graphic3DIsInSight(x, y, z, r)) continue;
+		double R = (double)graphic3d->data->bodies[i]._colorR * 0.003921568;
+		double G = (double)graphic3d->data->bodies[i]._colorG * 0.003921568;
+		double B = (double)graphic3d->data->bodies[i]._colorB * 0.003921568;
+		double A = (double)graphic3d->data->bodies[i]._colorA * 0.003921568;
+		Graphic3DDrawBody(x, y, z, r, R, G, B, A, false);
 	}
 }
 void Graphic3DDrawBodyIndex()
@@ -607,30 +672,36 @@ void Graphic3DDrawTrails()
 	for (int trail = graphic3d->trail_curpos; trail < graphic3d->data->max_trails; trail++)
 		for (int body = 0; body < graphic3d->data->num_of_bodies; body++)
 		{
-			if (!Graphic3DIsInSight(graphic3d->trailX[trail*graphic3d->data->num_of_bodies + body], graphic3d->trailY[trail*graphic3d->data->num_of_bodies + body], graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body], graphic3d->data->bodies[body]._trailwidth)) continue;
-			Graphic3DDrawBody(graphic3d->trailX[trail*graphic3d->data->num_of_bodies + body],
-							  graphic3d->trailY[trail*graphic3d->data->num_of_bodies + body],
-							  graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body],
-							  graphic3d->data->bodies[body]._trailwidth,
-					   (double)graphic3d->data->bodies[body]._trailcolorR * 0.003921568,
-					   (double)graphic3d->data->bodies[body]._trailcolorG * 0.003921568,
-					   (double)graphic3d->data->bodies[body]._trailcolorB * 0.003921568,
-					   (double)graphic3d->data->bodies[body]._trailcolorA * 0.003921568,
-							  true);
+			double x = graphic3d->trailX[trail*graphic3d->data->num_of_bodies + body];
+			double y = graphic3d->trailY[trail*graphic3d->data->num_of_bodies + body];
+			double z = graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body];
+			double r = graphic3d->data->bodies[body]._trailwidth;
+			if (!Graphic3DIsInSight(x, y, z, r)) continue;
+			double R = (double)graphic3d->data->bodies[body]._trailcolorR * 0.003921568;
+			double G = (double)graphic3d->data->bodies[body]._trailcolorG * 0.003921568;
+			double B = (double)graphic3d->data->bodies[body]._trailcolorB * 0.003921568;
+			double A = (double)graphic3d->data->bodies[body]._trailcolorA * 0.003921568;
+			Graphic3DDrawBody(x, y, z, r, R, G, B, A, true);
 		}
 	for (int trail = 0; trail < graphic3d->trail_curpos; trail++)
 		for (int body = 0; body < graphic3d->data->num_of_bodies; body++)
 		{
-			if (!Graphic3DIsInSight(graphic3d->trailX[trail*graphic3d->data->num_of_bodies + body], graphic3d->trailY[trail*graphic3d->data->num_of_bodies + body], graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body], graphic3d->data->bodies[body]._trailwidth)) continue;
-			Graphic3DDrawBody(graphic3d->trailX[trail*graphic3d->data->num_of_bodies + body],
-							  graphic3d->trailY[trail*graphic3d->data->num_of_bodies + body],
-							  graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body],
-							  graphic3d->data->bodies[body]._trailwidth,
-					   (double)graphic3d->data->bodies[body]._trailcolorR * 0.003921568,
-					   (double)graphic3d->data->bodies[body]._trailcolorG * 0.003921568,
-					   (double)graphic3d->data->bodies[body]._trailcolorB * 0.003921568,
-					   (double)graphic3d->data->bodies[body]._trailcolorA * 0.003921568,
-							  true);
+			double x = graphic3d->trailX[trail*graphic3d->data->num_of_bodies + body];
+			double y = graphic3d->trailY[trail*graphic3d->data->num_of_bodies + body];
+			double z = graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body];
+			double r = graphic3d->data->bodies[body]._trailwidth;
+			if (!Graphic3DIsInSight(x, y, z, r)) continue;
+			double R = (double)graphic3d->data->bodies[body]._trailcolorR * 0.003921568;
+			double G = (double)graphic3d->data->bodies[body]._trailcolorG * 0.003921568;
+			double B = (double)graphic3d->data->bodies[body]._trailcolorB * 0.003921568;
+			double A = (double)graphic3d->data->bodies[body]._trailcolorA * 0.003921568;
+			Graphic3DDrawBody(x, y, z, r, R, G, B, A, true);
+			/*if (!graphic3d->clear_screen)
+			{
+				glDrawBuffer(GL_FRONT);
+				Graphic3DDrawBody(x, y, z, r, R, G, B, A, false);
+				glDrawBuffer(GL_BACK);
+			}*/
 		}
 }
 void Graphic3DSaveTrails()

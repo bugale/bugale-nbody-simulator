@@ -20,53 +20,99 @@
 
 char* Errors::returnError(int error)
 {
+	char* ret = (char*)malloc(4096);
+	ret[0] = 0;
 	switch (error)
 	{
 		case NoError:
-			return "";
+			strcat(ret, ""); break;
 		case MissingSettingsFile:
-			return "Missing settings file!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Missing settings file(expected path: ");
+			strcat(ret, SETTINGS_FILENAME);
+			strcat(ret, ")!"); break;
 		case MissingBodyDataFile:
-			return "Missing body data file!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Missing settings file(expected path: ");
+			strcat(ret, BODIES_FILENAME);
+			strcat(ret, ")!"); break;
+		case WrongSettingsFileHeader:
+			strcat(ret, "Settings file is corrupted(wrong header)!"); break;
+		case WrongBodyDataFileHeader:
+			strcat(ret, "Body data file is corrupted(wrong header)!"); break;
+		case WrongSettingsFileVersion:
+			strcat(ret, "Settings file is corrupted(wrong format version)!"); break;
+		case WrongBodyDataFileVersion:
+			strcat(ret, "Body data file is corrupted(wrong format version)!"); break;
 		case WrongSettingsFileSize:
-			return "Settings file is corrupted(wrong file size)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(wrong file size)!"); break;
 		case WrongBodyDataFileSize:
-			return "Body data file is corrupted(wrong file size)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Body data file is corrupted(wrong file size)!"); break;
 		case WrongBodyDataFileSize2:
-			return "Body data file is corrupted(wrong file size)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Body data file is corrupted(wrong file size)!"); break;
 		case NegativeWidth:
-			return "Settings file is corrupted(negative width)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(negative width)!"); break;
 		case NegativeHeight:
-			return "Settings file is corrupted(negative height)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(negative height)!"); break;
 		case NegativeDT:
-			return "Settings file is corrupted(negative DT)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(negative DT)!"); break;
 		case NegativeMaxTrails:
-			return "Settings file is corrupted(negative maximum trail dots count)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(negative maximum trail dots count)!"); break;
 		case NonPositiveSlices:
-			return "Settings file is corrupted(non-positive slices count)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(non-positive slices count)!"); break;
 		case NonPositiveStacks:
-			return "Settings file is corrupted(non-positive stacks count)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(non-positive stacks count)!"); break;
 		case NonPositiveFieldOfView:
-			return "Settings file is corrupted(non-positive field of view)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(non-positive field of view)!"); break;
 		case NegativeMoveSpeed0:
-			return "Settings file is corrupted(negative MoveSpeed0)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(negative MoveSpeed0)!"); break;
 		case NonPositiveMoveSpeed1:
-			return "Settings file is corrupted(non-positive MoveSpeed1)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(non-positive MoveSpeed1)!"); break;
 		case NegativeZoomSpeed0:
-			return "Settings file is corrupted(negative ZoomSpeed0)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(negative ZoomSpeed0)!"); break;
 		case NonPositiveZoomSpeed1:
-			return "Settings file is corrupted(non-positive ZoomSpeed1)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
-		case NegativeBodyCount:
-			return "Body data file is corrupted(negative body count)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Settings file is corrupted(non-positive ZoomSpeed1)!"); break;
 		case NegativeBodyMass:
-			return "Body data file is corrupted(negative body mass)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Body data file is corrupted(negative body mass)!"); break;
 		case NegativeBodyRadius:
-			return "Body data file is corrupted(negative body radius)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Body data file is corrupted(negative body radius)!"); break;
 		case NegativeBodyTrailWidth:
-			return "Body data file is corrupted(negative body trail width)!\nYou can use Bugale N-Body Data Editor to create and edit this file.\nBugale N-Body Data Editor can be found on SourceForge.\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.";
+			strcat(ret, "Body data file is corrupted(negative body trail width)!"); break;
+		case TooManyBodies:
+			strcat(ret, "Body data file is probably corrupted(too many bodies)!"); break;
 		case Other:
-			return "Unidentified Error!";
+			strcat(ret, "Unidentified Error!"); break;
 		default:
-			return "Unknown Error!";
+			strcat(ret, "Unknown Error!"); break;
 	}
+	switch (error)
+	{
+		case MissingSettingsFile:
+		case MissingBodyDataFile:
+		case WrongSettingsFileHeader:
+		case WrongBodyDataFileHeader:
+		case WrongSettingsFileVersion:
+		case WrongBodyDataFileVersion:
+		case WrongSettingsFileSize:
+		case WrongBodyDataFileSize:
+		case WrongBodyDataFileSize2:
+		case NegativeWidth:
+		case NegativeHeight:
+		case NegativeDT:
+		case NegativeMaxTrails:
+		case NonPositiveSlices:
+		case NonPositiveStacks:
+		case NonPositiveFieldOfView:
+		case NegativeMoveSpeed0:
+		case NonPositiveMoveSpeed1:
+		case NegativeZoomSpeed0:
+		case NonPositiveZoomSpeed1:
+		case NegativeBodyMass:
+		case NegativeBodyRadius:
+		case NegativeBodyTrailWidth:
+		case TooManyBodies:
+			strcat(ret, "\nYou can use Bugale N-Body Data Editor to create and edit this file.");
+			strcat(ret, "\nBugale N-Body Data Editor can be found on SourceForge.");
+			strcat(ret, "\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.");
+			break;
+	}
+	return ret;
 }

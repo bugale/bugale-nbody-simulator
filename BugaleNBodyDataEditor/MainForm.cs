@@ -31,7 +31,7 @@ namespace BugaleNBodyDataEditor
         private MainSettings mainSettings;
         private List<Body3D> bodies;
         private bool changeGrid = true;
-
+        private bool changed = false;
         public MainForm()
         {
             InitializeComponent();
@@ -39,25 +39,7 @@ namespace BugaleNBodyDataEditor
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            mainSettings = new MainSettings();
-            bodies = new List<Body3D>();
-            byte[] bodies_data;
-            byte[] settings_data;
-            double g = mainSettings.G;
-            if (System.IO.File.Exists(Application.StartupPath + "\\bodies.dat"))
-            {
-                bodies_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\bodies.dat");
-                bodies = Body3D.ListFromBytes(bodies_data);
-                g = BitConverter.ToDouble(bodies_data, 0);
-            }
-            if (System.IO.File.Exists(Application.StartupPath + "\\settings.dat"))
-            {
-                settings_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\settings.dat");
-                mainSettings.FromBytes(settings_data, g);
-            }
-            this.RefreshList();
-            this.lbx_main.SelectedIndex = 0;
-            this.grd_settings.SelectedObject = this.mainSettings;
+
         }
 
         private void RefreshList()
@@ -149,8 +131,40 @@ namespace BugaleNBodyDataEditor
         {
             try
             {
-                System.IO.File.WriteAllBytes(Application.StartupPath + "\\settings.dat", this.mainSettings.ToBytes());
-                System.IO.File.WriteAllBytes(Application.StartupPath + "\\bodies.dat", Body3D.ListToBytes(this.bodies, this.mainSettings.G));
+                System.IO.File.WriteAllBytes(Application.StartupPath + "\\settings.bdf", this.mainSettings.ToBytes());
+                System.IO.File.WriteAllBytes(Application.StartupPath + "\\bodies.bdf", Body3D.ListToBytes(this.bodies, this.mainSettings.G));
+                changed = false;
+            }
+            catch (Exception x)
+            {
+                MessageBox.Show(x.ToString());
+            }
+        }
+
+        private void btn_open_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                mainSettings = new MainSettings();
+                bodies = new List<Body3D>();
+                byte[] bodies_data;
+                byte[] settings_data;
+                double g = mainSettings.G;
+                if (System.IO.File.Exists(Application.StartupPath + "\\bodies.bdf"))
+                {
+                    bodies_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\bodies.bdf");
+                    bodies = Body3D.ListFromBytes1(bodies_data);
+                    g = BitConverter.ToDouble(bodies_data, 12);
+                }
+                if (System.IO.File.Exists(Application.StartupPath + "\\settings.bdf"))
+                {
+                    settings_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\settings.bdf");
+                    mainSettings.FromBytes1(settings_data, g);
+                }
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = 0;
+                this.grd_settings.SelectedObject = this.mainSettings;
+                this.btn_new.Enabled = true;
             }
             catch (Exception x)
             {
@@ -160,11 +174,92 @@ namespace BugaleNBodyDataEditor
 
         private void grd_settings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
+            if (e.ChangedItem.Label != "Name") return;
             this.changeGrid = false;
             int select = this.lbx_main.SelectedIndex;
             this.RefreshList();
             this.lbx_main.SelectedIndex = select;
             this.changeGrid = true;
+            this.changed = true;
+        }
+
+        private void btn_open_old_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                mainSettings = new MainSettings();
+                bodies = new List<Body3D>();
+                byte[] bodies_data;
+                byte[] settings_data;
+                double g = mainSettings.G;
+                if (System.IO.File.Exists(Application.StartupPath + "\\bodies.dat"))
+                {
+                    bodies_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\bodies.dat");
+                    bodies = Body3D.ListFromBytes0(bodies_data);
+                    g = BitConverter.ToDouble(bodies_data, 0);
+                }
+                if (System.IO.File.Exists(Application.StartupPath + "\\settings.dat"))
+                {
+                    settings_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\settings.dat");
+                    mainSettings.FromBytes0(settings_data, g);
+                }
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = 0;
+                this.grd_settings.SelectedObject = this.mainSettings;
+                this.btn_new.Enabled = true;
+            }
+            catch (Exception x)
+            {
+                MessageBox.Show(x.ToString());
+            }
+        }
+
+        private void btn_close_Click(object sender, EventArgs e)
+        {
+            if (this.changed)
+                switch (MessageBox.Show("Do you want to save before closing?", "Attention!", MessageBoxButtons.YesNoCancel))
+                {
+                    case System.Windows.Forms.DialogResult.No:
+                        changed = false;
+                        this.Close();
+                        return;
+                    case System.Windows.Forms.DialogResult.Yes:
+                        btn_save_Click(null, null);
+                        this.Close();
+                        return;
+                }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (this.changed)
+                switch (MessageBox.Show("Do you want to save before closing?", "Attention!", MessageBoxButtons.YesNoCancel))
+                {
+                    case System.Windows.Forms.DialogResult.Cancel:
+                        e.Cancel = true;
+                        return;
+                    case System.Windows.Forms.DialogResult.Yes:
+                        btn_save_Click(null, null);
+                        return;
+                }
+        }
+
+        private void btn_newfile_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                mainSettings = new MainSettings();
+                bodies = new List<Body3D>();
+                double g = mainSettings.G;
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = 0;
+                this.grd_settings.SelectedObject = this.mainSettings;
+                this.btn_new.Enabled = true;
+            }
+            catch (Exception x)
+            {
+                MessageBox.Show(x.ToString());
+            }
         }
     }
 }

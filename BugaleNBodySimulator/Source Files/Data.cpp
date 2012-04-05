@@ -35,22 +35,39 @@ void Data::parseSettings(char* filename)
 		this->error = Errors::MissingSettingsFile;
 		return;
 	}
-	if (this->filelength != 182)
+	if (this->filelength != settings_size)
 	{
 		this->error = Errors::WrongSettingsFileSize;
+		return;
+	}
+	if (*(unsigned long long*)&data[0] != 0xBDF0BDF01111BDF0)
+	{
+		this->error = Errors::WrongSettingsFileHeader;
+		return;
+	}
+	if (*(int*)&data[8] != data_files_version)
+	{
+		this->error = Errors::WrongSettingsFileVersion;
 		return;
 	}
 
 	int cur = 0;
 
 	//Parse booleans
-	this->two_dimensional_calculation = this->readBool(data, 0, cur++);
-	this->two_dimensional_graphic     = this->readBool(data, 0, cur++);
-	this->two_dimensional_binary      = this->readBool(data, 0, cur++);
-	this->fullscreen                  = this->readBool(data, 0, cur++);
-	this->log                         = this->readBool(data, 0, cur++);
+	this->two_dimensional_calculation = this->readBool(data, 12, cur++);
+	this->two_dimensional_graphic     = this->readBool(data, 12, cur++);
+	this->two_dimensional_binary      = this->readBool(data, 12, cur++);
+	this->fullscreen                  = this->readBool(data, 12, cur++);
+	this->clear_screen                = this->readBool(data, 12, cur++);
+	this->show_trails                 = this->readBool(data, 12, cur++);
+	this->min_text                    = this->readBool(data, 12, cur++);
+	this->crosshair                   = this->readBool(data, 12, cur++);
 
-	cur = 1;
+	cur = 0;
+	this->paused                      = this->readBool(data, 13, cur++);
+	this->log                         = this->readBool(data, 13, cur++);
+
+	cur = 14;
 	this->width                = *(int      *)&data[cur]; cur += 4;
 	this->height               = *(int      *)&data[cur]; cur += 4;
 	this->algorithm            =               data[cur]; cur += 1;
@@ -59,6 +76,7 @@ void Data::parseSettings(char* filename)
 	this->binary_max_rate      = *(double   *)&data[cur]; cur += 8;
 	this->max_calculations     = *(long long*)&data[cur]; cur += 8;
 	this->max_trails           = *(int      *)&data[cur]; cur += 4;
+	this->stick_to_body        = *(int      *)&data[cur]; cur += 4;
 	this->sphere_slices        = *(int      *)&data[cur]; cur += 4;
 	this->sphere_stacks        = *(int      *)&data[cur]; cur += 4;
 	this->field_of_view        = *(double   *)&data[cur]; cur += 8;
@@ -79,6 +97,8 @@ void Data::parseSettings(char* filename)
 	this->keyboard_zoom_speed1 = *(double   *)&data[cur]; cur += 8;
 
 	this->validateData();
+
+	free(data);
 }
 void Data::parseBodies(char* filename)
 {
@@ -90,21 +110,32 @@ void Data::parseBodies(char* filename)
 		this->error = Errors::MissingBodyDataFile;
 		return;
 	}
-	if (this->filelength < 12)
+	if (this->filelength < body_data_header_size)
 	{
 		this->error = Errors::WrongBodyDataFileSize;
 		return;
 	}
+	if (*(unsigned long long*)&data[0] != 0xBDF0BDF02222BDF0)
+	{
+		this->error = Errors::WrongBodyDataFileHeader;
+		return;
+	}
+	if (*(int*)&data[8] != data_files_version)
+	{
+		this->error = Errors::WrongBodyDataFileVersion;
+		return;
+	}
 
-	this->g = *(double*)&data[0];
-	this->num_of_bodies = *(int*)&data[8];
+	this->g = *(double*)&data[12];
+	this->num_of_bodies = *(int*)&data[20];
 
 	//Check Error//
 	if (this->num_of_bodies < 0)
 	{
-		this->error = Errors::NegativeBodyCount;
+		this->error = Errors::TooManyBodies;
+		return;
 	}
-	if (this->filelength < (8 + this->num_of_bodies * body_size))
+	if (this->filelength < (body_data_header_size + this->num_of_bodies * body_size))
 	{
 		this->error = Errors::WrongBodyDataFileSize2;
 		return;
@@ -112,9 +143,11 @@ void Data::parseBodies(char* filename)
 
 	this->bodies = (Body3D*)malloc(num_of_bodies * sizeof(Body3D));
 	for (int i = 0; i < this->num_of_bodies; i++)
-		readBody(data, i * body_size + 12, this->bodies, i);
+		readBody(data, i * body_size + body_data_header_size, this->bodies, i);
 
 	this->validateBodies();
+
+	free(data);
 }
 void Data::readBody(unsigned char* data, int byte_index, Body3D* bodies, int body_index)
 {

@@ -21,6 +21,7 @@
 
 struct SharedData
 {
+	FILE* log_file;
 	long long frames;
 	long long calculations;
 	long long frames_saved;

@@ -20,6 +20,7 @@
 
 Engine::Engine(Data* data)
 {
+	log_line("Entered Engine constructor with data at 0x%08X.", data);
 	this->bodies = data->bodies;
 	this->num_of_bodies = data->num_of_bodies;
 	this->dt = data->dt;;
@@ -28,10 +29,14 @@ Engine::Engine(Data* data)
 
 	this->initial_energy_sum_2d = this->GetEnergySum2D();
 	this->initial_energy_sum_3d = this->GetEnergySum3D();
+	this->initial_momentum_sum_2d = this->GetMomentumSum2D();
+	this->initial_momentum_sum_3d = this->GetMomentumSum3D();
 	this->first_hermite = true;
+	log_line("Ended Engine constructor with this at 0x%08X.", this);
 }
 void Engine::Precalculations()
 {
+	log_line("Entered Engine::Precalculations.");
 	this->dt_div_2 = this->dt / 2;
 	this->dt_div_12 = this->dt / 12;
 	this->dt_squared_mul_g_div_12 = this->g * this->dt * this->dt / 12;
@@ -56,10 +61,15 @@ void Engine::Precalculations()
 		this->mass1_mul_mass2_mul_g[i] = (double*)malloc(sizeof(double) * this->num_of_bodies);
 		for (int j = 0; j < this->num_of_bodies; j++) this->mass1_mul_mass2_mul_g[i][j] = this->g * this->bodies[i]._mass * this->bodies[j]._mass;
 	}
+	log_line("Ended Engine::Precalculations(1/4) with dt_div_2 as %d dt_div_12 as %d dt_squared_mul_g_div_12 as %d and dt_pow_3_div_6 as %d.", this->dt_div_2, this->dt_div_12, this->dt_squared_mul_g_div_12, this->dt_pow_3_div_6);
+	log_line("Ended Engine::Precalculations(2/4) with dt_squared_div_2 as %d dt_squared_div_12 as %d dt_div_mass at 0x%08X and dt_div_2mass at 0x%08X.", this->dt_squared_div_2, this->dt_squared_div_12, this->dt_div_mass, this->dt_div_2mass);
+	log_line("Ended Engine::Precalculations(3/4) with mass_mul_g at 0x%08X dt_squared_div_2mass at 0x%08X dt_squared_div_12mass at 0x%08X and dt_pow_3_div_6mass at 0x%08X.", this->mass_mul_g, this->dt_squared_div_2mass, this->dt_squared_div_12mass, this->dt_pow_3_div_6mass);
+	log_line("Ended Engine::Precalculations(4/4) with mass1_mul_mass2_mul_g at 0x%08X.", this->mass1_mul_mass2_mul_g);
 }
 
 double Engine::GetEnergySum2D()
 {
+	log_line("Entered Engine::GetEnergySum2D.");
 	double energy_kin = 0;
 	double energy_pot = 0;
 	double dX, dY;
@@ -76,10 +86,12 @@ double Engine::GetEnergySum2D()
 		energy_kin += this->bodies[i]._mass * (this->bodies[i]._velocityX * this->bodies[i]._velocityX + this->bodies[i]._velocityY * this->bodies[i]._velocityY);
 	}
 	energy_kin /= 2;
+	log_line("Ended Engine::GetEnergySum2D with result as %G.", energy_kin + energy_pot);
 	return energy_kin + energy_pot;
 }
 double Engine::GetEnergySum3D()
 {
+	log_line("Entered Engine::GetEnergySum3D.");
 	double energy_kin = 0;
 	double energy_pot = 0;
 	double dX, dY, dZ;
@@ -97,6 +109,7 @@ double Engine::GetEnergySum3D()
 		energy_kin += this->bodies[i]._mass * (this->bodies[i]._velocityX * this->bodies[i]._velocityX + this->bodies[i]._velocityY * this->bodies[i]._velocityY + this->bodies[i]._velocityZ * this->bodies[i]._velocityZ);
 	}
 	energy_kin /= 2;
+	log_line("Ended Engine::GetEnergySum3D with result as %G.", energy_kin + energy_pot);
 	return energy_kin + energy_pot;
 }
 double Engine::GetEnergyError2D()
@@ -110,27 +123,35 @@ double Engine::GetEnergyError3D()
 
 double Engine::GetMomentumSum2D()
 {
+	log_line("Entered Engine::GetMomentumSum2D.");
 	double momentumX = 0;
 	double momentumY = 0;
+	double ret;
 	for (int i = 0; i < this->num_of_bodies; i++)
 	{
 		momentumX += this->bodies[i]._mass * this->bodies[i]._velocityX;
 		momentumY += this->bodies[i]._mass * this->bodies[i]._velocityY;
 	}
-	return sqrt(momentumX*momentumX + momentumY*momentumY);
+	ret = sqrt(momentumX*momentumX + momentumY*momentumY);
+	log_line("Ended Engine::GetMomentumSum2D with result as %G.", ret);
+	return ret;
 }
 double Engine::GetMomentumSum3D()
 {
+	log_line("Entered Engine::GetMomentumSum3D.");
 	double momentumX = 0;
 	double momentumY = 0;
 	double momentumZ = 0;
+	double ret;
 	for (int i = 0; i < this->num_of_bodies; i++)
 	{
 		momentumX += this->bodies[i]._mass * this->bodies[i]._velocityX;
 		momentumY += this->bodies[i]._mass * this->bodies[i]._velocityY;
 		momentumZ += this->bodies[i]._mass * this->bodies[i]._velocityZ;
 	}
-	return sqrt(momentumX*momentumX + momentumY*momentumY + momentumZ*momentumZ);
+	ret = sqrt(momentumX*momentumX + momentumY*momentumY + momentumZ*momentumZ);
+	log_line("Ended Engine::GetMomentumSum3D with result as %G.", ret);
+	return ret;
 }
 double Engine::GetMomentumError2D()
 {
@@ -462,6 +483,7 @@ void Engine::NextFrameHermite2DThreadRun(int thread, int total)
 
 void Engine::InitializeHermite2D()
 {
+	log_line("Entered Engine::InitializeHermite2D.");
 	double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
 	double dVX, dVY; //used to find the Vji for the hermite formula.
 	double dRdV_mul_three_div_length_pow_2; //(dR dot-multiply dV) multiplied by the minus-second(-2) power of the length of the Rji vector multiplied by 3 for the hermite formula.
@@ -556,9 +578,11 @@ void Engine::InitializeHermite2D()
             this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY;
         }
 	this->first_hermite = false;
+	log_line("Ended Engine::InitializeHermite2D.");
 }
 void Engine::InitializeHermite3D()
 {
+	log_line("Entered Engine::InitializeHermite3D.");
 	double dRX, dRY, dRZ; //used to find the connecting vector between two bodies. The Rji vector.
 	double dVX, dVY, dVZ; //used to find the Vji for the hermite formula.
 	double dRdV_mul_three_div_length_pow_2; //(dR dot-multiply dV) multiplied by the minus-second(-2) power of the length of the Rji vector multiplied by 3 for the hermite formula.
@@ -667,6 +691,7 @@ void Engine::InitializeHermite3D()
             this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY; this->bodies[j]._forceZ -= dRZ;
         }
 	this->first_hermite = false;
+	log_line("Ended Engine::InitializeHermite3D.");
 }
 
 void Engine::Hermite2DThread(Engine* engine, int thread, int total, volatile bool* done, bool* exit)

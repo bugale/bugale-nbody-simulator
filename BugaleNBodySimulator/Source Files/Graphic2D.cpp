@@ -22,6 +22,7 @@ Graphic2D* graphic2d;
 
 void NewGraphic2D(Data* data, SharedData* shared)
 {
+	log_line("Entered NewGraphic2D with data at 0x%08X and shared at 0x%08X.", data, shared);
 	if (data->graphic_max_rate == 0) return;
 
 	graphic2d = new Graphic2D();
@@ -31,12 +32,12 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->width = data->width;
 	graphic2d->height = data->height;
 	graphic2d->ratio = (double)data->width / (double)graphic2d->height;
-	graphic2d->title = "Bugale N-Body Simulation 2D Graphical Output";
+	graphic2d->title = "Bugale N-Body Simulator 2D Graphical Output Window";
 	graphic2d->fullscreen = data->fullscreen;
-	graphic2d->clear_screen = true;
-	graphic2d->show_trails = false;
-	graphic2d->min_text = false;
-	graphic2d->crosshair = true;
+	graphic2d->clear_screen = data->clear_screen;
+	graphic2d->show_trails = data->show_trails;
+	graphic2d->min_text = data->min_text;
+	graphic2d->crosshair = data->crosshair;
 	graphic2d->pi_mul_2_div_slices = (double)2 * M_PI / graphic2d->data->sphere_slices;
 	graphic2d->sin_field_of_view = 2 * sin(graphic2d->data->field_of_view * M_PI / (180 * 2));
 
@@ -65,52 +66,96 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->stick_body_index = 0;
 	graphic2d->stick_body_index_entered = false;
 
-	char* instructions = (char*)malloc(4096);
-	instructions[0] = '\0';
-	sprintf(instructions, "%s%s", instructions, "2D Graphical Output Instructions:\n\n");
-	sprintf(instructions, "%s%s", instructions, "    ESC  : Close the Simulator\n");
-	sprintf(instructions, "%s%s", instructions, "   Arrows: Move Your Camera\n");
-	sprintf(instructions, "%s%s", instructions, "   + or -: Zoom In or Zoom Out\n");
-	sprintf(instructions, "%s%s", instructions, "     r   : Reset Your Camera Position\n");
-	sprintf(instructions, "%s%s", instructions, "     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n");
-	sprintf(instructions, "%s%s", instructions, "     t   : Toggle Trail Showal\n");
-	sprintf(instructions, "%s%s", instructions, "     c   : Toggle Screen Clearance After Every Frame\n");
-	sprintf(instructions, "%s%s", instructions, "     h   : Toggle Crosshair Showal\n");
-	sprintf(instructions, "%s%s", instructions, "     p   : Toggle Pause\n");
-	sprintf(instructions, "%s%s", instructions, "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n");
-	sprintf(instructions, "%s%s", instructions, "   Given Index on the Center of the Screen, or Press Space to Always show the\n");
-	sprintf(instructions, "%s%s", instructions, "   Body with the Given Index on the Center of the Screen and press again to\n");
-	sprintf(instructions, "%s%s", instructions, "   disable it.\n");
-	sprintf(instructions, "%s%s", instructions, "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
-	std::cout << instructions;
-	free(instructions);
+	std::cout << "2D Graphical Output Instructions:\n\n";
+	std::cout << "    ESC  : Close the Simulator\n";
+	std::cout << "   Arrows: Move Your Camera\n";
+	std::cout << "   + or -: Zoom In or Zoom Out\n";
+	std::cout << "     r   : Reset Your Camera Position\n";
+	std::cout << "     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n";
+	std::cout << "     t   : Toggle Trail Showal\n";
+	std::cout << "     c   : Toggle Screen Clearance After Every Frame\n";
+	std::cout << "     h   : Toggle Crosshair Showal\n";
+	std::cout << "     p   : Toggle Pause\n";
+	std::cout << "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n";
+	std::cout << "   Given Index on the Center of the Screen, or Press Space to Always show the\n";
+	std::cout << "   Body with the Given Index on the Center of the Screen and press again to\n";
+	std::cout << "   disable it.\n";
+	std::cout << "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n";
 
 	Graphic2DInitialize();
+	log_line("Ended NewGraphic2D.");
 }
 void Graphic2DInitialize()
 {
+	log_line("Entered Graphic2DInitialize.");
 	//Initialize GLUT and create the window
 	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA);
-	glutInitWindowPosition(0, 0);
+	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize    (graphic2d->width, graphic2d->height);
-	glutCreateWindow      (graphic2d->title);
+	graphic2d->singlebuf_window = glutCreateWindow(graphic2d->title);
 	glutIgnoreKeyRepeat   (1);
 	if (graphic2d->fullscreen) glutFullScreen();
 
 	//Handlers
-	glutDisplayFunc   (Graphic2DRenderHandler     );
-	glutReshapeFunc   (Graphic2DRatioHandler      );
-	glutKeyboardFunc  (Graphic2DKeyboardHandler   );
-	glutKeyboardUpFunc(Graphic2DKeyboardUpHandler );
-	glutSpecialFunc   (Graphic2DSKeyboardHandler  );
-	glutSpecialUpFunc (Graphic2DSKeyboardUpHandler);
+	glutDisplayFunc   (Graphic2DRenderHandlerSglBfr);
+	glutReshapeFunc   (Graphic2DRatioHandler       );
+	glutKeyboardFunc  (Graphic2DKeyboardHandler    );
+	glutKeyboardUpFunc(Graphic2DKeyboardUpHandler  );
+	glutSpecialFunc   (Graphic2DSKeyboardHandler   );
+	glutSpecialUpFunc (Graphic2DSKeyboardUpHandler );
+
+	log_line("Graphic2DInitialize - single buffer window set at 0x%08X.", graphic2d->singlebuf_window);
+
+	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA);
+	graphic2d->doublebuf_window = glutCreateSubWindow(glutGetWindow(), 0, 0, graphic2d->width, graphic2d->height);
+	glutIgnoreKeyRepeat   (1);
+	if (graphic2d->fullscreen) glutFullScreen();
+
+	//Handlers
+	glutDisplayFunc   (Graphic2DRenderHandlerDblBfr);
+	glutReshapeFunc   (Graphic2DRatioHandler       );
+	glutKeyboardFunc  (Graphic2DKeyboardHandler    );
+	glutKeyboardUpFunc(Graphic2DKeyboardUpHandler  );
+	glutSpecialFunc   (Graphic2DSKeyboardHandler   );
+	glutSpecialUpFunc (Graphic2DSKeyboardUpHandler );
+
+	log_line("Graphic2DInitialize - double buffer window set at 0x%08X.", graphic2d->doublebuf_window);
 
 	//Enter GLUT event processing cycle
+	glutSetWindow(graphic2d->doublebuf_window);
 	glutMainLoop();
+	log_line("Ended Graphic2DInitialize.");
 }
 
-void Graphic2DRenderHandler()
+void Graphic2DRenderHandlerDblBfr()
 {
+	if (!graphic2d->clear_screen)
+	{
+		glutPostRedisplay();
+		return;
+	}
+	Graphic2DProcessCameraMove();
+	Graphic2DCalculateTemp();
+	Graphic2DClearScreen();
+	Graphic2DSetCamera();
+
+	Graphic2DDrawTrails();
+	Graphic2DDrawBodies();
+	Graphic2DDrawBodyIndex();
+	Graphic2DDrawCrosshair(true);
+	Graphic2DDrawMinText();
+	Graphic2DDrawText();
+	Graphic2DSaveTrails();
+
+	Graphic2DFinalizeFrame();
+}
+void Graphic2DRenderHandlerSglBfr()
+{
+	if (graphic2d->clear_screen)
+	{
+		glutPostRedisplay();
+		return;
+	}
 	Graphic2DProcessCameraMove();
 	Graphic2DCalculateTemp();
 	Graphic2DClearScreen();
@@ -128,6 +173,7 @@ void Graphic2DRenderHandler()
 }
 void Graphic2DRatioHandler(int width, int height)
 {
+	log_line("Entered Graphic2DRatioHandler with width as %d and height as %d.", width, height);
 	if (height == 0) height++; //Prevent a division by zero.
 
 	graphic2d->width = width;
@@ -142,6 +188,7 @@ void Graphic2DRatioHandler(int width, int height)
 
 	//Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
+	log_line("Ended Graphic2DRatioHandler.");
 }
 void Graphic2DKeyboardHandler(unsigned char key, int x, int y)
 {
@@ -213,8 +260,8 @@ void Graphic2DClearScreen()
 
 			glVertex3f(0, graphic2d->height - 13 * 5, 0);
 			glVertex3f(0, graphic2d->height, 0);
-			glVertex3f(38 * 8, graphic2d->height, 0);
-			glVertex3f(38 * 8, graphic2d->height - 13 * 5, 0);
+			glVertex3f(63 * 8, graphic2d->height, 0);
+			glVertex3f(63 * 8, graphic2d->height - 13 * 5, 0);
 		}
 		if (graphic2d->min_text)
 		{
@@ -238,13 +285,16 @@ void Graphic2DFinalizeFrame()
 {
 	graphic2d->shared->frames++;
 	if (graphic2d->data->graphic_max_rate > 0) usleep((long long)1000000 / graphic2d->data->graphic_max_rate);
-	glFlush();
+	glFinish();
+	if (graphic2d->clear_screen) glutSwapBuffers();
 	glutPostRedisplay();
 }
 
 void Graphic2DExit()
 {
+	log_line("Entered Graphic2DExit.");
 	graphic2d->shared->exit = true;
+	log_line("Ended Graphic2DExit.");
 }
 void Graphic2DReset()
 {
@@ -272,6 +322,18 @@ void Graphic2DToggleShowTrails()
 void Graphic2DToggleClearScreen()
 {
 	graphic2d->clear_screen = !graphic2d->clear_screen;
+	if (graphic2d->clear_screen)
+	{
+		glutSetWindow(graphic2d->doublebuf_window);
+		glutShowWindow();
+	}
+	else
+	{
+		glutSetWindow(graphic2d->doublebuf_window);
+		glutHideWindow();
+		glutSetWindow(graphic2d->singlebuf_window);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 }
 void Graphic2DToggleCameraMove(char direction, bool pressed)
 {

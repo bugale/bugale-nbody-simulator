@@ -49,15 +49,23 @@ namespace BugaleNBodyDataEditor
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.grd_settings = new System.Windows.Forms.PropertyGrid();
             this.splt_main = new System.Windows.Forms.SplitContainer();
-            this.btn_save = new System.Windows.Forms.Button();
-            this.btn_del = new System.Windows.Forms.Button();
-            this.btn_new = new System.Windows.Forms.Button();
-            this.btn_down = new System.Windows.Forms.Button();
-            this.btn_up = new System.Windows.Forms.Button();
             this.lbx_main = new System.Windows.Forms.ListBox();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_newfile = new System.Windows.Forms.ToolStripMenuItem();
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_open_old = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_close = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_new = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_del = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_up = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_down = new System.Windows.Forms.ToolStripMenuItem();
             this.splt_main.Panel1.SuspendLayout();
             this.splt_main.Panel2.SuspendLayout();
             this.splt_main.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // grd_settings
@@ -67,7 +75,7 @@ namespace BugaleNBodyDataEditor
             this.grd_settings.Location = new System.Drawing.Point(0, 0);
             this.grd_settings.Name = "grd_settings";
             this.grd_settings.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.grd_settings.Size = new System.Drawing.Size(396, 266);
+            this.grd_settings.Size = new System.Drawing.Size(396, 255);
             this.grd_settings.TabIndex = 0;
             this.grd_settings.ToolbarVisible = false;
             this.grd_settings.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.grd_settings_PropertyValueChanged);
@@ -75,79 +83,21 @@ namespace BugaleNBodyDataEditor
             // splt_main
             // 
             this.splt_main.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splt_main.Location = new System.Drawing.Point(0, 0);
+            this.splt_main.Location = new System.Drawing.Point(0, 24);
             this.splt_main.Name = "splt_main";
             this.splt_main.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splt_main.Panel1
             // 
             this.splt_main.Panel1.CausesValidation = false;
-            this.splt_main.Panel1.Controls.Add(this.btn_save);
-            this.splt_main.Panel1.Controls.Add(this.btn_del);
-            this.splt_main.Panel1.Controls.Add(this.btn_new);
-            this.splt_main.Panel1.Controls.Add(this.btn_down);
-            this.splt_main.Panel1.Controls.Add(this.btn_up);
             this.splt_main.Panel1.Controls.Add(this.lbx_main);
             // 
             // splt_main.Panel2
             // 
             this.splt_main.Panel2.Controls.Add(this.grd_settings);
-            this.splt_main.Size = new System.Drawing.Size(396, 530);
-            this.splt_main.SplitterDistance = 260;
+            this.splt_main.Size = new System.Drawing.Size(396, 506);
+            this.splt_main.SplitterDistance = 247;
             this.splt_main.TabIndex = 1;
-            // 
-            // btn_save
-            // 
-            this.btn_save.Location = new System.Drawing.Point(325, 198);
-            this.btn_save.Name = "btn_save";
-            this.btn_save.Size = new System.Drawing.Size(59, 47);
-            this.btn_save.TabIndex = 5;
-            this.btn_save.Text = "Save";
-            this.btn_save.UseVisualStyleBackColor = true;
-            this.btn_save.Click += new System.EventHandler(this.btn_save_Click);
-            // 
-            // btn_del
-            // 
-            this.btn_del.Enabled = false;
-            this.btn_del.Location = new System.Drawing.Point(325, 104);
-            this.btn_del.Name = "btn_del";
-            this.btn_del.Size = new System.Drawing.Size(59, 25);
-            this.btn_del.TabIndex = 4;
-            this.btn_del.Text = "Remove";
-            this.btn_del.UseVisualStyleBackColor = true;
-            this.btn_del.Click += new System.EventHandler(this.btn_del_Click);
-            // 
-            // btn_new
-            // 
-            this.btn_new.Location = new System.Drawing.Point(325, 135);
-            this.btn_new.Name = "btn_new";
-            this.btn_new.Size = new System.Drawing.Size(59, 25);
-            this.btn_new.TabIndex = 3;
-            this.btn_new.Text = "New";
-            this.btn_new.UseVisualStyleBackColor = true;
-            this.btn_new.Click += new System.EventHandler(this.btn_new_Click);
-            // 
-            // btn_down
-            // 
-            this.btn_down.Enabled = false;
-            this.btn_down.Location = new System.Drawing.Point(325, 43);
-            this.btn_down.Name = "btn_down";
-            this.btn_down.Size = new System.Drawing.Size(59, 25);
-            this.btn_down.TabIndex = 2;
-            this.btn_down.Text = "Down";
-            this.btn_down.UseVisualStyleBackColor = true;
-            this.btn_down.Click += new System.EventHandler(this.btn_down_Click);
-            // 
-            // btn_up
-            // 
-            this.btn_up.Enabled = false;
-            this.btn_up.Location = new System.Drawing.Point(325, 12);
-            this.btn_up.Name = "btn_up";
-            this.btn_up.Size = new System.Drawing.Size(59, 25);
-            this.btn_up.TabIndex = 1;
-            this.btn_up.Text = "Up";
-            this.btn_up.UseVisualStyleBackColor = true;
-            this.btn_up.Click += new System.EventHandler(this.btn_up_Click);
             // 
             // lbx_main
             // 
@@ -155,9 +105,119 @@ namespace BugaleNBodyDataEditor
             this.lbx_main.FormattingEnabled = true;
             this.lbx_main.Location = new System.Drawing.Point(0, 0);
             this.lbx_main.Name = "lbx_main";
-            this.lbx_main.Size = new System.Drawing.Size(319, 260);
-            this.lbx_main.TabIndex = 0;
+            this.lbx_main.Size = new System.Drawing.Size(396, 247);
+            this.lbx_main.TabIndex = 1;
             this.lbx_main.SelectedIndexChanged += new System.EventHandler(this.lbx_main_SelectedIndexChanged);
+            // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
+            this.editToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(396, 24);
+            this.menuStrip1.TabIndex = 2;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btn_newfile,
+            this.openToolStripMenuItem,
+            this.btn_open_old,
+            this.saveToolStripMenuItem,
+            this.btn_close});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // btn_newfile
+            // 
+            this.btn_newfile.Name = "btn_newfile";
+            this.btn_newfile.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
+            this.btn_newfile.Size = new System.Drawing.Size(194, 22);
+            this.btn_newfile.Text = "New";
+            this.btn_newfile.Click += new System.EventHandler(this.btn_newfile_Click);
+            // 
+            // openToolStripMenuItem
+            // 
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.openToolStripMenuItem.Text = "Open";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.btn_open_Click);
+            // 
+            // btn_open_old
+            // 
+            this.btn_open_old.Name = "btn_open_old";
+            this.btn_open_old.Size = new System.Drawing.Size(194, 22);
+            this.btn_open_old.Text = "Open Old Format(.dat)";
+            this.btn_open_old.Click += new System.EventHandler(this.btn_open_old_Click);
+            // 
+            // saveToolStripMenuItem
+            // 
+            this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
+            this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.saveToolStripMenuItem.Text = "Save";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.btn_save_Click);
+            // 
+            // btn_close
+            // 
+            this.btn_close.Name = "btn_close";
+            this.btn_close.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
+            this.btn_close.Size = new System.Drawing.Size(194, 22);
+            this.btn_close.Text = "Close";
+            this.btn_close.Click += new System.EventHandler(this.btn_close_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.btn_new,
+            this.btn_del,
+            this.btn_up,
+            this.btn_down});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // btn_new
+            // 
+            this.btn_new.Enabled = false;
+            this.btn_new.Name = "btn_new";
+            this.btn_new.ShortcutKeyDisplayString = "Ctrl++";
+            this.btn_new.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Oemplus)));
+            this.btn_new.Size = new System.Drawing.Size(171, 22);
+            this.btn_new.Text = "New Body";
+            this.btn_new.Click += new System.EventHandler(this.btn_new_Click);
+            // 
+            // btn_del
+            // 
+            this.btn_del.Enabled = false;
+            this.btn_del.Name = "btn_del";
+            this.btn_del.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            this.btn_del.Size = new System.Drawing.Size(171, 22);
+            this.btn_del.Text = "Remove Body";
+            this.btn_del.Click += new System.EventHandler(this.btn_del_Click);
+            // 
+            // btn_up
+            // 
+            this.btn_up.Enabled = false;
+            this.btn_up.Name = "btn_up";
+            this.btn_up.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Up)));
+            this.btn_up.Size = new System.Drawing.Size(171, 22);
+            this.btn_up.Text = "Up";
+            this.btn_up.Click += new System.EventHandler(this.btn_up_Click);
+            // 
+            // btn_down
+            // 
+            this.btn_down.Enabled = false;
+            this.btn_down.Name = "btn_down";
+            this.btn_down.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Down)));
+            this.btn_down.Size = new System.Drawing.Size(171, 22);
+            this.btn_down.Text = "Down";
+            this.btn_down.Click += new System.EventHandler(this.btn_down_Click);
             // 
             // MainForm
             // 
@@ -165,16 +225,21 @@ namespace BugaleNBodyDataEditor
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(396, 530);
             this.Controls.Add(this.splt_main);
+            this.Controls.Add(this.menuStrip1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.Text = "Bugale N-Body Data Editor Beta 0.2";
+            this.Text = "Bugale N-Body Data Editor Beta 0.3";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.splt_main.Panel1.ResumeLayout(false);
             this.splt_main.Panel2.ResumeLayout(false);
             this.splt_main.ResumeLayout(false);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -183,11 +248,18 @@ namespace BugaleNBodyDataEditor
         private System.Windows.Forms.PropertyGrid grd_settings;
         private System.Windows.Forms.SplitContainer splt_main;
         private System.Windows.Forms.ListBox lbx_main;
-        private System.Windows.Forms.Button btn_del;
-        private System.Windows.Forms.Button btn_new;
-        private System.Windows.Forms.Button btn_down;
-        private System.Windows.Forms.Button btn_up;
-        private System.Windows.Forms.Button btn_save;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem btn_newfile;
+        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem btn_open_old;
+        private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem btn_close;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem btn_new;
+        private System.Windows.Forms.ToolStripMenuItem btn_del;
+        private System.Windows.Forms.ToolStripMenuItem btn_up;
+        private System.Windows.Forms.ToolStripMenuItem btn_down;
     }
 }
 

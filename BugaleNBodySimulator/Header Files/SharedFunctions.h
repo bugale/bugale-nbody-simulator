@@ -28,3 +28,7 @@ char* get_algorithm_name(char algorithm);
 void usleep(long long useconds);
 void reset_shared_data(SharedData* shared);
 double getAngle(double x, double y);
+void start_log(char* filename);
+void log_line(char* line, ...);
+void end_log();
+void set_shared_data(SharedData* shared, Data* data);

@@ -26,6 +26,10 @@ namespace Errors
 		NoError,
 		MissingSettingsFile,
 		MissingBodyDataFile,
+		WrongSettingsFileHeader,
+		WrongBodyDataFileHeader,
+		WrongSettingsFileVersion,
+		WrongBodyDataFileVersion,
 		WrongSettingsFileSize,
 		WrongBodyDataFileSize,
 		WrongBodyDataFileSize2,
@@ -40,10 +44,10 @@ namespace Errors
 		NonPositiveMoveSpeed1,
 		NegativeZoomSpeed0,
 		NonPositiveZoomSpeed1,
-		NegativeBodyCount,
 		NegativeBodyMass,
 		NegativeBodyRadius,
 		NegativeBodyTrailWidth,
+		TooManyBodies,
 		Other
 	};
 	char* returnError(int error);

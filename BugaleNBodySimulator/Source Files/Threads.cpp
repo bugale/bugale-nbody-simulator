@@ -23,7 +23,6 @@ Data* data;
 BinaryOutputManager* bom;
 Engine* engine;
 
-boost::thread thread_log;
 boost::thread thread_graphic;
 boost::thread thread_shared_calc;
 boost::thread thread_calculation;
@@ -35,21 +34,29 @@ void Run(char* running_file_name)
 	
 	Sleep(100);
 
+	data   = new Data(getpath(running_file_name, SETTINGS_FILENAME), getpath(running_file_name, BODIES_FILENAME));
 	shared = new SharedData();
 	reset_shared_data(shared);
-	data   = new Data(getpath(running_file_name, SETTINGS_FILENAME), getpath(running_file_name, BODIES_FILENAME));
+	set_shared_data(shared, data);
 
 	if (data->error == Errors::NoError)
 	{
+		if (data->log)
+		{
+			std::cout << "Logging started.\n\n\n\n";
+			start_log(getpath(running_file_name, LOG_FILENAME));
+		}
+		log_line("No data errors.");
+		shared->pause = data->paused;
 		bom    = new BinaryOutputManager(data, 100, getpath(running_file_name, BINARYOUTPUT_FILENAME));
 		engine = new Engine(data);
-		thread_log         = boost::thread(LogThread, getpath(running_file_name, LOG_FILENAME), engine, data, shared);
-		thread_graphic     = boost::thread(GraphicThread, data, shared);
-		thread_shared_calc = boost::thread(SharedCalculationsThread, engine, data, shared);
-		thread_calculation = boost::thread(CalculationThread, engine, data, shared);
-		thread_binary      = boost::thread(BinaryOutputThread, bom, data, shared);
+		thread_graphic     = boost::thread(GraphicThread);
+		thread_shared_calc = boost::thread(SharedCalculationsThread);
+		thread_calculation = boost::thread(CalculationThread);
+		thread_binary      = boost::thread(BinaryOutputThread);
 	}
-	else std::cout << Errors::returnError(data->error);
+	else
+		std::cout << Errors::returnError(data->error);
 
 	while (!shared->exit) Sleep(100);
 
@@ -58,8 +65,8 @@ void Run(char* running_file_name)
 void InitializeConsole()
 {
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)ConsoleHandler, true);
-	SetConsoleTitle("Bugale N-Body Simulator Beta 0.3");
-	std::cout << "Press CTRL+Break or CTRL+C in the console to exit the program.\n\n";
+	SetConsoleTitle(CONSOLE_TITLE);
+	std::cout << "Press CTRL+Break or CTRL+C in the console to exit the program.\nPlease Wait...\n\n";
 }
 bool WINAPI ConsoleHandler(DWORD c_event)
 {
@@ -75,13 +82,16 @@ bool WINAPI ConsoleHandler(DWORD c_event)
 	return false;
 }
 
-void GraphicThread(Data* data, SharedData* shared)
+void GraphicThread()
 {
+	log_line("Entered GraphicThread with data at 0x%08X and shared at 0x%08X.", data, shared);
 	if (data->two_dimensional_graphic) NewGraphic2D(data, shared);
 	else NewGraphic3D(data, shared);
+	log_line("Ended GraphicThread.");
 }
-void CalculationThread(Engine* engine, Data* data, SharedData* shared)
+void CalculationThread()
 {
+	log_line("Entered CalculationThread with engine at 0x%08X data at 0x%08X and shared at 0x%08X.", engine, data, shared);
 	if (data->max_calculations == 0) return;
 	while (!shared->exit)
 	{
@@ -101,9 +111,11 @@ void CalculationThread(Engine* engine, Data* data, SharedData* shared)
 			std::cout << "Maximum Calculations Reached!\n";
 		}
 	}
+	log_line("Ended CalculationThread.");
 }
-void SharedCalculationsThread(Engine* engine, Data* data, SharedData* shared)
+void SharedCalculationsThread()
 {
+	log_line("Entered SharedCalculationsThread with engine at 0x%08X data at 0x%08X and shared at 0x%08X.", engine, data, shared);
 	long long time = 0;
 	while (!shared->exit)
 	{
@@ -146,58 +158,24 @@ void SharedCalculationsThread(Engine* engine, Data* data, SharedData* shared)
 		}
 		while (get_current_time_usec() - time < 500000) Sleep(1);
 	}
+	log_line("Ended SharedCalculationsThread.");
 }
-void BinaryOutputThread(BinaryOutputManager* bom, Data* data, SharedData* shared)
+void BinaryOutputThread()
 {
+	log_line("Entered BinaryOutputThread with bom at 0x%08X data at 0x%08X and shared at 0x%08X.", bom, data, shared);
 	if (data->binary_max_rate == 0) return;
-
 	while (!shared->exit)
 		if (shared->pause) Sleep(100);
 		else if (bom->Capture(get_current_time_usec())) bom->Save();
-
 	bom->Finalize();
-}
-void LogThread(char* filename, Engine* engine, Data* data, SharedData* shared)
-{
-	if (!data->log) return;
-
-	FILE* file = fopen(filename, "a");
-	time_t start_time; time(&start_time);
-	std::cout << "Log started. The file will be created when you close the program\n\n\n\n";
-
-	while (!shared->exit) Sleep(10);
-
-	time_t end_time; time(&end_time);
-	double runtime = (double)((get_current_time_usec() - (shared->start_time + (shared->pause ? (get_current_time_usec() - shared->pause_start_time) : 0)))) / 1000000;
-
-	fprintf(file, "Start Time: %s", asctime(localtime(&start_time)));
-	fprintf(file, "End Time:   %s",   asctime(localtime(&end_time)));
-	fprintf(file, "Running Time(seconds): %G\n", runtime);
-	fprintf(file, "Dt: %G\n", data->dt);
-	fprintf(file, "G:  %G\n", data->g);
-	fprintf(file, "Number of Calculations Done: %d\n", shared->calculations);
-	fprintf(file, "Simulated Time(seconds): %G\n", data->dt * shared->calculations);
-	fprintf(file, "Number of Bodies: %d\n", data->num_of_bodies);
-	fprintf(file, "Average Calculations Per Second: %G\n", shared->calculations / runtime);
-	fprintf(file, "Energy Error: %G\n", data->two_dimensional_calculation ? engine->GetEnergyError2D(): engine->GetEnergyError3D());
-	fprintf(file, "\n");
-	fprintf(file, "\n");
-	fprintf(file, "Position and Velocity of Each Body: \n");
-	fprintf(file, "\n");
-	for (int i = 0; i < data->num_of_bodies; i++)
-	{
-		fprintf(file, " Body #%d: \n", i);
-		fprintf(file, "  Position: (%+E, %+E, %+E)\n", data->bodies[i]._positionX, data->bodies[i]._positionY, data->bodies[i]._positionZ);
-		fprintf(file, "  Velocity: (%+E, %+E, %+E)\n", data->bodies[i]._velocityX, data->bodies[i]._velocityY, data->bodies[i]._velocityZ);
-		fprintf(file, "\n");
-	}
-	fprintf(file, "End of Log!\n");
-	fprintf(file, "--------------------\n\n\n");
+	log_line("Ended BinaryOutputThread.");
 }
 void ExitThreads()
 {
-	thread_log		  .join();
+	log_line("Entered ExitThreads with thread_shared_calc at 0x%08X thread_calculation at 0x%08X thread_binary at 0x%08X and data at 0x%08X.", thread_shared_calc, thread_calculation, thread_binary, data);
 	thread_shared_calc.join();
 	thread_calculation.join();
 	thread_binary     .join();
+	log_line("Ended ExitThreads.");
+	if (data->log) end_log();
 }

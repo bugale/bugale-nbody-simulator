@@ -30,6 +30,11 @@ public class MainSettings
     private bool two_dimensional_graphic;
     private bool two_dimensional_binary;
     private bool fullscreen;
+    private bool clear_screen;
+    private bool show_trails;
+    private bool min_text;
+    private bool crosshair;
+    private bool paused;
     private bool log;
     private AlgorithmType algorithm;
     private double g;
@@ -37,7 +42,8 @@ public class MainSettings
     private double graphic_max_rate;
     private double binary_max_rate;
     private long max_calculations;
-    int max_trails;
+    private int max_trails;
+    private uint stick_to_body;
     private int sphere_slices;
     private int sphere_stacks;
     private double field_of_view;
@@ -65,6 +71,11 @@ public class MainSettings
         this.two_dimensional_graphic = false;
         this.two_dimensional_binary = false;
         this.fullscreen = false;
+        this.clear_screen = true;
+        this.show_trails = false;
+        this.min_text = false;
+        this.crosshair = true;
+        this.paused = false;
         this.log = false;
         this.algorithm = AlgorithmType.Hermite;
         this.g = 0;
@@ -134,6 +145,41 @@ public class MainSettings
         set { this.fullscreen = value; }
     }
 
+    [DescriptionAttribute("Determines whether the screen will be cleared. This way, some sort of \"trails\" effect will be achieved.")]
+    public bool ClearScreen
+    {
+        get { return this.clear_screen; }
+        set { this.clear_screen = value; }
+    }
+
+    [DescriptionAttribute("Determines whether the trails will be shown.")]
+    public bool ShowTrails
+    {
+        get { return this.show_trails; }
+        set { this.show_trails = value; }
+    }
+
+    [DescriptionAttribute("Determines whether minimal text mode will be used.")]
+    public bool MinimalText
+    {
+        get { return this.min_text; }
+        set { this.min_text = value; }
+    }
+
+    [DescriptionAttribute("Determines whether the crosshair will be shown.")]
+    public bool Crosshair
+    {
+        get { return this.crosshair; }
+        set { this.crosshair = value; }
+    }
+
+    [DescriptionAttribute("Determines whether the simulation will be started in Pause mode..")]
+    public bool Paused
+    {
+        get { return this.paused; }
+        set { this.paused = value; }
+    }
+
     [DescriptionAttribute("Determines whether the logging eill be enabled or not.")]
     public bool Log
     {
@@ -188,6 +234,13 @@ public class MainSettings
     {
         get { return this.max_trails; }
         set { this.max_trails = value; }
+    }
+
+    [DescriptionAttribute("A body index to use continuously as the target in 3D graphical output.")]
+    public uint StickToBody
+    {
+        get { return this.stick_to_body; }
+        set { this.stick_to_body = value; }
     }
 
     [DescriptionAttribute("The number of slices in the rendered spheres. More slices = better looking spheres.")]
@@ -316,7 +369,7 @@ public class MainSettings
         set { this.keyboard_zoom_speed1 = value; }
     }
 
-    public void FromBytes(byte[] data, double g)
+    public void FromBytes0(byte[] data, double g)
     {
         this.g = g;
         byte bools = data[0];
@@ -356,18 +409,71 @@ public class MainSettings
         this.keyboard_zoom_speed1 = BitConverter.ToDouble(data, cur); cur += sizeof(double);
     }
 
+    public void FromBytes1(byte[] data, double g)
+    {
+        this.g = g;
+        ushort bools = (ushort)(((ushort)data[13] << 8) + (ushort)data[12]);
+        int cur = 0;
+        this.two_dimensional_calculation = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.two_dimensional_graphic = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.two_dimensional_binary = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.fullscreen = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.clear_screen = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.show_trails = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.min_text = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.crosshair = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.paused = ((bools >> cur++) & 1) == 1 ? true : false;
+        this.log = ((bools >> cur++) & 1) == 1 ? true : false;
+
+        cur = 14;
+        this.width = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+        this.height = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+        this.algorithm = (AlgorithmType)data[cur]; cur += sizeof(byte);
+        this.dt = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.graphic_max_rate = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.binary_max_rate = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.max_calculations = BitConverter.ToInt64(data, cur); cur += sizeof(long);
+        this.max_trails = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+        this.stick_to_body = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+        this.sphere_slices = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+        this.sphere_stacks = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+        this.field_of_view = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.near_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.far_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_positionX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_positionY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_positionZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_targetX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_targetY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_targetZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_upX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_upY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.camera_upZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.keyboard_move_speed0 = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.keyboard_move_speed1 = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.keyboard_zoom_speed0 = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+        this.keyboard_zoom_speed1 = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+    }
+
     public byte[] ToBytes()
     {
-        byte bools = 0;
+        ushort bools = 0;
         int cur = 0;
-        bools |= (byte)((this.two_dimensional_calculation ? 1 : 0) << cur++);
-        bools |= (byte)((this.two_dimensional_graphic ? 1 : 0) << cur++);
-        bools |= (byte)((this.two_dimensional_binary ? 1 : 0) << cur++);
-        bools |= (byte)((this.fullscreen ? 1 : 0) << cur++);
-        bools |= (byte)((this.log ? 1 : 0) << cur++);
+        bools |= (ushort)((this.two_dimensional_calculation ? 1 : 0) << cur++);
+        bools |= (ushort)((this.two_dimensional_graphic ? 1 : 0) << cur++);
+        bools |= (ushort)((this.two_dimensional_binary ? 1 : 0) << cur++);
+        bools |= (ushort)((this.fullscreen ? 1 : 0) << cur++);
+        bools |= (ushort)((this.clear_screen ? 1 : 0) << cur++);
+        bools |= (ushort)((this.show_trails ? 1 : 0) << cur++);
+        bools |= (ushort)((this.min_text ? 1 : 0) << cur++);
+        bools |= (ushort)((this.crosshair ? 1 : 0) << cur++);
+        bools |= (ushort)((this.paused ? 1 : 0) << cur++);
+        bools |= (ushort)((this.log ? 1 : 0) << cur++);
 
         List<byte> list = new List<byte>();
-        list.Add(bools);
+        list.AddRange(BitConverter.GetBytes((ulong)0xBDF0BDF01111BDF0));
+        list.AddRange(BitConverter.GetBytes((uint)0x00000001));
+        list.AddRange(BitConverter.GetBytes(bools));
         list.AddRange(BitConverter.GetBytes(this.width));
         list.AddRange(BitConverter.GetBytes(this.height));
         list.Add     (                (byte)this.algorithm);
@@ -376,6 +482,7 @@ public class MainSettings
         list.AddRange(BitConverter.GetBytes(this.binary_max_rate));
         list.AddRange(BitConverter.GetBytes(this.max_calculations));
         list.AddRange(BitConverter.GetBytes(this.max_trails));
+        list.AddRange(BitConverter.GetBytes(this.stick_to_body));
         list.AddRange(BitConverter.GetBytes(this.sphere_slices));
         list.AddRange(BitConverter.GetBytes(this.sphere_stacks));
         list.AddRange(BitConverter.GetBytes(this.field_of_view));
@@ -553,7 +660,7 @@ public class Body3D
         return list;
     }
 
-    public static List<Body3D> ListFromBytes(byte[] data)
+    public static List<Body3D> ListFromBytes0(byte[] data)
     {
         List<Body3D> list = new List<Body3D>(BitConverter.ToInt32(data, sizeof(double)));
         for (int i = 0; i < list.Capacity; i++)
@@ -572,9 +679,30 @@ public class Body3D
         return list;
     }
 
+    public static List<Body3D> ListFromBytes1(byte[] data)
+    {
+        List<Body3D> list = new List<Body3D>(BitConverter.ToInt32(data, sizeof(ulong) + sizeof(uint) + sizeof(double)));
+        for (int i = 0; i < list.Capacity; i++)
+        {
+            list.Add(new Body3D());
+            list[i].FromBytes(data, byte_size * i + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
+        }
+
+        char[] names = new char[data.Length - list.Count * byte_size - (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double))];
+        for (int i = list.Count * byte_size + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)); i < data.Length; i++)
+            names[i - list.Count * byte_size - (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double))] = (char)data[i];
+        string[] names_s = new string(names).Split('\0');
+        for (int i = 0; i < list.Count; i++)
+            list[i].Name = names_s[i];
+
+        return list;
+    }
+
     public static byte[] ListToBytes(List<Body3D> list, double g)
     {
-        List<byte> bytes = new List<byte>((byte_size + 5) * list.Count + (sizeof(int) + sizeof(double)));
+        List<byte> bytes = new List<byte>((byte_size + 5) * list.Count + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
+        bytes.AddRange(BitConverter.GetBytes((ulong)0xBDF0BDF02222BDF0));
+        bytes.AddRange(BitConverter.GetBytes((uint)0x00000001));
         bytes.AddRange(BitConverter.GetBytes(g));
         bytes.AddRange(BitConverter.GetBytes(list.Count));
         for (int i = 0; i < list.Count; i++)

@@ -24,6 +24,9 @@ struct Graphic3D
 	SharedData* shared;
 	Data* data;
 
+	int singlebuf_window;
+	int doublebuf_window;
+
 	int width;
 	int height;
 	double ratio;
@@ -75,14 +78,15 @@ struct Graphic3D
 
 void NewGraphic3D(Data* data, SharedData* shared);
 void Graphic3DInitialize();
-void Graphic3DRenderHandler     ();
-void Graphic3DRatioHandler      (int width, int height);
-void Graphic3DKeyboardHandler   (unsigned char key, int x, int y);
-void Graphic3DKeyboardUpHandler (unsigned char key, int x, int y);
-void Graphic3DSKeyboardHandler  (          int key, int x, int y);
-void Graphic3DSKeyboardUpHandler(          int key, int x, int y);
-void Graphic3DMouseHandler      (int button, int state, int x, int y);
-void Graphic3DMotionHandler     (int x, int y);
+void Graphic3DRenderHandlerDblBfr();
+void Graphic3DRenderHandlerSglBfr();
+void Graphic3DRatioHandler       (int width, int height);
+void Graphic3DKeyboardHandler    (unsigned char key, int x, int y);
+void Graphic3DKeyboardUpHandler  (unsigned char key, int x, int y);
+void Graphic3DSKeyboardHandler   (          int key, int x, int y);
+void Graphic3DSKeyboardUpHandler (          int key, int x, int y);
+void Graphic3DMouseHandler       (int button, int state, int x, int y);
+void Graphic3DMotionHandler      (int x, int y);
 
 void Graphic3DClearScreen();
 void Graphic3DSetCamera();

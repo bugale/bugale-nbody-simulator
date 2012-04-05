@@ -24,6 +24,9 @@ struct Graphic2D
 	SharedData* shared;
 	Data* data;
 
+	int singlebuf_window;
+	int doublebuf_window;
+
 	int width;
 	int height;
 	double ratio;
@@ -65,12 +68,13 @@ struct Graphic2D
 
 void NewGraphic2D(Data* data, SharedData* shared);
 void Graphic2DInitialize();
-void Graphic2DRenderHandler     ();
-void Graphic2DRatioHandler      (int width, int height);
-void Graphic2DKeyboardHandler   (unsigned char key, int x, int y);
-void Graphic2DKeyboardUpHandler (unsigned char key, int x, int y);
-void Graphic2DSKeyboardHandler  (          int key, int x, int y);
-void Graphic2DSKeyboardUpHandler(          int key, int x, int y);
+void Graphic2DRenderHandlerDblBfr();
+void Graphic2DRenderHandlerSglBfr();
+void Graphic2DRatioHandler       (int width, int height);
+void Graphic2DKeyboardHandler    (unsigned char key, int x, int y);
+void Graphic2DKeyboardUpHandler  (unsigned char key, int x, int y);
+void Graphic2DSKeyboardHandler   (          int key, int x, int y);
+void Graphic2DSKeyboardUpHandler (          int key, int x, int y);
 
 void Graphic2DClearScreen();
 void Graphic2DSetCamera();
