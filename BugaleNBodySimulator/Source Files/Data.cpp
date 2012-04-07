@@ -20,7 +20,7 @@
 
 Data::Data(char* settings_filename, char* bodies_filename)
 {
-	this->error = 0;
+	this->error = Errors::NoError;
 	this->parseSettings(settings_filename);
 	this->parseBodies(bodies_filename);
 }
@@ -64,6 +64,7 @@ void Data::parseSettings(char* filename)
 	this->crosshair                   = this->readBool(data, 12, cur++);
 
 	cur = 0;
+	this->wireframe                   = this->readBool(data, 13, cur++);
 	this->paused                      = this->readBool(data, 13, cur++);
 	this->log                         = this->readBool(data, 13, cur++);
 
@@ -72,14 +73,14 @@ void Data::parseSettings(char* filename)
 	this->height               = *(int      *)&data[cur]; cur += 4;
 	this->algorithm            =               data[cur]; cur += 1;
 	this->dt                   = *(double   *)&data[cur]; cur += 8;
-	this->graphic_max_rate     = *(double   *)&data[cur]; cur += 8;
-	this->binary_max_rate      = *(double   *)&data[cur]; cur += 8;
+	this->graphic_max_rate     = *(float    *)&data[cur]; cur += 4;
+	this->binary_max_rate      = *(float    *)&data[cur]; cur += 4;
 	this->max_calculations     = *(long long*)&data[cur]; cur += 8;
 	this->max_trails           = *(int      *)&data[cur]; cur += 4;
 	this->stick_to_body        = *(int      *)&data[cur]; cur += 4;
 	this->sphere_slices        = *(int      *)&data[cur]; cur += 4;
 	this->sphere_stacks        = *(int      *)&data[cur]; cur += 4;
-	this->field_of_view        = *(double   *)&data[cur]; cur += 8;
+	this->field_of_view        = *(float    *)&data[cur]; cur += 4;
 	this->near_plane_distance  = *(double   *)&data[cur]; cur += 8;
 	this->far_plane_distance   = *(double   *)&data[cur]; cur += 8;
 	this->camera_positionX     = *(double   *)&data[cur]; cur += 8;
@@ -88,13 +89,13 @@ void Data::parseSettings(char* filename)
 	this->camera_targetX       = *(double   *)&data[cur]; cur += 8;
 	this->camera_targetY       = *(double   *)&data[cur]; cur += 8;
 	this->camera_targetZ       = *(double   *)&data[cur]; cur += 8;
-	this->camera_upX           = *(double   *)&data[cur]; cur += 8;
-	this->camera_upY           = *(double   *)&data[cur]; cur += 8;
-	this->camera_upZ           = *(double   *)&data[cur]; cur += 8;
-	this->keyboard_move_speed0 = *(double   *)&data[cur]; cur += 8;
-	this->keyboard_move_speed1 = *(double   *)&data[cur]; cur += 8;
-	this->keyboard_zoom_speed0 = *(double   *)&data[cur]; cur += 8;
-	this->keyboard_zoom_speed1 = *(double   *)&data[cur]; cur += 8;
+	this->camera_upX           = *(float    *)&data[cur]; cur += 4;
+	this->camera_upY           = *(float    *)&data[cur]; cur += 4;
+	this->camera_upZ           = *(float    *)&data[cur]; cur += 4;
+	this->keyboard_move_speed0 = *(float    *)&data[cur]; cur += 4;
+	this->keyboard_move_speed1 = *(float    *)&data[cur]; cur += 4;
+	this->keyboard_zoom_speed0 = *(float    *)&data[cur]; cur += 4;
+	this->keyboard_zoom_speed1 = *(float    *)&data[cur]; cur += 4;
 
 	this->validateData();
 
@@ -210,9 +211,10 @@ unsigned char* Data::readData(char* filename)
 	{
 		fseek(data_file, 0, SEEK_END); //Seek to the End of the File
 		this->filelength = ftell(data_file); //Get Current Position = End of the File = File Length
-		unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * this->filelength);
+		unsigned char* data = (unsigned char*)malloc(this->filelength);
 		rewind(data_file); //Go Back to the Start of the File
 		fread(data, 1, this->filelength, data_file); //Read the File
+		fclose(data_file);
 		return data;
 	}
 	return 0;

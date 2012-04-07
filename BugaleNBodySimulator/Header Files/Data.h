@@ -16,14 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define Data_included
-#include "..\SharedHeader.h"
+#ifndef __DATA_INCLUDED__
+#define __DATA_INCLUDED__
+
+#include "../SharedHeader.h"
 
 class Data
 {
 public:
 	int filelength;
-	int error;
+	Errors::Error error;
 
 	int width;
 	int height;
@@ -35,11 +37,12 @@ public:
 	bool show_trails;
 	bool min_text;
 	bool crosshair;
+	bool wireframe;
 	bool paused;
 	bool log;
 	char algorithm;
-	double graphic_max_rate;
-	double binary_max_rate;
+	float graphic_max_rate;
+	float binary_max_rate;
 	long long max_calculations;
 	int max_trails;
 
@@ -47,7 +50,7 @@ public:
 	int stick_to_body;
     int sphere_slices;
     int sphere_stacks;
-	double field_of_view;
+	float field_of_view;
 	double near_plane_distance;
 	double far_plane_distance;
     double camera_positionX;
@@ -56,13 +59,13 @@ public:
     double camera_targetX;
     double camera_targetY;
     double camera_targetZ;
-    double camera_upX;
-    double camera_upY;
-    double camera_upZ;
-    double keyboard_move_speed0; //The starting move speed of the screen in screens per second
-	double keyboard_move_speed1; //The move speed of the screen after one second in screens per second
-	double keyboard_zoom_speed0; //The starting zoom speed 
-	double keyboard_zoom_speed1; //The zoom speed after one second
+    float camera_upX;
+    float camera_upY;
+    float camera_upZ;
+    float keyboard_move_speed0; //The starting move speed of the screen in screens per second
+	float keyboard_move_speed1; //The move speed of the screen after one second in screens per second
+	float keyboard_zoom_speed0; //The starting zoom speed 
+	float keyboard_zoom_speed1; //The zoom speed after one second
 
 	//Body Related
 	int num_of_bodies;
@@ -81,3 +84,5 @@ private:
 	void validateData();
 	void validateBodies();
 };
+
+#endif

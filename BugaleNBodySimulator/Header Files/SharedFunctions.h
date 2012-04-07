@@ -16,19 +16,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define SharedFunctions_included
-#include "..\SharedHeader.h"
+#ifndef __SHAREDFUNCTIONS_INCLUDED__
+#define __SHAREDFUNCTIONS_INCLUDED__
+
+#include "../SharedHeader.h"
 
 char* getpath(char* arg, char* file); //Get the Path of the File with filename %file% in the same folder as the file with the fullpath %arg%
 void copy_double_to_char_array(char* arr, int index, double d);
 void copy_long_to_char_array(char* arr, int index, long long l);
 int add_before(int* a, int b); //Calculate %a% + %b%, and Save the Answer in %a%. Return the Value of %a% Before the Addition.
-long long get_current_time_usec();
 char* get_algorithm_name(char algorithm);
+long long get_current_time_usec();
 void usleep(long long useconds);
 void reset_shared_data(SharedData* shared);
-double getAngle(double x, double y);
+float getAngle(float x, float y);
 void start_log(char* filename);
 void log_line(char* line, ...);
 void end_log();
 void set_shared_data(SharedData* shared, Data* data);
+
+#endif

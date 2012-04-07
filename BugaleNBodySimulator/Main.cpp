@@ -17,16 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SharedHeader.h"
+#include <tinythread.cpp>
 
 int main(int argc, char* argv[])
 {	
-	char* buffer = _getcwd(NULL, 0);
+	char* buffer;
+	buffer = getcwd(NULL, 0);
 	if (buffer == NULL)
 	{
-		std::cout << "Critical Error: _getcwd failed!";
+		printf("Critical Error: getcwd failed!\n");
 		while (true);
 	}
-	std::cout << "Working Directory: " << buffer << "\n";
-	Run(argv[0]);
+	Run(buffer);
 	return 0;
 }

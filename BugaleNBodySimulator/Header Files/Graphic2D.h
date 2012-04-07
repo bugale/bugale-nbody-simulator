@@ -16,8 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define Graphic2D_included
-#include "..\SharedHeader.h"
+#ifndef __GRAPHIC2D_INCLUDED__
+#define __GRAPHIC2D_INCLUDED__
+
+#include "../SharedHeader.h"
 
 struct Graphic2D
 {
@@ -29,7 +31,7 @@ struct Graphic2D
 
 	int width;
 	int height;
-	double ratio;
+	float ratio;
 	char* title;
 	bool fullscreen;
 	bool clear_screen;
@@ -38,8 +40,8 @@ struct Graphic2D
 	bool crosshair;
 
 	//Precalculated values
-	double pi_mul_2_div_slices;
-	double sin_field_of_view;
+	float pi_mul_2_div_slices;
+	float sin_field_of_view;
 
 	//Frame-precalculated values
 	double height_meters; double width_meters;
@@ -102,9 +104,11 @@ void Graphic2DDrawText();
 void Graphic2DDrawMinText();
 void Graphic2DDrawTrails();
 void Graphic2DSaveTrails();
-void Graphic2DDrawBody(double X, double Y, double radius, double R, double G, double B, double A, bool trail);
+void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, float B, float A, bool trail);
 
 void Graphic2DSetOrthographicProjection();
 void Graphic2DRestorePerspectiveProjection();
-void Graphic2DRenderBitmapString(double x, double y, char* string);
+void Graphic2DRenderBitmapString(int x, int y, char* string);
 bool Graphic2DIsInSight(double X, double Y, double radius);
+
+#endif

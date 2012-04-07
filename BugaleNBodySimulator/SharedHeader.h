@@ -16,71 +16,57 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define WIN32_LEAN_AND_MEAN
-#define _USE_MATH_DEFINES
-#define settings_size 199 //Size of the settings file
-#define body_data_header_size 24 //Size of the header in the body data file
-#define body_size 80 //Size in Bytes of One Body on the Disk
-#define data_files_version 1
-#define BODIES_FILENAME "bodies.bdf"
-#define SETTINGS_FILENAME "settings.bdf"
-#define BINARYOUTPUT_FILENAME "binary_output.bin"
-#define LOG_FILENAME "log.txt"
-#define CONSOLE_TITLE "Bugale N-Body Simulator Beta 0.4"
+#ifndef __INCLUDES__
+	#define __INCLUDES__
+	#define WIN32_LEAN_AND_MEAN
+	#define _USE_MATH_DEFINES
+	#define FREEGLUT_STATIC
+	#define settings_size 159 //Size of the settings file
+	#define body_data_header_size 24 //Size of the header in the body data file
+	#define body_size 80 //Size in Bytes of One Body on the Disk
+	#define data_files_version 2
+	#define BODIES_FILENAME "bodies.bdf"
+	#define SETTINGS_FILENAME "settings.bdf"
+	#define BINARYOUTPUT_FILENAME "binary_output.bin"
+	#define LOG_FILENAME "log.txt"
+	#define PROGRAM_NAME "Bugale N-Body Simulator"
+	#define PROGRAM_VERSION "0.1.0 (Beta 1.0)"
 
-#ifndef internal_includeds
-
-	#ifndef Threads_included
-		#include "Header Files\Threads.h"
-	#endif
-
-	#ifndef BinaryOutputManager_included
-		#include "Header Files\BinaryOutputManager.h"
-	#endif
-
-	#ifndef Graphic3D_included
-		#include "Header Files\Graphic3D.h"
-	#endif
-
-	#ifndef Graphic2D_included
-		#include "Header Files\Graphic2D.h"
-	#endif
-
-	#ifndef Engine_included
-		#include "Header Files\Engine.h"
-	#endif
-
-	#ifndef SharedFunctions_included
-		#include "Header Files\SharedFunctions.h"
-	#endif
-
-	#ifndef Data_included
-		#include "Header Files\Data.h"
-	#endif
-
-	#ifndef Body3D_included
-		#include "Header Files\Body3D.h"
-	#endif
-
-	#ifndef Errors_included
-		#include "Header Files\Errors.h"
-	#endif
-
-	#ifndef SharedData_included
-		#include "Header Files\SharedData.h"
-	#endif
-
+	//C Standard Library
 	#include <math.h>
-	#include <malloc.h>
-	#include <iostream>
-	#include <string>
+	#include <stdarg.h>
 	#include <stdio.h>
+	#include <stdlib.h>
 	#include <time.h>
 	#include <float.h>
-	#include <Windows.h>
-	#include <direct.h>
-	#include <glut.h>
-	#include <boost\thread.hpp>
+	#include <signal.h>
 
-	#define internal_includeds
+	//Third-party
+	#include <freeglut.h>
+	#include <tinythread.h> //CPP is included in Main.cpp for convenience
+
+	//OS Dependant
+	#ifdef WIN32
+		#include <direct.h>
+		#include <windows.h>
+		#define getcwd _getcwd
+		#define _SYSTEM_WIN
+	#else //POSIX
+		#include <unistd.h>
+		#define _SYSTEM_POSIX
+	#endif
+
+	//Internal
+	#include "Header Files/Errors.h"
+	#include "Header Files/SharedData.h"
+	#include "Header Files/Body3D.h"
+	#include "Header Files/Data.h"
+	#include "Header Files/SharedFunctions.h"
+	#include "Header Files/Engine.h"
+	#include "Header Files/Graphic2D.h"
+	#include "Header Files/Graphic3D.h"
+	#include "Header Files/BinaryOutputManager.h"
+	#include "Header Files/Threads.h"
+	#include "resource.h"
+
 #endif

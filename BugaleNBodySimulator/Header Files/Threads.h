@@ -16,15 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define Threads_included
-#include "..\SharedHeader.h"
+#ifndef __THREADS_INCLUDED__
+#define __THREADS_INCLUDED__
 
-void Run(char* running_file_name);
+#include "../SharedHeader.h"
+
+void Run(char* working_directory);
 void InitializeConsole();
-bool WINAPI ConsoleHandler(DWORD c_event);
+void exit_signal(int sig);
 
-void GraphicThread();
-void CalculationThread();
-void SharedCalculationsThread();
-void BinaryOutputThread();
+void GraphicThread(void* arg);
+void CalculationThread(void* arg);
+void SharedCalculationsThread(void* arg);
+void BinaryOutputThread(void* arg);
 void ExitThreads();
+
+#endif

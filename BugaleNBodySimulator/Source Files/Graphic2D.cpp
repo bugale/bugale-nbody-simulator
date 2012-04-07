@@ -31,15 +31,15 @@ void NewGraphic2D(Data* data, SharedData* shared)
 
 	graphic2d->width = data->width;
 	graphic2d->height = data->height;
-	graphic2d->ratio = (double)data->width / (double)graphic2d->height;
+	graphic2d->ratio = (float)data->width / (float)graphic2d->height;
 	graphic2d->title = "Bugale N-Body Simulator 2D Graphical Output Window";
 	graphic2d->fullscreen = data->fullscreen;
 	graphic2d->clear_screen = data->clear_screen;
 	graphic2d->show_trails = data->show_trails;
 	graphic2d->min_text = data->min_text;
 	graphic2d->crosshair = data->crosshair;
-	graphic2d->pi_mul_2_div_slices = (double)2 * M_PI / graphic2d->data->sphere_slices;
-	graphic2d->sin_field_of_view = 2 * sin(graphic2d->data->field_of_view * M_PI / (180 * 2));
+	graphic2d->pi_mul_2_div_slices = (float)2 * (float)M_PI / (float)graphic2d->data->sphere_slices;
+	graphic2d->sin_field_of_view = (float)2 * (float)sin(graphic2d->data->field_of_view * M_PI / (180 * 2));
 
 	graphic2d->trail_curpos = 0;
 	if (graphic2d->data->max_trails != 0)
@@ -54,9 +54,9 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->camera_positionY = data->camera_positionY;
 	graphic2d->camera_positionZ = data->camera_positionZ;
 
-	graphic2d->keyboard_move_starttime   = (long long*)malloc(sizeof(long long) * 0xFF);
-	graphic2d->keyboard_move_started     = (bool     *)malloc(sizeof(bool     ) * 0xFF);
-	graphic2d->keyboard_move_start_value = (double   *)malloc(sizeof(double   ) * 0xFF);
+	graphic2d->keyboard_move_starttime   = (long long*)malloc(sizeof(long long) * 0x100);
+	graphic2d->keyboard_move_started     = (bool     *)malloc(sizeof(bool     ) * 0x100);
+	graphic2d->keyboard_move_start_value = (double   *)malloc(sizeof(double   ) * 0x100);
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_starttime  [i] = 0;
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_started    [i] = false;
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_start_value[i] = false;
@@ -66,21 +66,21 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->stick_body_index = 0;
 	graphic2d->stick_body_index_entered = false;
 
-	std::cout << "2D Graphical Output Instructions:\n\n";
-	std::cout << "    ESC  : Close the Simulator\n";
-	std::cout << "   Arrows: Move Your Camera\n";
-	std::cout << "   + or -: Zoom In or Zoom Out\n";
-	std::cout << "     r   : Reset Your Camera Position\n";
-	std::cout << "     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n";
-	std::cout << "     t   : Toggle Trail Showal\n";
-	std::cout << "     c   : Toggle Screen Clearance After Every Frame\n";
-	std::cout << "     h   : Toggle Crosshair Showal\n";
-	std::cout << "     p   : Toggle Pause\n";
-	std::cout << "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n";
-	std::cout << "   Given Index on the Center of the Screen, or Press Space to Always show the\n";
-	std::cout << "   Body with the Given Index on the Center of the Screen and press again to\n";
-	std::cout << "   disable it.\n";
-	std::cout << "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n";
+	printf("2D Graphical Output Instructions:\n\n");
+	printf("    ESC  : Close the Simulator\n");
+	printf("   Arrows: Move Your Camera\n");
+	printf("   + or -: Zoom In or Zoom Out\n");
+	printf("     r   : Reset Your Camera Position\n");
+	printf("     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n");
+	printf("     t   : Toggle Trail Showal\n");
+	printf("     c   : Toggle Screen Clearance After Every Frame\n");
+	printf("     h   : Toggle Crosshair Showal\n");
+	printf("     p   : Toggle Pause\n");
+	printf("   After a Number Has Been Assigned, Press Enter to Show the Body with the\n");
+	printf("   Given Index on the Center of the Screen, or Press Space to Always show the\n");
+	printf("   Body with the Given Index on the Center of the Screen and press again to\n");
+	printf("   disable it.\n");
+	printf("\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
 
 	Graphic2DInitialize();
 	log_line("Ended NewGraphic2D.");
@@ -88,6 +88,7 @@ void NewGraphic2D(Data* data, SharedData* shared)
 void Graphic2DInitialize()
 {
 	log_line("Entered Graphic2DInitialize.");
+	int a = 0; glutInit(&a, 0);
 	//Initialize GLUT and create the window
 	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA);
 	glutInitWindowPosition(-1, -1);
@@ -178,7 +179,7 @@ void Graphic2DRatioHandler(int width, int height)
 
 	graphic2d->width = width;
 	graphic2d->height = height;
-	graphic2d->ratio = (double)width / (double)height;
+	graphic2d->ratio = (float)width / (float)height;
 
 	//Recreate the Projection matrix
 	glMatrixMode(GL_PROJECTION);
@@ -234,41 +235,41 @@ void Graphic2DClearScreen()
 	else
 	{
 		Graphic2DSetOrthographicProjection();
-		glColor4f(0, 0, 0, 1);
-		glRasterPos2f(0, 0);
+		glColor4i(0, 0, 0, 1);
+		glRasterPos2i(0, 0);
 		glBegin(GL_QUADS);
 		if (graphic2d->body_index_entered)
 		{
-			glVertex3f(graphic2d->width - 9 * 8, 0, 0);
-			glVertex3f(graphic2d->width - 9 * 8, 2 * 13, 0);
-			glVertex3f(graphic2d->width, 2 * 13, 0);
-			glVertex3f(graphic2d->width, 0, 0);
+			glVertex3i(graphic2d->width - 9 * 8, 0, 0);
+			glVertex3i(graphic2d->width - 9 * 8, 2 * 13, 0);
+			glVertex3i(graphic2d->width, 2 * 13, 0);
+			glVertex3i(graphic2d->width, 0, 0);
 		}
 		if (graphic2d->stick_body_index_entered)
 		{
-			glVertex3f(graphic2d->width - 9 * 8, 2 * 13, 0);
-			glVertex3f(graphic2d->width - 9 * 8, 3 * 13, 0);
-			glVertex3f(graphic2d->width, 3 * 13, 0);
-			glVertex3f(graphic2d->width, 2 * 13, 0);
+			glVertex3i(graphic2d->width - 9 * 8, 2 * 13, 0);
+			glVertex3i(graphic2d->width - 9 * 8, 3 * 13, 0);
+			glVertex3i(graphic2d->width, 3 * 13, 0);
+			glVertex3i(graphic2d->width, 2 * 13, 0);
 		}
 		if (!graphic2d->min_text)
 		{
-			glVertex3f(0, 0, 0);
-			glVertex3f(0, 14 * 13, 0);
-			glVertex3f(42 * 8, 14 * 13, 0);
-			glVertex3f(42 * 8, 0, 0);
+			glVertex3i(0, 0, 0);
+			glVertex3i(0, 14 * 13, 0);
+			glVertex3i(42 * 8, 14 * 13, 0);
+			glVertex3i(42 * 8, 0, 0);
 
-			glVertex3f(0, graphic2d->height - 13 * 5, 0);
-			glVertex3f(0, graphic2d->height, 0);
-			glVertex3f(63 * 8, graphic2d->height, 0);
-			glVertex3f(63 * 8, graphic2d->height - 13 * 5, 0);
+			glVertex3i(0, graphic2d->height - 13 * 5, 0);
+			glVertex3i(0, graphic2d->height, 0);
+			glVertex3i(63 * 8, graphic2d->height, 0);
+			glVertex3i(63 * 8, graphic2d->height - 13 * 5, 0);
 		}
 		if (graphic2d->min_text)
 		{
-			glVertex3f(0, 0, 0);
-			glVertex3f(0, 2 * 13, 0);
-			glVertex3f(30 * 8, 2 * 13, 0);
-			glVertex3f(30 * 8, 0, 0);
+			glVertex3i(0, 0, 0);
+			glVertex3i(0, 2 * 13, 0);
+			glVertex3i(30 * 8, 2 * 13, 0);
+			glVertex3i(30 * 8, 0, 0);
 		}
 		glEnd();
 		Graphic2DRestorePerspectiveProjection();
@@ -284,7 +285,7 @@ void Graphic2DSetCamera()
 void Graphic2DFinalizeFrame()
 {
 	graphic2d->shared->frames++;
-	if (graphic2d->data->graphic_max_rate > 0) usleep((long long)1000000 / graphic2d->data->graphic_max_rate);
+	if (graphic2d->data->graphic_max_rate > 0) usleep((long long)(1000000 / graphic2d->data->graphic_max_rate));
 	glFinish();
 	if (graphic2d->clear_screen) glutSwapBuffers();
 	glutPostRedisplay();
@@ -294,6 +295,7 @@ void Graphic2DExit()
 {
 	log_line("Entered Graphic2DExit.");
 	graphic2d->shared->exit = true;
+	glutLeaveMainLoop();
 	log_line("Ended Graphic2DExit.");
 }
 void Graphic2DReset()
@@ -441,15 +443,15 @@ void Graphic2DDrawBodies()
 {
 	for (int i = 0; i < graphic2d->data->num_of_bodies; i++)
 	{
-		if (!Graphic2DIsInSight(graphic2d->data->bodies[i]._positionX, graphic2d->data->bodies[i]._positionY, graphic2d->data->bodies[i]._radius)) continue;
-		Graphic2DDrawBody(graphic2d->data->bodies[i]._positionX,
-						  graphic2d->data->bodies[i]._positionY,
-						  graphic2d->data->bodies[i]._radius,
-				   (double)graphic2d->data->bodies[i]._colorR * 0.003921568,
-				   (double)graphic2d->data->bodies[i]._colorG * 0.003921568,
-				   (double)graphic2d->data->bodies[i]._colorB * 0.003921568,
-				   (double)graphic2d->data->bodies[i]._colorA * 0.003921568,
-						  false);
+		double x = graphic2d->data->bodies[i]._positionX;
+		double y = graphic2d->data->bodies[i]._positionY;
+		double r = graphic2d->data->bodies[i]._radius;
+		if (!Graphic2DIsInSight(x, y, r)) continue;
+		float R = (float)graphic2d->data->bodies[i]._colorR * 0.003921568f;
+		float G = (float)graphic2d->data->bodies[i]._colorG * 0.003921568f;
+		float B = (float)graphic2d->data->bodies[i]._colorB * 0.003921568f;
+		float A = (float)graphic2d->data->bodies[i]._colorA * 0.003921568f;
+		Graphic2DDrawBody(x, y, r, R, G, B, A, false);
 	}
 }
 void Graphic2DDrawBodyIndex()
@@ -480,12 +482,12 @@ void Graphic2DDrawCrosshair(bool white)
 
 	Graphic2DSetOrthographicProjection();
 	glColor4f(white, white, white, 1);
-	float length = graphic2d->height * 0.01;
+	float length = graphic2d->height * 0.01f;
 	glBegin(GL_LINES);
-		glVertex2f(graphic2d->width * 0.5 - length * 0.5, graphic2d->height * 0.5);
-		glVertex2f(graphic2d->width * 0.5 + length * 0.5, graphic2d->height * 0.5);
-		glVertex2f(graphic2d->width * 0.5, graphic2d->height * 0.5 - length * 0.5);
-		glVertex2f(graphic2d->width * 0.5, graphic2d->height * 0.5 + length * 0.5);
+		glVertex2f(graphic2d->width * 0.5f - length * 0.5f, graphic2d->height * 0.5f);
+		glVertex2f(graphic2d->width * 0.5f + length * 0.5f, graphic2d->height * 0.5f);
+		glVertex2f(graphic2d->width * 0.5f, graphic2d->height * 0.5f - length * 0.5f);
+		glVertex2f(graphic2d->width * 0.5f, graphic2d->height * 0.5f + length * 0.5f);
 	glEnd();
 	Graphic2DRestorePerspectiveProjection();
 }
@@ -585,28 +587,28 @@ void Graphic2DDrawTrails()
 	for (int trail = graphic2d->trail_curpos; trail < graphic2d->data->max_trails; trail++)
 		for (int body = 0; body < graphic2d->data->num_of_bodies; body++)
 		{
-			if (!Graphic2DIsInSight(graphic2d->trailX[trail*graphic2d->data->num_of_bodies + body], graphic2d->trailY[trail*graphic2d->data->num_of_bodies + body], graphic2d->data->bodies[body]._trailwidth)) continue;
-			Graphic2DDrawBody(graphic2d->trailX[trail*graphic2d->data->num_of_bodies + body],
-							  graphic2d->trailY[trail*graphic2d->data->num_of_bodies + body],
-							  graphic2d->data->bodies[body]._trailwidth,
-					   (double)graphic2d->data->bodies[body]._trailcolorR * 0.003921568,
-					   (double)graphic2d->data->bodies[body]._trailcolorG * 0.003921568,
-					   (double)graphic2d->data->bodies[body]._trailcolorB * 0.003921568,
-					   (double)graphic2d->data->bodies[body]._trailcolorA * 0.003921568,
-							  true);
+			double x = graphic2d->trailX[trail*graphic2d->data->num_of_bodies + body];
+			double y = graphic2d->trailY[trail*graphic2d->data->num_of_bodies + body];
+			double r = graphic2d->data->bodies[body]._trailwidth;
+			if (!Graphic2DIsInSight(x, y, r)) continue;
+			float R = (float)graphic2d->data->bodies[body]._trailcolorR * 0.003921568f;
+			float G = (float)graphic2d->data->bodies[body]._trailcolorG * 0.003921568f;
+			float B = (float)graphic2d->data->bodies[body]._trailcolorB * 0.003921568f;
+			float A = (float)graphic2d->data->bodies[body]._trailcolorA * 0.003921568f;
+			Graphic2DDrawBody(x, y, r, R, G, B, A, true);
 		}
 	for (int trail = 0; trail < graphic2d->trail_curpos; trail++)
 		for (int body = 0; body < graphic2d->data->num_of_bodies; body++)
 		{
-			if (!Graphic2DIsInSight(graphic2d->trailX[trail*graphic2d->data->num_of_bodies + body], graphic2d->trailY[trail*graphic2d->data->num_of_bodies + body], graphic2d->data->bodies[body]._trailwidth)) continue;
-			Graphic2DDrawBody(graphic2d->trailX[trail*graphic2d->data->num_of_bodies + body],
-							  graphic2d->trailY[trail*graphic2d->data->num_of_bodies + body],
-							  graphic2d->data->bodies[body]._trailwidth,
-					   (double)graphic2d->data->bodies[body]._trailcolorR * 0.003921568,
-					   (double)graphic2d->data->bodies[body]._trailcolorG * 0.003921568,
-					   (double)graphic2d->data->bodies[body]._trailcolorB * 0.003921568,
-					   (double)graphic2d->data->bodies[body]._trailcolorA * 0.003921568,
-							  true);
+			double x = graphic2d->trailX[trail*graphic2d->data->num_of_bodies + body];
+			double y = graphic2d->trailY[trail*graphic2d->data->num_of_bodies + body];
+			double r = graphic2d->data->bodies[body]._trailwidth;
+			if (!Graphic2DIsInSight(x, y, r)) continue;
+			float R = (float)graphic2d->data->bodies[body]._trailcolorR * 0.003921568f;
+			float G = (float)graphic2d->data->bodies[body]._trailcolorG * 0.003921568f;
+			float B = (float)graphic2d->data->bodies[body]._trailcolorB * 0.003921568f;
+			float A = (float)graphic2d->data->bodies[body]._trailcolorA * 0.003921568f;
+			Graphic2DDrawBody(x, y, r, R, G, B, A, true);
 		}
 }
 void Graphic2DSaveTrails()
@@ -621,33 +623,33 @@ void Graphic2DSaveTrails()
 	graphic2d->trail_curpos++;
 	if (graphic2d->trail_curpos >= graphic2d->data->max_trails) graphic2d->trail_curpos = 0;
 }
-void Graphic2DDrawBody(double X, double Y, double radius, double R, double G, double B, double A, bool trail)
+void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, float B, float A, bool trail)
 {
 	glPushMatrix();
 	glColor4f(R, G, B, A);
-	glTranslatef(X, Y, 0);
+	glTranslated(X, Y, 0);
 	if (trail) 
 	{
 		glBegin(GL_QUADS);
-			glVertex3f(-radius,  radius, 0);
-			glVertex3f(-radius, -radius, 0);
-			glVertex3f( radius, -radius, 0);
-			glVertex3f( radius,  radius, 0);
+			glVertex3d(-radius,  radius, 0);
+			glVertex3d(-radius, -radius, 0);
+			glVertex3d( radius, -radius, 0);
+			glVertex3d( radius,  radius, 0);
 		glEnd();
 	}
 	else 
 	{
 		double rsin, rcos;
 		glBegin(GL_TRIANGLE_FAN);
-		glVertex2f(radius, 0);
+		glVertex2d(radius, 0);
 		for (int i = 1; i < graphic2d->data->sphere_slices; i++)
 		{
 			rsin = radius * sin(graphic2d->pi_mul_2_div_slices * i);
 			rcos = radius * cos(graphic2d->pi_mul_2_div_slices * i);
-			glVertex2f(rcos, rsin);
-			glVertex2f(rcos, rsin);
+			glVertex2d(rcos, rsin);
+			glVertex2d(rcos, rsin);
 		}
-		glVertex2f(radius, 0);
+		glVertex2d(radius, 0);
 		glEnd();
 	}
 	glPopMatrix();
@@ -684,11 +686,11 @@ void Graphic2DRestorePerspectiveProjection()
 	//Get back to modelview mode
 	glMatrixMode(GL_MODELVIEW);
 }
-void Graphic2DRenderBitmapString(double x, double y, char* string)
+void Graphic2DRenderBitmapString(int x, int y, char* string)
 {
   for (char* c = string; *c != '\0'; c++) 
   {
-	if (*c != ' ') glRasterPos2f(x, y);
+	if (*c != ' ') glRasterPos2i(x, y);
 	if (*c != ' ') glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);
 	x += 8;
   }

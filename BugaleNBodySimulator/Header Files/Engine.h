@@ -16,10 +16,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/*WARNING: use only one type of dimension(2d or 3d) and only one type of integration(ModifiedEuler, hermite, etc.) for each intance of this class*/
+/*WARNING: use only one type of dimension(2d or 3d) and only one type of integration(ModifiedEuler, Hermite, etc.) for each instance of this class*/
+#ifndef __ENGINE_INCLUDED__
+#define __ENGINE_INCLUDED__
 
-#define Engine_included
-#include "..\SharedHeader.h"
+#include "../SharedHeader.h"
 
 class Engine
 {
@@ -73,13 +74,9 @@ public:
 	void NextFrameModifiedEuler3D();
 	void NextFrameHermite2D();
 	void NextFrameHermite3D();
-	void NextFrameHermite2DThreadInitializeFrame(int thread, int total);
-	void NextFrameHermite2DThreadRun(int thread, int total);
 
 	void InitializeHermite2D();
 	void InitializeHermite3D();
-
-	static void Hermite2DThread(Engine* engine, int thread, int total, volatile bool* done, bool* exit);
-
-	static void Hermite2DThreaded(Engine* engine, SharedData* shared, int threads);
 };
+
+#endif

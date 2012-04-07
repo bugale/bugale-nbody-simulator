@@ -27,14 +27,13 @@ char* getpath(char* arg, char* file)
 	log_line("Entered getpath(1/3) with arg at 0x%08X and file at 0x%08X.", arg, file);
 	log_line("Entered getpath(2/3) with arg as \"%s\".", arg);
 	log_line("Entered getpath(3/3) with file as \"%s\".", file);
-	std::string str = std::string(arg).substr(0, std::string(arg).find_last_of("\\/"));
-	std::string final = (str.append("\\").append((std::string)file));
-	char* ret = (char*)malloc(final.length());
-	final.copy(ret,	final.length(), 0);
-	ret[final.length()] = 0;
+	std::string cst = ((std::string)arg).append("\\").append((std::string)file);
+	char* ret = (char*)malloc(1024);
+	cst.copy(ret, cst.length(), 0);
+	ret[cst.length()] = 0;
 	log_line("Ended getpath(1/2) with result at 0x%08X.", ret);
 	log_line("Ended getpath(2/2) with result as \"%s\".", ret);
-	return ret;
+	return ret; //Not freeing ret, for better convenience. Should not take much memory.
 }
 void copy_double_to_char_array(char* arr, int index, double d)
 {
@@ -57,15 +56,6 @@ int add_before(int* a, int b)
 	if (data_log) log_line("Ended add_before with result as %d.", ret);
 	return ret;
 }
-long long get_current_time_usec()
-{
-	LARGE_INTEGER freq;
-	LARGE_INTEGER time;
-	QueryPerformanceFrequency(&freq);
-	QueryPerformanceCounter(&time);
-	time.QuadPart *= 1000000;
-	return time.QuadPart / freq.QuadPart;
-}
 char* get_algorithm_name(char algorithm)
 {
 	switch (algorithm)
@@ -75,10 +65,21 @@ char* get_algorithm_name(char algorithm)
 	}
 	return "";
 }
+long long get_current_time_usec()
+{
+	#ifdef _SYSTEM_WIN
+		LARGE_INTEGER freq;	LARGE_INTEGER time;
+		QueryPerformanceFrequency(&freq); QueryPerformanceCounter(&time);
+		return time.QuadPart * 1000000 / freq.QuadPart;
+	#endif
+	#ifdef _SYSTEM_POSIX
+		struct typespec time; clock_gettime(CLOCK_REALTIME,&time);
+		return time.tv_sec * 1000000 + (time.tv_nsec / 1000);
+	#endif
+}
 void usleep(long long useconds)
 {
-	long long time = get_current_time_usec();
-	while (get_current_time_usec() - time < useconds);
+	tthread::this_thread::sleep_for(tthread::chrono::microseconds(useconds));
 }
 void reset_shared_data(SharedData* shared)
 {
@@ -99,21 +100,21 @@ void reset_shared_data(SharedData* shared)
 	shared->exit = false;
 	shared->reached_max_calculations = false;
 }
-double getAngle(double x, double y)
+float getAngle(float x, float y)
 {
 	x /= sqrt(x*x+y*y);
 	y /= sqrt(x*x+y*y);
-	if (y == 0 && x == -1) return  M_PI;
-	if (y >  0)           return  acos(x);
-	if (y <  0)           return -acos(x);
+	if (y == 0 && x == -1) return  (float)M_PI;
+	if (y >  0)           return  (float)acos(x);
+	if (y <  0)           return (float)-acos(x);
 	return 0;
 }
 void start_log(char* filename)
 {
 	_shared->log_file = fopen(filename, "a");
-	time_t real_start_time; time(&real_start_time);
+	time_t now = time(0);
 	fprintf(_shared->log_file, "--------------------------------\nStart of logging:\n");
-	fprintf(_shared->log_file, "Start Time: %s", asctime(localtime(&real_start_time)));
+	fprintf(_shared->log_file, "Start Time: %s\n", ctime(&now));
 	fprintf(_shared->log_file, "Fetched Settings:\n");
 	fprintf(_shared->log_file, " - width: %d  height: %d\n", _data->width, _data->height);
 	fprintf(_shared->log_file, " - two_dimensional_calculation: %d  two_dimensional_graphic: %d  two_dimensional_binary: %d\n", _data->two_dimensional_calculation, _data->two_dimensional_graphic, _data->two_dimensional_binary);
@@ -142,10 +143,10 @@ void log_line(char* line, ...)
 }
 void end_log()
 {
-	time_t end_time; time(&end_time);
 	double simulationtime = (double)((get_current_time_usec() - (_shared->start_time + (_shared->pause ? (get_current_time_usec() - _shared->pause_start_time) : 0)))) / 1000000;
 	double runtime = (double)(get_current_time_usec() - _shared->real_start_time) / 1000000;
-	fprintf(_shared->log_file, "\nEnd Time: %s", asctime(localtime(&end_time)));
+	time_t now = time(0);
+	fprintf(_shared->log_file, "\nEnd Time: %s\n", ctime(&now));
 	fprintf(_shared->log_file, "Running Time(seconds): %G\n", runtime);
 	fprintf(_shared->log_file, "Simulation Running Time(seconds): %G\n", simulationtime);
 	fprintf(_shared->log_file, "Number of Calculations Done: %d\n", _shared->calculations);

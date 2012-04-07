@@ -16,12 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define Errors_included
-#include "..\SharedHeader.h"
+#ifndef __ERRORS_INCLUDED__
+#define __ERRORS_INCLUDED__
+#include "../SharedHeader.h"
 
 namespace Errors
 {
-	enum Errors
+	enum Error
 	{
 		NoError,
 		MissingSettingsFile,
@@ -50,5 +51,7 @@ namespace Errors
 		TooManyBodies,
 		Other
 	};
-	char* returnError(int error);
+	char* returnError(Error error, char* working_directory);
 }
+
+#endif

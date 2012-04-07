@@ -1,4 +1,4 @@
-This is the source code of Bugale N-Body Simulator version 0.0.4 (Beta 0.4).
+This is the source code of Bugale N-Body Simulator version 0.1.0 (Beta 1.0).
 
 This project simulates the behavior, dynamics, and motion of a group of celestial objects.
 

@@ -16,8 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define SharedData_included
-#include "..\SharedHeader.h"
+#ifndef __SHAREDDATA_INCLUDED__
+#define __SHAREDDATA_INCLUDED__
+
+#include "../SharedHeader.h"
 
 struct SharedData
 {
@@ -41,3 +43,5 @@ struct SharedData
 	bool calculated_momentum;
 	bool reached_max_calculations;
 };
+
+#endif

@@ -16,8 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define BinaryOutputManager_included
-#include "..\SharedHeader.h"
+#ifndef __BINARYOUTPUTMANAGER_INCLUDED__
+#define __BINARYOUTPUTMANAGER_INCLUDED__
+
+#include "../SharedHeader.h"
 
 class BinaryOutputManager
 {
@@ -41,3 +43,5 @@ public:
 	void Save(); //Append
 	void Finalize();
 };
+
+#endif

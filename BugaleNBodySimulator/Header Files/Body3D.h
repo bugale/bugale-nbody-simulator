@@ -16,8 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define Body3D_included
-#include "..\SharedHeader.h"
+#ifndef __BODY3D_INCLUDED__
+#define __BODY3D_INCLUDED__
+
+#include "../SharedHeader.h"
 
 struct Body3D
 {
@@ -38,3 +40,5 @@ struct Body3D
 	unsigned char      _colorR; unsigned char      _colorG; unsigned char      _colorB; unsigned char      _colorA; // Body's ARGB Color
 	unsigned char _trailcolorR; unsigned char _trailcolorG; unsigned char _trailcolorB; unsigned char _trailcolorA; // Body's Trail ARGB Color
 };
+
+#endif

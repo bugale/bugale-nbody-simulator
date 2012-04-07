@@ -150,17 +150,19 @@ namespace BugaleNBodyDataEditor
                 byte[] bodies_data;
                 byte[] settings_data;
                 double g = mainSettings.G;
+                bool ret = true;
                 if (System.IO.File.Exists(Application.StartupPath + "\\bodies.bdf"))
                 {
                     bodies_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\bodies.bdf");
-                    bodies = Body3D.ListFromBytes1(bodies_data);
+                    bodies = Body3D.ListFromBytes(bodies_data, out ret);
                     g = BitConverter.ToDouble(bodies_data, 12);
                 }
                 if (System.IO.File.Exists(Application.StartupPath + "\\settings.bdf"))
                 {
                     settings_data = System.IO.File.ReadAllBytes(Application.StartupPath + "\\settings.bdf");
-                    mainSettings.FromBytes1(settings_data, g);
+                    ret = mainSettings.FromBytes(settings_data, g) && ret;
                 }
+                if (!ret) MessageBox.Show("The data files provided are written in an outdated version of Bugale Data Format.\r\nWhenever you will save these settings, whey will be changed to the newer format and will not be readable anymore by the outdated version of Bugale N-Body Simulator.", "Outdated Version", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.RefreshList();
                 this.lbx_main.SelectedIndex = 0;
                 this.grd_settings.SelectedObject = this.mainSettings;

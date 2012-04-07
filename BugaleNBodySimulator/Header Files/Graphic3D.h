@@ -16,8 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define Graphic3D_included
-#include "..\SharedHeader.h"
+#ifndef __GRAPHIC3D_INCLUDED__
+#define __GRAPHIC3D_INCLUDED__
+
+#include "../SharedHeader.h"
 
 struct Graphic3D
 {
@@ -29,16 +31,21 @@ struct Graphic3D
 
 	int width;
 	int height;
-	double ratio;
+	float ratio;
 	char* title;
 	bool fullscreen;
 	bool clear_screen;
 	bool show_trails;
 	bool min_text;
 	bool crosshair;
+	bool wireframe;
 
 	//Precalculated values
-	double sin_field_of_view;
+	float sin_field_of_view;
+	
+	//Frame-precalculated values
+	double height_meters; double width_meters;
+	double cam_target_distance;
 
 	//Camera properties
     double camera_positionX;
@@ -47,17 +54,14 @@ struct Graphic3D
 	double camera_targetX;
 	double camera_targetY;
 	double camera_targetZ;
-	double camera_upX;
-	double camera_upY;
-	double camera_upZ;
-
-	double height_meters;
-	double width_meters;
-	double cam_target_distance;
+	float camera_upX;
+	float camera_upY;
+	float camera_upZ;
 
 	//Keyboard zoom
-	long long keyboard_zoom_starttime; bool keyboard_zoom_started; bool keyboard_zoom_in; double keyboard_zoom_positionX_start_value;  double keyboard_zoom_positionY_start_value;  double keyboard_zoom_positionZ_start_value;
-	
+	long long keyboard_zoom_starttime_in; long long keyboard_zoom_starttime_out; bool keyboard_zoom_started_in; bool keyboard_zoom_started_out;
+	long long keyboard_zoom_duration_in; long long keyboard_zoom_duration_out;
+
 	//Trails
 	int trail_curpos;
 	double* trailX; double* trailY; double* trailZ;
@@ -66,7 +70,7 @@ struct Graphic3D
 	int mouse_curX; int mouse_curY;
 	int mouse_startX; int mouse_startY;
 	bool mouse_pressed; bool mouse_left;
-	double mouse_start_value_upX; double mouse_start_value_upY; double mouse_start_value_upZ;
+	float mouse_start_value_upX; float mouse_start_value_upY; float mouse_start_value_upZ;
 	double mouse_start_value_forwardX; double mouse_start_value_forwardY; double mouse_start_value_forwardZ;
 
 	//Show Body
@@ -101,6 +105,7 @@ void Graphic3DToggleShowTrails();
 void Graphic3DToggleClearScreen();
 void Graphic3DToggleCameraMove(char direction, bool pressed);
 void Graphic3DTogglePause();
+void Graphic3DToggleWireframe();
 void Graphic3DToggleStickToBody();
 void Graphic3DShowBodyIndex();
 void Graphic3DAddDigitToBodyIndex(int digit);
@@ -114,15 +119,14 @@ void Graphic3DDrawText();
 void Graphic3DDrawMinText();
 void Graphic3DDrawTrails();
 void Graphic3DSaveTrails();
-void Graphic3DDrawBody(double X, double Y, double Z, double radius, double R, double G, double B, double A, bool trail);
-void Graphic3DProcessCameraZoom(double duration);
-void Graphic3DProcessCameraMoveHorizontal(double angleHorizontal);
-void Graphic3DProcessCameraMoveVertical(double angleVertical, double forwardX, double forwardY, double forwardZ);
-void Graphic3DProcessTargetMoveHorizontal(double angleHorizontal);
-void Graphic3DProcessTargetMoveVertical(double angleVertical, double forwardX, double forwardY, double forwardZ);
+void Graphic3DDrawBody(double X, double Y, double Z, double radius, float R, float G, float B, float A, bool trail);
+void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, float zoom_duration_in, float zoom_duration_out);
+void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, float zoom_duration_in, float zoom_duration_out);
 void Graphic3DFixIndefinedValues();
 
 void Graphic3DSetOrthographicProjection();
 void Graphic3DRestorePerspectiveProjection();
-void Graphic3DRenderBitmapString(double x, double y, char* string);
-bool Graphic3DIsInSight(double X, double Y, double Z, double radius);
+void Graphic3DRenderBitmapString(int x, int y, char* string);
+bool Graphic3DIsInSight(double X, double Y, double Z, double r);
+
+#endif
