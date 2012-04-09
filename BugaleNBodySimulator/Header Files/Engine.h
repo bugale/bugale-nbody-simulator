@@ -53,8 +53,9 @@ public:
 	double dt_div_12; //dt / 12
 	double dt_squared_mul_g_div_12; //dt^2 * G / 12
 	
-	//Initialization
 	Engine(Data* data);
+	~Engine();
+
 	void Precalculations(); //Precalculate some constant expressions which are commonly used in the algorithms
 	
 	//Energy calculations

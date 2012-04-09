@@ -18,9 +18,8 @@
 */
 #include "..\SharedHeader.h"
 
-char* Errors::returnError(Error error, char* working_directory)
+void Errors::returnError(Error error, char* working_directory, char* ret)
 {
-	char* ret = (char*)malloc(4096);
 	ret[0] = 0;
 	switch (error)
 	{
@@ -28,11 +27,11 @@ char* Errors::returnError(Error error, char* working_directory)
 			strcat(ret, ""); break;
 		case MissingSettingsFile:
 			strcat(ret, "Missing settings file(expected path: ");
-			strcat(ret, getpath(working_directory, SETTINGS_FILENAME));
+			getpath(working_directory, SETTINGS_FILENAME, ret);
 			strcat(ret, ")!"); break;
 		case MissingBodyDataFile:
 			strcat(ret, "Missing settings file(expected path: ");
-			strcat(ret, getpath(working_directory, BODIES_FILENAME));
+			getpath(working_directory, BODIES_FILENAME, ret);
 			strcat(ret, ")!"); break;
 		case WrongSettingsFileHeader:
 			strcat(ret, "Settings file is corrupted(wrong header)!"); break;
@@ -114,5 +113,4 @@ char* Errors::returnError(Error error, char* working_directory)
 			strcat(ret, "\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge.");
 			break;
 	}
-	return ret;
 }

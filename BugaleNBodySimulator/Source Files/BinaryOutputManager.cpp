@@ -36,6 +36,11 @@ BinaryOutputManager::BinaryOutputManager(Data* data, int buffer_frames, char* fi
 	this->_disk_buffer = (char*)malloc(this->_buffer_size);
 	log_line("Ended BinaryOutputManager constructor with this at 0x%08X.", this);
 }
+BinaryOutputManager::~BinaryOutputManager()
+{
+	if (this->_mem_buffer != 0) free(this->_mem_buffer);
+	if (this->_disk_buffer != 0) free(this->_disk_buffer);
+}
 bool BinaryOutputManager::Capture(long long time)
 {
 	log_line("Entered BinaryOutputManager::Capture with time as %d.", time);

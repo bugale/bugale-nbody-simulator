@@ -52,7 +52,7 @@
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
     <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
@@ -100,6 +100,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Link>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

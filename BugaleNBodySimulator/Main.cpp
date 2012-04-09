@@ -23,11 +23,12 @@ int main(int argc, char* argv[])
 {	
 	char* buffer;
 	buffer = getcwd(NULL, 0);
-	if (buffer == NULL)
+	if (buffer == 0)
 	{
 		printf("Critical Error: getcwd failed!\n");
 		while (true);
 	}
 	Run(buffer);
+	free(buffer);
 	return 0;
 }

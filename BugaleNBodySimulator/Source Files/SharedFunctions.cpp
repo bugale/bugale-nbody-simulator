@@ -22,18 +22,17 @@ SharedData* _shared = 0;
 Data* _data = 0;
 bool data_log = false;
 
-char* getpath(char* arg, char* file)
+void getpath(char* arg, char* file, char* out)
 {
-	log_line("Entered getpath(1/3) with arg at 0x%08X and file at 0x%08X.", arg, file);
-	log_line("Entered getpath(2/3) with arg as \"%s\".", arg);
-	log_line("Entered getpath(3/3) with file as \"%s\".", file);
-	std::string cst = ((std::string)arg).append("\\").append((std::string)file);
-	char* ret = (char*)malloc(1024);
-	cst.copy(ret, cst.length(), 0);
-	ret[cst.length()] = 0;
-	log_line("Ended getpath(1/2) with result at 0x%08X.", ret);
-	log_line("Ended getpath(2/2) with result as \"%s\".", ret);
-	return ret; //Not freeing ret, for better convenience. Should not take much memory.
+	log_line("Entered getpath(1/4) with arg at 0x%08X file at 0x%08X and out at 0x%08X.", arg, file, out);
+	log_line("Entered getpath(2/4) with arg as \"%s\".", arg);
+	log_line("Entered getpath(3/4) with file as \"%s\".", file);
+	log_line("Entered getpath(4/4) with out as \"%s\".", out);
+	strcat(out, arg);
+	strcat(out, "\\");
+	strcat(out, file);
+	log_line("Ended getpath(1/2) with result at 0x%08X.", out);
+	log_line("Ended getpath(2/2) with result as \"%s\".", out);
 }
 void copy_double_to_char_array(char* arr, int index, double d)
 {
@@ -56,14 +55,14 @@ int add_before(int* a, int b)
 	if (data_log) log_line("Ended add_before with result as %d.", ret);
 	return ret;
 }
-char* get_algorithm_name(char algorithm)
+void get_algorithm_name(char algorithm, char* out)
 {
 	switch (algorithm)
 	{
-		case 0x00: return "ModifiedEuler";
-		case 0x01: return "Hermite";
+		case 0x00: strcpy(out, "ModifiedEuler"); return;
+		case 0x01: strcpy(out, "Hermite"); return;
 	}
-	return "";
+	strcpy(out, ""); return;
 }
 long long get_current_time_usec()
 {

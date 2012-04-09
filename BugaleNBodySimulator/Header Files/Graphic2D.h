@@ -66,6 +66,8 @@ struct Graphic2D
 	bool body_index_entered;
 	int stick_body_index;
 	bool stick_body_index_entered;
+
+	char* temp_string;
 };
 
 void NewGraphic2D(Data* data, SharedData* shared);

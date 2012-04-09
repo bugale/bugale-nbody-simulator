@@ -24,6 +24,11 @@ Data::Data(char* settings_filename, char* bodies_filename)
 	this->parseSettings(settings_filename);
 	this->parseBodies(bodies_filename);
 }
+Data::~Data()
+{
+	if (this->bodies != 0) free(this->bodies);
+	if (this->algorithm_name != 0) free(this->algorithm_name);
+}
 
 void Data::parseSettings(char* filename)
 {
@@ -97,9 +102,12 @@ void Data::parseSettings(char* filename)
 	this->keyboard_zoom_speed0 = *(float    *)&data[cur]; cur += 4;
 	this->keyboard_zoom_speed1 = *(float    *)&data[cur]; cur += 4;
 
-	this->validateData();
-
 	free(data);
+
+	this->algorithm_name = (char*)malloc(256);
+	get_algorithm_name(this->algorithm, this->algorithm_name);
+
+	this->validateData();
 }
 void Data::parseBodies(char* filename)
 {

@@ -40,7 +40,7 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->min_text = data->min_text;
 	graphic3d->crosshair = data->crosshair;
 	graphic3d->wireframe = data->wireframe;
-	graphic3d->sin_field_of_view = 2 * (float)sin(graphic3d->data->field_of_view * M_PI / (180 * 2));
+	graphic3d->sin_field_of_view = 2*(float)sin(graphic3d->data->field_of_view*M_PI / (180*2));
 	
 	graphic3d->camera_positionX = data->camera_positionX;
 	graphic3d->camera_positionY = data->camera_positionY;
@@ -52,25 +52,25 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->camera_upY       = data->camera_upY;
 	graphic3d->camera_upZ       = data->camera_upZ;
 
-	graphic3d->cam_target_distance = sqrt((graphic3d->camera_positionX - graphic3d->camera_targetX) * (graphic3d->camera_positionX - graphic3d->camera_targetX) + 
-										  (graphic3d->camera_positionY - graphic3d->camera_targetY) * (graphic3d->camera_positionY - graphic3d->camera_targetY) + 
-										  (graphic3d->camera_positionZ - graphic3d->camera_targetZ) * (graphic3d->camera_positionZ - graphic3d->camera_targetZ));
-	graphic3d->height_meters = graphic3d->cam_target_distance * graphic3d->sin_field_of_view;
-	graphic3d->width_meters  = graphic3d->height_meters * graphic3d->ratio;
-	double L = sqrt(graphic3d->camera_upX*graphic3d->camera_upX + graphic3d->camera_upY*graphic3d->camera_upY + graphic3d->camera_upZ*graphic3d->camera_upZ);
-	graphic3d->camera_upX /= (float)L;
-	graphic3d->camera_upY /= (float)L;
-	graphic3d->camera_upZ /= (float)L;
+	graphic3d->cam_target_distance2 = (graphic3d->camera_positionX - graphic3d->camera_targetX)*(graphic3d->camera_positionX - graphic3d->camera_targetX)+
+									  (graphic3d->camera_positionY - graphic3d->camera_targetY)*(graphic3d->camera_positionY - graphic3d->camera_targetY)+
+									  (graphic3d->camera_positionZ - graphic3d->camera_targetZ)*(graphic3d->camera_positionZ - graphic3d->camera_targetZ);
+
+	graphic3d->frustum[1][0] = graphic3d->frustum[1][1] = graphic3d->frustum[1][2] = graphic3d->frustum[1][3] = 0;
+	graphic3d->frustum[2][0] = graphic3d->frustum[2][1] = graphic3d->frustum[2][2] = graphic3d->frustum[2][3] = 0;
+	graphic3d->frustum[3][0] = graphic3d->frustum[3][1] = graphic3d->frustum[3][2] = graphic3d->frustum[3][3] = 0;
+	graphic3d->frustum[4][0] = graphic3d->frustum[4][1] = graphic3d->frustum[4][2] = graphic3d->frustum[4][3] = 0;
+	graphic3d->frustum[5][0] = graphic3d->frustum[5][1] = graphic3d->frustum[5][2] = graphic3d->frustum[5][3] = 0;
 
 	graphic3d->trail_curpos = 0;
 	if (graphic3d->data->max_trails != 0)
 	{
-		graphic3d->trailX = (double*)malloc(sizeof(double) * graphic3d->data->num_of_bodies * graphic3d->data->max_trails);
-		graphic3d->trailY = (double*)malloc(sizeof(double) * graphic3d->data->num_of_bodies * graphic3d->data->max_trails);
-		graphic3d->trailZ = (double*)malloc(sizeof(double) * graphic3d->data->num_of_bodies * graphic3d->data->max_trails);
-		for (int i = 0; i < graphic3d->data->num_of_bodies * graphic3d->data->max_trails; i++) graphic3d->trailX[i] = (DBL_MAX + 1);
-		for (int i = 0; i < graphic3d->data->num_of_bodies * graphic3d->data->max_trails; i++) graphic3d->trailY[i] = (DBL_MAX + 1);
-		for (int i = 0; i < graphic3d->data->num_of_bodies * graphic3d->data->max_trails; i++) graphic3d->trailZ[i] = (DBL_MAX + 1);
+		graphic3d->trailX = (double*)malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		graphic3d->trailY = (double*)malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		graphic3d->trailZ = (double*)malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailX[i] = (DBL_MAX + 1);
+		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailY[i] = (DBL_MAX + 1);
+		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailZ[i] = (DBL_MAX + 1);
 	}
 
 	graphic3d->keyboard_zoom_starttime_in = 0;
@@ -98,6 +98,8 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->stick_body_index = 0;
 	graphic3d->stick_body_index_entered = false;
 
+	graphic3d->temp_string = (char*)malloc(4096);
+
 	printf("3D Graphical Output Instructions:\n\n");
 	printf("           ESC         : Close the Simulator\n");
 	printf("     Left  Mouse Key   : Move Your Camera Around the Target\n");
@@ -118,6 +120,17 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	printf("\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
 
 	Graphic3DInitialize();
+
+	glutMainLoop();
+	
+	log_line("Ended Glut Event Loop.");
+
+	if (graphic3d->temp_string != 0) free(graphic3d->temp_string);
+	if (graphic3d->trailX != 0) free(graphic3d->trailX);
+	if (graphic3d->trailY != 0) free(graphic3d->trailY);
+	if (graphic3d->trailZ != 0) free(graphic3d->trailZ);
+	if (graphic3d != 0) free(graphic3d);
+
 	log_line("Ended NewGraphic3D.");
 }
 void Graphic3DInitialize()
@@ -125,16 +138,17 @@ void Graphic3DInitialize()
 	log_line("Entered Graphic3DInitialize.");
 	//Initialize GLUT and create the window
 	int a = 0; glutInit(&a, 0);
-	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize    (graphic3d->width, graphic3d->height);
 	graphic3d->singlebuf_window = glutCreateWindow(graphic3d->title);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
 	glutIgnoreKeyRepeat   (1);
 	if (graphic3d->fullscreen) glutFullScreen();
@@ -151,14 +165,16 @@ void Graphic3DInitialize()
 	
 	log_line("Graphic3DInitialize - single buffer window set at 0x%08X.", graphic3d->singlebuf_window);
 
-	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
 	graphic3d->doublebuf_window = glutCreateSubWindow(glutGetWindow(), 0, 0, graphic3d->width, graphic3d->height);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
 	glutIgnoreKeyRepeat   (1);
 	if (graphic3d->fullscreen) glutFullScreen();
@@ -175,7 +191,6 @@ void Graphic3DInitialize()
 	
 	log_line("Graphic3DInitialize - double buffer window set at 0x%08X.", graphic3d->doublebuf_window);
 
-	glutMainLoop();
 	log_line("Ended Graphic3DInitialize.");
 }
 
@@ -187,9 +202,9 @@ void Graphic3DRenderHandlerDblBfr()
 		return;
 	}
 	Graphic3DProcessCameraMove();
-	Graphic3DCalculateTemp();
 	Graphic3DClearScreen();
 	Graphic3DSetCamera();
+	Graphic3DCalculateTemp();
 
 	Graphic3DDrawTrails();
 	Graphic3DDrawBodies();
@@ -209,9 +224,9 @@ void Graphic3DRenderHandlerSglBfr()
 		return;
 	}
 	Graphic3DProcessCameraMove();
-	Graphic3DCalculateTemp();
 	Graphic3DClearScreen();
 	Graphic3DSetCamera();
+	Graphic3DCalculateTemp();
 
 	Graphic3DDrawTrails();
 	Graphic3DDrawBodies();
@@ -323,34 +338,34 @@ void Graphic3DClearScreen()
 	else
 	{
 		Graphic3DSetOrthographicProjection();
-		glColor4i(0, 0, 0, 1);
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 		glRasterPos2i(0, 0);
 		glBegin(GL_QUADS);
 		if (graphic3d->body_index_entered)
 		{
-			glVertex3i(graphic3d->width - 9 * 8, 0, 0);
-			glVertex3i(graphic3d->width - 9 * 8, 2 * 13, 0);
-			glVertex3i(graphic3d->width, 2 * 13, 0);
+			glVertex3i(graphic3d->width - 9*8, 0, 0);
+			glVertex3i(graphic3d->width - 9*8, 2*13, 0);
+			glVertex3i(graphic3d->width, 2*13, 0);
 			glVertex3i(graphic3d->width, 0, 0);
 		}
 		if (graphic3d->stick_body_index_entered)
 		{
-			glVertex3i(graphic3d->width - 9 * 8, 2 * 13, 0);
-			glVertex3i(graphic3d->width - 9 * 8, 3 * 13, 0);
-			glVertex3i(graphic3d->width, 3 * 13, 0);
-			glVertex3i(graphic3d->width, 2 * 13, 0);
+			glVertex3i(graphic3d->width - 9*8, 2*13, 0);
+			glVertex3i(graphic3d->width - 9*8, 3*13, 0);
+			glVertex3i(graphic3d->width, 3*13, 0);
+			glVertex3i(graphic3d->width, 2*13, 0);
 		}
 		if (!graphic3d->min_text)
 		{
 			glVertex3i(0, 0, 0);
-			glVertex3i(0, 14 * 13, 0);
-			glVertex3i(42 * 8, 14 * 13, 0);
-			glVertex3i(42 * 8, 0, 0);
+			glVertex3i(0, 14*13, 0);
+			glVertex3i(42*8, 14*13, 0);
+			glVertex3i(42*8, 0, 0);
 
-			glVertex3i(0, graphic3d->height - 13 * 6, 0);
+			glVertex3i(0, graphic3d->height - 13*5, 0);
 			glVertex3i(0, graphic3d->height, 0);
-			glVertex3i(63 * 8, graphic3d->height, 0);
-			glVertex3i(63 * 8, graphic3d->height - 13 * 6, 0);
+			glVertex3i(63*8, graphic3d->height, 0);
+			glVertex3i(63*8, graphic3d->height - 13*5, 0);
 		}
 		if (graphic3d->min_text)
 		{
@@ -383,10 +398,8 @@ void Graphic3DFinalizeFrame()
 
 void Graphic3DExit()
 {
-	log_line("Entered Graphic3DExit.");
 	graphic3d->shared->exit = true;
 	glutLeaveMainLoop();
-	log_line("Ended Graphic3DExit.");
 }
 void Graphic3DReset()
 {
@@ -427,10 +440,11 @@ void Graphic3DToggleClearScreen()
 	}
 	else
 	{
+		glutSetWindow(graphic3d->singlebuf_window);
+		glClear(GL_COLOR_BUFFER_BIT);
 		glutSetWindow(graphic3d->doublebuf_window);
 		glutHideWindow();
 		glutSetWindow(graphic3d->singlebuf_window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 }
 void Graphic3DToggleCameraMove(char direction, bool pressed)
@@ -517,8 +531,8 @@ void Graphic3DProcessCameraMove()
 	float zoom_duration_in = (float)(graphic3d->keyboard_zoom_duration_in + get_current_time_usec() - graphic3d->keyboard_zoom_starttime_in) / 1000000;
 	float zoom_duration_out = (float)(graphic3d->keyboard_zoom_duration_out + get_current_time_usec() - graphic3d->keyboard_zoom_starttime_out) / 1000000;
 	if (graphic3d->mouse_pressed && !graphic3d->mouse_left) //Move camera around target
-		Graphic3DProcessCameraMove(((float)(graphic3d->mouse_curX - graphic3d->mouse_startX) / graphic3d->width) * (float)M_PI,
-								   ((float)(graphic3d->mouse_curY - graphic3d->mouse_startY) / graphic3d->height) * (float)M_PI,
+		Graphic3DProcessCameraMove(((float)(graphic3d->mouse_curX - graphic3d->mouse_startX) / graphic3d->width)*(float)M_PI,
+								   ((float)(graphic3d->mouse_curY - graphic3d->mouse_startY) / graphic3d->height)*(float)M_PI,
 								   zoom_duration_in, zoom_duration_out);
 	if (graphic3d->stick_body_index_entered) //Stick to Body
 	{
@@ -527,8 +541,8 @@ void Graphic3DProcessCameraMove()
 		graphic3d->camera_targetZ = graphic3d->data->bodies[graphic3d->stick_body_index]._positionZ;
 	}
 	else if (graphic3d->mouse_pressed && graphic3d->mouse_left) //Move target around camera
-		Graphic3DProcessTargetMove(((float)(graphic3d->mouse_curX - graphic3d->mouse_startX) / graphic3d->width) * (float)M_PI_2,
-								   ((float)(graphic3d->mouse_curY - graphic3d->mouse_startY) / graphic3d->height) * (float)M_PI_2,
+		Graphic3DProcessTargetMove(((float)(graphic3d->mouse_curX - graphic3d->mouse_startX) / graphic3d->width)*(float)M_PI_2,
+								   ((float)(graphic3d->mouse_curY - graphic3d->mouse_startY) / graphic3d->height)*(float)M_PI_2,
 								   zoom_duration_in, zoom_duration_out);
 	if (!graphic3d->mouse_pressed && (graphic3d->keyboard_zoom_started_in || graphic3d->keyboard_zoom_started_out))
 		Graphic3DProcessCameraMove(0, 0, zoom_duration_in, zoom_duration_out);
@@ -536,15 +550,124 @@ void Graphic3DProcessCameraMove()
 }
 void Graphic3DCalculateTemp()
 {
-	graphic3d->cam_target_distance = sqrt((graphic3d->camera_positionX - graphic3d->camera_targetX) * (graphic3d->camera_positionX - graphic3d->camera_targetX) + 
-										  (graphic3d->camera_positionY - graphic3d->camera_targetY) * (graphic3d->camera_positionY - graphic3d->camera_targetY) + 
-										  (graphic3d->camera_positionZ - graphic3d->camera_targetZ) * (graphic3d->camera_positionZ - graphic3d->camera_targetZ));
-	graphic3d->height_meters = graphic3d->cam_target_distance * graphic3d->sin_field_of_view;
-	graphic3d->width_meters  = graphic3d->height_meters * graphic3d->ratio;
-	double L = sqrt(graphic3d->camera_upX*graphic3d->camera_upX + graphic3d->camera_upY*graphic3d->camera_upY + graphic3d->camera_upZ*graphic3d->camera_upZ);
-	graphic3d->camera_upX /= (float)L;
-	graphic3d->camera_upY /= (float)L;
-	graphic3d->camera_upZ /= (float)L;
+	graphic3d->cam_target_distance2 = (graphic3d->camera_positionX - graphic3d->camera_targetX)*(graphic3d->camera_positionX - graphic3d->camera_targetX)+
+									  (graphic3d->camera_positionY - graphic3d->camera_targetY)*(graphic3d->camera_positionY - graphic3d->camera_targetY)+
+									  (graphic3d->camera_positionZ - graphic3d->camera_targetZ)*(graphic3d->camera_positionZ - graphic3d->camera_targetZ);
+
+	//Normalize Up Vector
+	float t = 1/sqrt(graphic3d->camera_upX*graphic3d->camera_upX + graphic3d->camera_upY*graphic3d->camera_upY + graphic3d->camera_upZ*graphic3d->camera_upZ);
+	graphic3d->camera_upX *= t;
+	graphic3d->camera_upY *= t;
+	graphic3d->camera_upZ *= t;
+
+	float   proj[16];
+	float   modl[16];
+	float   clip[16];
+
+	/* Get the current PROJECTION matrix from OpenGL */
+	glGetFloatv( GL_PROJECTION_MATRIX, proj );
+
+	/* Get the current MODELVIEW matrix from OpenGL */
+	glGetFloatv( GL_MODELVIEW_MATRIX, modl );
+
+	/* Combine the two matrices (multiply projection by modelview) */
+	clip[ 0] = modl[ 0]*proj[ 0] + modl[ 1]*proj[ 4] + modl[ 2]*proj[ 8] + modl[ 3]*proj[12];
+	clip[ 1] = modl[ 0]*proj[ 1] + modl[ 1]*proj[ 5] + modl[ 2]*proj[ 9] + modl[ 3]*proj[13];
+	clip[ 2] = modl[ 0]*proj[ 2] + modl[ 1]*proj[ 6] + modl[ 2]*proj[10] + modl[ 3]*proj[14];
+	clip[ 3] = modl[ 0]*proj[ 3] + modl[ 1]*proj[ 7] + modl[ 2]*proj[11] + modl[ 3]*proj[15];
+
+	clip[ 4] = modl[ 4]*proj[ 0] + modl[ 5]*proj[ 4] + modl[ 6]*proj[ 8] + modl[ 7]*proj[12];
+	clip[ 5] = modl[ 4]*proj[ 1] + modl[ 5]*proj[ 5] + modl[ 6]*proj[ 9] + modl[ 7]*proj[13];
+	clip[ 6] = modl[ 4]*proj[ 2] + modl[ 5]*proj[ 6] + modl[ 6]*proj[10] + modl[ 7]*proj[14];
+	clip[ 7] = modl[ 4]*proj[ 3] + modl[ 5]*proj[ 7] + modl[ 6]*proj[11] + modl[ 7]*proj[15];
+
+	clip[ 8] = modl[ 8]*proj[ 0] + modl[ 9]*proj[ 4] + modl[10]*proj[ 8] + modl[11]*proj[12];
+	clip[ 9] = modl[ 8]*proj[ 1] + modl[ 9]*proj[ 5] + modl[10]*proj[ 9] + modl[11]*proj[13];
+	clip[10] = modl[ 8]*proj[ 2] + modl[ 9]*proj[ 6] + modl[10]*proj[10] + modl[11]*proj[14];
+	clip[11] = modl[ 8]*proj[ 3] + modl[ 9]*proj[ 7] + modl[10]*proj[11] + modl[11]*proj[15];
+
+	clip[12] = modl[12]*proj[ 0] + modl[13]*proj[ 4] + modl[14]*proj[ 8] + modl[15]*proj[12];
+	clip[13] = modl[12]*proj[ 1] + modl[13]*proj[ 5] + modl[14]*proj[ 9] + modl[15]*proj[13];
+	clip[14] = modl[12]*proj[ 2] + modl[13]*proj[ 6] + modl[14]*proj[10] + modl[15]*proj[14];
+	clip[15] = modl[12]*proj[ 3] + modl[13]*proj[ 7] + modl[14]*proj[11] + modl[15]*proj[15];
+
+	/* Extract the numbers for the RIGHT plane */
+	graphic3d->frustum[0][0] = clip[ 3] - clip[ 0];
+	graphic3d->frustum[0][1] = clip[ 7] - clip[ 4];
+	graphic3d->frustum[0][2] = clip[11] - clip[ 8];
+	graphic3d->frustum[0][3] = clip[15] - clip[12];
+
+	/* Normalize the result */
+	t = 1/sqrt(graphic3d->frustum[0][0]*graphic3d->frustum[0][0] + graphic3d->frustum[0][1]*graphic3d->frustum[0][1] + graphic3d->frustum[0][2]*graphic3d->frustum[0][2]);
+	graphic3d->frustum[0][0] *= t;
+	graphic3d->frustum[0][1] *= t;
+	graphic3d->frustum[0][2] *= t;
+	graphic3d->frustum[0][3] *= t;
+
+	/* Extract the numbers for the LEFT plane */
+	graphic3d->frustum[1][0] = clip[ 3] + clip[ 0];
+	graphic3d->frustum[1][1] = clip[ 7] + clip[ 4];
+	graphic3d->frustum[1][2] = clip[11] + clip[ 8];
+	graphic3d->frustum[1][3] = clip[15] + clip[12];
+
+	/* Normalize the result */
+	t = 1/sqrt(graphic3d->frustum[1][0]*graphic3d->frustum[1][0] + graphic3d->frustum[1][1]*graphic3d->frustum[1][1] + graphic3d->frustum[1][2]*graphic3d->frustum[1][2]);
+	graphic3d->frustum[1][0] *= t;
+	graphic3d->frustum[1][1] *= t;
+	graphic3d->frustum[1][2] *= t;
+	graphic3d->frustum[1][3] *= t;
+
+	/* Extract the BOTTOM plane */
+	graphic3d->frustum[2][0] = clip[ 3] + clip[ 1];
+	graphic3d->frustum[2][1] = clip[ 7] + clip[ 5];
+	graphic3d->frustum[2][2] = clip[11] + clip[ 9];
+	graphic3d->frustum[2][3] = clip[15] + clip[13];
+
+	/* Normalize the result */
+	t = 1/sqrt(graphic3d->frustum[2][0]*graphic3d->frustum[2][0] + graphic3d->frustum[2][1]*graphic3d->frustum[2][1] + graphic3d->frustum[2][2]*graphic3d->frustum[2][2]);
+	graphic3d->frustum[2][0] *= t;
+	graphic3d->frustum[2][1] *= t;
+	graphic3d->frustum[2][2] *= t;
+	graphic3d->frustum[2][3] *= t;
+
+	/* Extract the TOP plane */
+	graphic3d->frustum[3][0] = clip[ 3] - clip[ 1];
+	graphic3d->frustum[3][1] = clip[ 7] - clip[ 5];
+	graphic3d->frustum[3][2] = clip[11] - clip[ 9];
+	graphic3d->frustum[3][3] = clip[15] - clip[13];
+
+	/* Normalize the result */
+	t = 1/sqrt(graphic3d->frustum[3][0]*graphic3d->frustum[3][0] + graphic3d->frustum[3][1]*graphic3d->frustum[3][1] + graphic3d->frustum[3][2]*graphic3d->frustum[3][2]);
+	graphic3d->frustum[3][0] *= t;
+	graphic3d->frustum[3][1] *= t;
+	graphic3d->frustum[3][2] *= t;
+	graphic3d->frustum[3][3] *= t;
+
+	/* Extract the FAR plane */
+	graphic3d->frustum[4][0] = clip[ 3] - clip[ 2];
+	graphic3d->frustum[4][1] = clip[ 7] - clip[ 6];
+	graphic3d->frustum[4][2] = clip[11] - clip[10];
+	graphic3d->frustum[4][3] = clip[15] - clip[14];
+
+	/* Normalize the result */
+	t = 1/sqrt(graphic3d->frustum[4][0]*graphic3d->frustum[4][0] + graphic3d->frustum[4][1]*graphic3d->frustum[4][1] + graphic3d->frustum[4][2]*graphic3d->frustum[4][2]);
+	graphic3d->frustum[4][0] *= t;
+	graphic3d->frustum[4][1] *= t;
+	graphic3d->frustum[4][2] *= t;
+	graphic3d->frustum[4][3] *= t;
+
+	/* Extract the NEAR plane */
+	graphic3d->frustum[5][0] = clip[ 3] + clip[ 2];
+	graphic3d->frustum[5][1] = clip[ 7] + clip[ 6];
+	graphic3d->frustum[5][2] = clip[11] + clip[10];
+	graphic3d->frustum[5][3] = clip[15] + clip[14];
+
+	/* Normalize the result */
+	t = 1/sqrt(graphic3d->frustum[5][0]*graphic3d->frustum[5][0] + graphic3d->frustum[5][1]*graphic3d->frustum[5][1] + graphic3d->frustum[5][2]*graphic3d->frustum[5][2]);
+	graphic3d->frustum[5][0] *= t;
+	graphic3d->frustum[5][1] *= t;
+	graphic3d->frustum[5][2] *= t;
+	graphic3d->frustum[5][3] *= t;
 }
 void Graphic3DDrawBodies()
 {
@@ -555,34 +678,31 @@ void Graphic3DDrawBodies()
 		double z = graphic3d->data->bodies[i]._positionZ;
 		double r = graphic3d->data->bodies[i]._radius;
 		if (!Graphic3DIsInSight(x, y, z, r)) continue;
-		float R = (float)graphic3d->data->bodies[i]._colorR * 0.003921568f;
-		float G = (float)graphic3d->data->bodies[i]._colorG * 0.003921568f;
-		float B = (float)graphic3d->data->bodies[i]._colorB * 0.003921568f;
-		float A = (float)graphic3d->data->bodies[i]._colorA * 0.003921568f;
+		float R = (float)graphic3d->data->bodies[i]._colorR*0.003921568f;
+		float G = (float)graphic3d->data->bodies[i]._colorG*0.003921568f;
+		float B = (float)graphic3d->data->bodies[i]._colorB*0.003921568f;
+		float A = (float)graphic3d->data->bodies[i]._colorA*0.003921568f;
 		Graphic3DDrawBody(x, y, z, r, R, G, B, A, false);
 	}
 }
 void Graphic3DDrawBodyIndex()
 {
-	char* string = (char*)malloc(1024);
-	Graphic3DSetOrthographicProjection();
-
 	if (graphic3d->body_index_entered)
 	{
+		Graphic3DSetOrthographicProjection();
 		glColor4f(1, 0, 0, 1);
-		sprintf(string, "%d", graphic3d->body_index);
-		Graphic3DRenderBitmapString(graphic3d->width - strlen(string) * 8, 13, string);
+		sprintf(graphic3d->temp_string, "%d", graphic3d->body_index);
+		Graphic3DRenderBitmapString(graphic3d->width - strlen(graphic3d->temp_string)*8, 13, graphic3d->temp_string);
+		Graphic3DRestorePerspectiveProjection();
 	}
-
 	if (graphic3d->stick_body_index_entered)
 	{
+		Graphic3DSetOrthographicProjection();
 		glColor4f(0, 0, 1, 1);
-		sprintf(string, "%d", graphic3d->stick_body_index);
-		Graphic3DRenderBitmapString(graphic3d->width - strlen(string) * 8, 2 * 13, string);
+		sprintf(graphic3d->temp_string, "%d", graphic3d->stick_body_index);
+		Graphic3DRenderBitmapString(graphic3d->width - strlen(graphic3d->temp_string)*8, 2*13, graphic3d->temp_string);
+		Graphic3DRestorePerspectiveProjection();
 	}
-
-	free(string);
-	Graphic3DRestorePerspectiveProjection();
 }
 void Graphic3DDrawCrosshair(bool white)
 {
@@ -590,12 +710,12 @@ void Graphic3DDrawCrosshair(bool white)
 
 	Graphic3DSetOrthographicProjection();
 	glColor4f(white, white, white, 1);
-	float length = graphic3d->height * 0.01f;
+	float length = graphic3d->height*0.01f;
 	glBegin(GL_LINES);
-		glVertex3f(graphic3d->width * 0.5f - length * 0.5f, graphic3d->height * 0.5f, 0);
-		glVertex3f(graphic3d->width * 0.5f + length * 0.5f, graphic3d->height * 0.5f, 0);
-		glVertex3f(graphic3d->width * 0.5f, graphic3d->height * 0.5f - length * 0.5f, 0);
-		glVertex3f(graphic3d->width * 0.5f, graphic3d->height * 0.5f + length * 0.5f, 0);
+		glVertex3f(graphic3d->width*0.5f - length*0.5f, graphic3d->height*0.5f, 0);
+		glVertex3f(graphic3d->width*0.5f + length*0.5f, graphic3d->height*0.5f, 0);
+		glVertex3f(graphic3d->width*0.5f, graphic3d->height*0.5f - length*0.5f, 0);
+		glVertex3f(graphic3d->width*0.5f, graphic3d->height*0.5f + length*0.5f, 0);
 	glEnd();
 	Graphic3DRestorePerspectiveProjection();
 }
@@ -604,7 +724,6 @@ void Graphic3DDrawText()
 	if (graphic3d->min_text) return;
 
 	long long real_time;
-	char* string = (char*)malloc(1024);
 	int curY = 0;
 	if (graphic3d->shared->pause) real_time = graphic3d->shared->pause_start_time - graphic3d->shared->start_time;
 	else real_time = get_current_time_usec() - graphic3d->shared->start_time;
@@ -619,107 +738,90 @@ void Graphic3DDrawText()
 	forwardX  = graphic3d->camera_targetX - graphic3d->camera_positionX;
 	forwardY  = graphic3d->camera_targetY - graphic3d->camera_positionY;
 	forwardZ  = graphic3d->camera_targetZ - graphic3d->camera_positionZ;
-	leftX     = forwardY * upZ - upY * forwardZ;
-	leftY     = forwardZ * upX - upZ * forwardX;
-	leftZ     = forwardX * upY - upX * forwardY;
-	upL       = sqrt(upX*upX + upY*upY + upZ*upZ);
-	forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
-	leftL     = sqrt(leftX*leftX + leftY*leftY + leftZ*leftZ);
-	upX /= upL; upY /= upL; upZ /= upL;
-	forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL;
-	leftX /= leftL; leftY /= leftL; leftZ /= leftL;
-	if (upX*upX <= 1E-10) upX = 0;
-	if (upY*upY <= 1E-10) upY = 0;
-	if (upZ*upZ <= 1E-10) upZ = 0;
-	if (forwardX*forwardX <= 1E-10) forwardX = 0;
-	if (forwardY*forwardY <= 1E-10) forwardY = 0;
-	if (forwardZ*forwardZ <= 1E-10) forwardZ = 0;
-	if (leftX*leftX <= 1E-10) leftX = 0;
-	if (leftY*leftY <= 1E-10) leftY = 0;
-	if (leftZ*leftZ <= 1E-10) leftZ = 0;
+	leftX     = forwardY*upZ - upY*forwardZ;
+	leftY     = forwardZ*upX - upZ*forwardX;
+	leftZ     = forwardX*upY - upX*forwardY;
+	upL       = 1/sqrt(upX*upX + upY*upY + upZ*upZ);
+	forwardL  = 1/sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
+	leftL     = 1/sqrt(leftX*leftX + leftY*leftY + leftZ*leftZ);
+	upX *= upL; upY *= upL; upZ *= upL;
+	forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL;
+	leftX *= leftL; leftY *= leftL; leftZ *= leftL;
 
 	glColor4f(1, 1, 1, 1);
 
-	sprintf(string, "Frames Per Second: %G", graphic3d->shared->frames_per_second);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Frames Per Second: %G", graphic3d->shared->frames_per_second);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Calculations Per Second:   %+E", graphic3d->shared->calculations_per_second);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Calculations Per Second:   %+E", graphic3d->shared->calculations_per_second);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Total Calculations Done:   %+E", (double)graphic3d->shared->calculations);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Total Calculations Done:   %+E", (double)graphic3d->shared->calculations);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "DeltaTime:                 %+E", graphic3d->data->dt);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "DeltaTime:                 %+E", graphic3d->data->dt);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Simulated Seconds Past:    %+E", (double)graphic3d->data->dt * (double)graphic3d->shared->calculations);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Simulated Seconds Past:    %+E", (double)graphic3d->data->dt*(double)graphic3d->shared->calculations);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Simulated Years Past:      %+E", (double)graphic3d->data->dt * (double)graphic3d->shared->calculations / (double)(31557600));
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Simulated Years Past:      %+E", (double)graphic3d->data->dt*(double)graphic3d->shared->calculations / (double)(31557600));
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Real Seconds Past:         %+E", (double)real_time / (double)1000000);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Real Seconds Past:         %+E", (double)real_time / (double)1000000);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Simulated-Real Time Ratio: %+E", ((double)graphic3d->data->dt * (double)graphic3d->shared->calculations) / ((double)real_time / (double)1000000));
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Simulated-Real Time Ratio: %+E", ((double)graphic3d->data->dt*(double)graphic3d->shared->calculations) / ((double)real_time / (double)1000000));
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Gravitational Constant:    %+E", graphic3d->data->g);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Gravitational Constant:    %+E", graphic3d->data->g);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	sprintf(string, "Number of Bodies: %d", graphic3d->data->num_of_bodies);
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Number of Bodies: %d", graphic3d->data->num_of_bodies);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
-	sprintf(string, "Integration Algorithm: %s %s", (graphic3d->data->two_dimensional_calculation ? "3D": "3D"), get_algorithm_name(graphic3d->data->algorithm));
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic3d->temp_string, "Integration Algorithm: %s %s", (graphic3d->data->two_dimensional_calculation ? "3D": "3D"), graphic3d->data->algorithm_name);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	if (graphic3d->shared->calculated_energy)
-		sprintf(string, "Energy Error: %+E", graphic3d->shared->error_energy);
+		sprintf(graphic3d->temp_string, "Energy Error: %+E", graphic3d->shared->error_energy);
 	else
-		sprintf(string, "Energy Error: Pause to Calculate...");
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+		sprintf(graphic3d->temp_string, "Energy Error: Pause to Calculate...");
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	if (graphic3d->shared->calculated_momentum)
-		sprintf(string, "Momentum Error: %+E", graphic3d->shared->error_momentum);
+		sprintf(graphic3d->temp_string, "Momentum Error: %+E", graphic3d->shared->error_momentum);
 	else
-		sprintf(string, "Momentum Error: Pause to Calculate...");
-	Graphic3DRenderBitmapString(0, curY += 13, string);
+		sprintf(graphic3d->temp_string, "Momentum Error: Pause to Calculate...");
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	curY = graphic3d->height + 13 - 3;
 	
-	sprintf(string, "Camera Left:     (%+E,%+E,%+E)", leftX, leftY, leftZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic3d->temp_string, "Camera Left:     (%+E,%+E,%+E)", leftX, leftY, leftZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 
-	sprintf(string, "Camera Forward:  (%+E,%+E,%+E)", forwardX, forwardY, forwardZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic3d->temp_string, "Camera Forward:  (%+E,%+E,%+E)", forwardX, forwardY, forwardZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 
-	sprintf(string, "Camera Up:       (%+E,%+E,%+E)", upX, upY, upZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic3d->temp_string, "Camera Up:       (%+E,%+E,%+E)", upX, upY, upZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	sprintf(string, "Camera Target:   (%+E,%+E,%+E)", graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic3d->temp_string, "Camera Target:   (%+E,%+E,%+E)", graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 
-	sprintf(string, "Camera Position: (%+E,%+E,%+E)", graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic3d->temp_string, "Camera Position: (%+E,%+E,%+E)", graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	sprintf(string, "Screen Height in Meters: %E", graphic3d->height_meters);
-	Graphic3DRenderBitmapString(0, curY -= 13, string);
-	
-	free(string);
 	Graphic3DRestorePerspectiveProjection();
 }
 void Graphic3DDrawMinText()
 {
 	if (!graphic3d->min_text) return;
 
-	char* string = (char*)malloc(1024);
 	Graphic3DSetOrthographicProjection();
-
-	glColor4f(1, 1, 1, 1);
-	sprintf(string, "fps:%d cps:%d", (int)graphic3d->shared->frames_per_second, (int)graphic3d->shared->calculations_per_second);
-	Graphic3DRenderBitmapString(0, 13, string);
-	
-	free(string);
+	sprintf(graphic3d->temp_string, "fps:%d cps:%d", (int)graphic3d->shared->frames_per_second, (int)graphic3d->shared->calculations_per_second);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	Graphic3DRenderBitmapString(0, 13, graphic3d->temp_string);
 	Graphic3DRestorePerspectiveProjection();
 }
 void Graphic3DDrawTrails()
@@ -734,10 +836,10 @@ void Graphic3DDrawTrails()
 			double z = graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body];
 			double r = graphic3d->data->bodies[body]._trailwidth;
 			if (!Graphic3DIsInSight(x, y, z, r)) continue;
-			float R = (float)graphic3d->data->bodies[body]._trailcolorR * 0.003921568f;
-			float G = (float)graphic3d->data->bodies[body]._trailcolorG * 0.003921568f;
-			float B = (float)graphic3d->data->bodies[body]._trailcolorB * 0.003921568f;
-			float A = (float)graphic3d->data->bodies[body]._trailcolorA * 0.003921568f;
+			float R = (float)graphic3d->data->bodies[body]._trailcolorR*0.003921568f;
+			float G = (float)graphic3d->data->bodies[body]._trailcolorG*0.003921568f;
+			float B = (float)graphic3d->data->bodies[body]._trailcolorB*0.003921568f;
+			float A = (float)graphic3d->data->bodies[body]._trailcolorA*0.003921568f;
 			Graphic3DDrawBody(x, y, z, r, R, G, B, A, true);
 		}
 	for (int trail = 0; trail < graphic3d->trail_curpos; trail++)
@@ -748,10 +850,10 @@ void Graphic3DDrawTrails()
 			double z = graphic3d->trailZ[trail*graphic3d->data->num_of_bodies + body];
 			double r = graphic3d->data->bodies[body]._trailwidth;
 			if (!Graphic3DIsInSight(x, y, z, r)) continue;
-			float R = (float)graphic3d->data->bodies[body]._trailcolorR * 0.003921568f;
-			float G = (float)graphic3d->data->bodies[body]._trailcolorG * 0.003921568f;
-			float B = (float)graphic3d->data->bodies[body]._trailcolorB * 0.003921568f;
-			float A = (float)graphic3d->data->bodies[body]._trailcolorA * 0.003921568f;
+			float R = (float)graphic3d->data->bodies[body]._trailcolorR*0.003921568f;
+			float G = (float)graphic3d->data->bodies[body]._trailcolorG*0.003921568f;
+			float B = (float)graphic3d->data->bodies[body]._trailcolorB*0.003921568f;
+			float A = (float)graphic3d->data->bodies[body]._trailcolorA*0.003921568f;
 			Graphic3DDrawBody(x, y, z, r, R, G, B, A, true);
 		}
 }
@@ -761,9 +863,9 @@ void Graphic3DSaveTrails()
 	if (graphic3d->shared->pause) return;
 	for (int body = 0; body < graphic3d->data->num_of_bodies; body++)
 	{
-		graphic3d->trailX[graphic3d->trail_curpos * graphic3d->data->num_of_bodies + body] = graphic3d->data->bodies[body]._positionX;
-		graphic3d->trailY[graphic3d->trail_curpos * graphic3d->data->num_of_bodies + body] = graphic3d->data->bodies[body]._positionY;
-		graphic3d->trailZ[graphic3d->trail_curpos * graphic3d->data->num_of_bodies + body] = graphic3d->data->bodies[body]._positionZ;
+		graphic3d->trailX[graphic3d->trail_curpos*graphic3d->data->num_of_bodies + body] = graphic3d->data->bodies[body]._positionX;
+		graphic3d->trailY[graphic3d->trail_curpos*graphic3d->data->num_of_bodies + body] = graphic3d->data->bodies[body]._positionY;
+		graphic3d->trailZ[graphic3d->trail_curpos*graphic3d->data->num_of_bodies + body] = graphic3d->data->bodies[body]._positionZ;
 	}
 	graphic3d->trail_curpos++;
 	if (graphic3d->trail_curpos >= graphic3d->data->max_trails) graphic3d->trail_curpos = 0;
@@ -800,9 +902,9 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 	forwardX  = graphic3d->mouse_start_value_forwardX;
 	forwardY  = graphic3d->mouse_start_value_forwardY;
 	forwardZ  = graphic3d->mouse_start_value_forwardZ;
-	leftX     = forwardY * upZ - upY * forwardZ;
-	leftY     = forwardZ * upX - upZ * forwardX;
-	leftZ     = forwardX * upY - upX * forwardY;
+	leftX     = forwardY*upZ - upY*forwardZ;
+	leftY     = forwardZ*upX - upZ*forwardX;
+	leftZ     = forwardX*upY - upX*forwardY;
 	double forward_start_length = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
 
 	log_line("Entered Graphic3DProcessCameraMove(1/3) with angleVertical as %G angleHorizontal as %G zoom_duration_in as %G zoom_duration_out as %G forwardX as %G forwardY as %G.", angleVertical, angleHorizontal, zoom_duration_in, zoom_duration_out, forwardX, forwardY);
@@ -1003,7 +1105,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 
 	//Zoom
 	float zoom_acceleration = graphic3d->data->keyboard_zoom_speed1 - graphic3d->data->keyboard_zoom_speed0;
-	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration * zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration * zoom_duration_out, zoom_duration_out);
+	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_out, zoom_duration_out);
 	forward_start_length /= zoom_distance_ratio;
 	log_line("Graphic3DProcessCameraMove: Zoom result is zoom_acceleration as %G zoom_distance_ratio as %G and forward_start_length as %G.", zoom_acceleration, zoom_distance_ratio, forward_start_length);
 
@@ -1035,9 +1137,9 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 	forwardX  = graphic3d->mouse_start_value_forwardX;
 	forwardY  = graphic3d->mouse_start_value_forwardY;
 	forwardZ  = graphic3d->mouse_start_value_forwardZ;
-	leftX     = forwardY * upZ - upY * forwardZ;
-	leftY     = forwardZ * upX - upZ * forwardX;
-	leftZ     = forwardX * upY - upX * forwardY;
+	leftX     = forwardY*upZ - upY*forwardZ;
+	leftY     = forwardZ*upX - upZ*forwardX;
+	leftZ     = forwardX*upY - upX*forwardY;
 	double forward_start_length = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
 	
 	log_line("Entered Graphic3DProcessTargetMove(1/3) with angleVertical as %G angleHorizontal as %G zoom_duration_in as %G zoom_duration_out as %G forwardX as %G forwardY as %G.", angleVertical, angleHorizontal, zoom_duration_in, zoom_duration_out, forwardX, forwardY);
@@ -1238,7 +1340,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 	
 	//Zoom
 	float zoom_acceleration = graphic3d->data->keyboard_zoom_speed1 - graphic3d->data->keyboard_zoom_speed0;
-	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration * zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration * zoom_duration_out, zoom_duration_out);
+	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_out, zoom_duration_out);
 	forward_start_length *= zoom_distance_ratio;
 	log_line("Graphic3DProcessTargetMove: Zoom result is zoom_acceleration as %G zoom_distance_ratio as %G and forward_start_length as %G.", zoom_acceleration, zoom_distance_ratio, forward_start_length);
 
@@ -1276,27 +1378,17 @@ void Graphic3DFixIndefinedValues()
 	if (graphic3d->camera_upY       < -FLT_MAX) graphic3d->camera_upY       = -FLT_MAX;
 	if (graphic3d->camera_upZ       >  FLT_MAX) graphic3d->camera_upZ       =  FLT_MAX;
 	if (graphic3d->camera_upZ       < -FLT_MAX) graphic3d->camera_upZ       = -FLT_MAX;
-	if (graphic3d->cam_target_distance == 0)    graphic3d->camera_positionX =  DBL_MIN;
-	if (graphic3d->cam_target_distance == 0)    graphic3d->camera_positionY =  DBL_MIN;
-	if (graphic3d->cam_target_distance == 0)    graphic3d->camera_positionZ =  DBL_MIN;
+	if (graphic3d->cam_target_distance2 == 0)   graphic3d->camera_positionX =  DBL_MIN + graphic3d->camera_targetX;
+	if (graphic3d->cam_target_distance2 == 0)   graphic3d->camera_positionY =  DBL_MIN + graphic3d->camera_targetY;
+	if (graphic3d->cam_target_distance2 == 0)   graphic3d->camera_positionZ =  DBL_MIN + graphic3d->camera_targetZ;
 }
 
 void Graphic3DSetOrthographicProjection()
 {
-	//Switch to projection mode
 	glMatrixMode(GL_PROJECTION);
-
-	//Save previous matrix which contains the
-	//settings for the perspective projection
 	glPushMatrix();
-
-	//Reset matrix
 	glLoadIdentity();
-
-	//Set a 2D orthographic projection
 	gluOrtho2D(0, graphic3d->width, graphic3d->height, 0);
-
-	//Switch back to modelview mode
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -1305,11 +1397,7 @@ void Graphic3DRestorePerspectiveProjection()
 {
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
-
-	//Restore previous projection matrix
 	glPopMatrix();
-
-	//Get back to modelview mode
 	glMatrixMode(GL_MODELVIEW);
 }
 void Graphic3DRenderBitmapString(int x, int y, char* string)
@@ -1323,5 +1411,11 @@ void Graphic3DRenderBitmapString(int x, int y, char* string)
 }
 bool Graphic3DIsInSight(double X, double Y, double Z, double r)
 {
-	return true;
+	if(graphic3d->frustum[0][0]*X + graphic3d->frustum[0][1]*Y + graphic3d->frustum[0][2]*Z + graphic3d->frustum[0][3] <= -r) return false;
+	if(graphic3d->frustum[1][0]*X + graphic3d->frustum[1][1]*Y + graphic3d->frustum[1][2]*Z + graphic3d->frustum[1][3] <= -r) return false;
+	if(graphic3d->frustum[2][0]*X + graphic3d->frustum[2][1]*Y + graphic3d->frustum[2][2]*Z + graphic3d->frustum[2][3] <= -r) return false;
+	if(graphic3d->frustum[3][0]*X + graphic3d->frustum[3][1]*Y + graphic3d->frustum[3][2]*Z + graphic3d->frustum[3][3] <= -r) return false;
+	if(graphic3d->frustum[4][0]*X + graphic3d->frustum[4][1]*Y + graphic3d->frustum[4][2]*Z + graphic3d->frustum[4][3] <= -r) return false;
+	if(graphic3d->frustum[5][0]*X + graphic3d->frustum[5][1]*Y + graphic3d->frustum[5][2]*Z + graphic3d->frustum[5][3] <= -r) return false;
+   return true;
 }

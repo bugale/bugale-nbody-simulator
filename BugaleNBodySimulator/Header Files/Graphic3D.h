@@ -44,8 +44,8 @@ struct Graphic3D
 	float sin_field_of_view;
 	
 	//Frame-precalculated values
-	double height_meters; double width_meters;
-	double cam_target_distance;
+	double cam_target_distance2;
+	float frustum[6][4];
 
 	//Camera properties
     double camera_positionX;
@@ -78,6 +78,8 @@ struct Graphic3D
 	bool body_index_entered;
 	int stick_body_index;
 	bool stick_body_index_entered;
+
+	char* temp_string;
 };
 
 void NewGraphic3D(Data* data, SharedData* shared);

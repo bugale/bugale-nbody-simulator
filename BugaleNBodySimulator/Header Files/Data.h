@@ -41,6 +41,7 @@ public:
 	bool paused;
 	bool log;
 	char algorithm;
+	char* algorithm_name;
 	float graphic_max_rate;
 	float binary_max_rate;
 	long long max_calculations;
@@ -74,6 +75,7 @@ public:
 	Body3D* bodies;
 
 	Data(char* settings_filename, char* bodies_filename);
+	~Data();
 
 private:
 	void parseSettings(char* filename);

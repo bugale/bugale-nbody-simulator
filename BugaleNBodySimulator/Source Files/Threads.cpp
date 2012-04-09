@@ -18,15 +18,15 @@
 */
 #include "..\SharedHeader.h"
 
-SharedData* shared;
-Data* data;
-BinaryOutputManager* bom;
-Engine* engine;
+SharedData* shared = 0;
+Data* data = 0;
+BinaryOutputManager* bom = 0;
+Engine* engine = 0;
 
-tthread::thread* thread_graphic;
-tthread::thread* thread_shared_calc;
-tthread::thread* thread_calculation;
-tthread::thread* thread_binary;
+tthread::thread* thread_graphic = 0;
+tthread::thread* thread_shared_calc = 0;
+tthread::thread* thread_calculation = 0;
+tthread::thread* thread_binary = 0;
 
 void Run(char* working_directory)
 {
@@ -36,7 +36,20 @@ void Run(char* working_directory)
 	
 	usleep(100000);
 
-	data   = new Data(getpath(working_directory, SETTINGS_FILENAME), getpath(working_directory, BODIES_FILENAME));
+	char* settings_path = (char*)malloc(4096);
+	char* bodies_path = (char*)malloc(4096);
+	char* binaryoutput_path = (char*)malloc(4096);
+	char* log_path = (char*)malloc(4096);
+	settings_path[0] = 0;
+	bodies_path[0] = 0;
+	binaryoutput_path[0] = 0;
+	log_path[0] = 0;
+	getpath(working_directory, SETTINGS_FILENAME, settings_path);
+	getpath(working_directory, BODIES_FILENAME, bodies_path);
+	getpath(working_directory, BINARYOUTPUT_FILENAME, binaryoutput_path);
+	getpath(working_directory, LOG_FILENAME, log_path);
+
+	data   = new Data(settings_path, bodies_path);
 	shared = new SharedData();
 	reset_shared_data(shared);
 	set_shared_data(shared, data);
@@ -46,11 +59,11 @@ void Run(char* working_directory)
 		if (data->log)
 		{
 			printf("Logging started.\n");
-			start_log(getpath(working_directory, LOG_FILENAME));
+			start_log(log_path);
 		}
 		log_line("No data errors.");
 		shared->pause = data->paused;
-		bom    = new BinaryOutputManager(data, 100, getpath(working_directory, BINARYOUTPUT_FILENAME));
+		bom    = new BinaryOutputManager(data, 100, binaryoutput_path);
 		engine = new Engine(data);
 		thread_graphic     = new tthread::thread(GraphicThread, 0);
 		thread_shared_calc = new tthread::thread(SharedCalculationsThread, 0);
@@ -58,11 +71,31 @@ void Run(char* working_directory)
 		thread_binary      = new tthread::thread(BinaryOutputThread, 0);
 	}
 	else
-		printf(Errors::returnError(data->error, working_directory));
+	{
+		char* err = (char*)malloc(4096);
+		Errors::returnError(data->error, working_directory, err);
+		printf("%s\n", err);
+		free(err);
+	}
 
 	while (!shared->exit) usleep(100000);
 
+	end_log();
+
 	ExitThreads();
+
+	if (thread_binary != 0) delete(thread_binary);
+	if (thread_calculation != 0) delete(thread_calculation);
+	if (thread_shared_calc != 0) delete(thread_shared_calc);
+	if (thread_graphic != 0) delete(thread_graphic);
+	if (engine != 0) delete(engine);
+	if (bom != 0) delete(bom);
+	if (data != 0) delete(data);
+	if (shared != 0) free(shared);
+	if (settings_path != 0) free(settings_path);
+	if (bodies_path != 0) free(bodies_path);
+	if (binaryoutput_path != 0) free(binaryoutput_path);
+	if (log_path != 0) free(log_path);
 }
 void InitializeConsole()
 {

@@ -39,6 +39,7 @@ private:
 
 public:
 	BinaryOutputManager(Data* data, int buffer_frames, char* filename);
+	~BinaryOutputManager();
 	bool Capture(long long time); //Returns true If Saving Is Needed
 	void Save(); //Append
 	void Finalize();

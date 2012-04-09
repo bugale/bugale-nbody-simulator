@@ -34,6 +34,19 @@ Engine::Engine(Data* data)
 	this->first_hermite = true;
 	log_line("Ended Engine constructor with this at 0x%08X.", this);
 }
+Engine::~Engine()
+{
+	for (int i = 0; i < this->num_of_bodies; i++)
+		if (this->mass1_mul_mass2_mul_g[i] != 0) free(this->mass1_mul_mass2_mul_g[i]);
+	if (this->dt_div_mass != 0) free(this->dt_div_mass);
+	if (this->dt_div_2mass != 0) free(this->dt_div_2mass);
+	if (this->mass_mul_g != 0) free(this->mass_mul_g);
+	if (this->dt_squared_div_2mass != 0) free(this->dt_squared_div_2mass);
+	if (this->dt_squared_div_12mass != 0) free(this->dt_squared_div_12mass);
+	if (this->dt_pow_3_div_6mass != 0) free(this->dt_pow_3_div_6mass);
+	if (this->mass1_mul_mass2_mul_g != 0) free(this->mass1_mul_mass2_mul_g);
+}
+
 void Engine::Precalculations()
 {
 	log_line("Entered Engine::Precalculations.");

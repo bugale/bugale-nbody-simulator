@@ -30,7 +30,7 @@
 	#define BINARYOUTPUT_FILENAME "binary_output.bin"
 	#define LOG_FILENAME "log.txt"
 	#define PROGRAM_NAME "Bugale N-Body Simulator"
-	#define PROGRAM_VERSION "0.1.0 (Beta 1.0)"
+	#define PROGRAM_VERSION "0.1.1 (Beta 1.1)"
 
 	//C Standard Library
 	#include <math.h>

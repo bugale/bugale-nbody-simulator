@@ -66,6 +66,8 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->stick_body_index = 0;
 	graphic2d->stick_body_index_entered = false;
 
+	graphic2d->temp_string = (char*)malloc(4096);
+
 	printf("2D Graphical Output Instructions:\n\n");
 	printf("    ESC  : Close the Simulator\n");
 	printf("   Arrows: Move Your Camera\n");
@@ -83,6 +85,19 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	printf("\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
 
 	Graphic2DInitialize();
+
+	glutMainLoop();
+	
+	log_line("Ended Glut Event Loop.");
+	
+	if (graphic2d->trailX != 0) free(graphic2d->trailX);
+	if (graphic2d->trailY != 0) free(graphic2d->trailY);
+	if (graphic2d->temp_string != 0) free(graphic2d->temp_string);
+	if (graphic2d->keyboard_move_starttime != 0) free(graphic2d->keyboard_move_starttime);
+	if (graphic2d->keyboard_move_started != 0) free(graphic2d->keyboard_move_started);
+	if (graphic2d->keyboard_move_start_value != 0) free(graphic2d->keyboard_move_start_value);
+	if (graphic2d != 0) free(graphic2d);
+
 	log_line("Ended NewGraphic2D.");
 }
 void Graphic2DInitialize()
@@ -90,10 +105,11 @@ void Graphic2DInitialize()
 	log_line("Entered Graphic2DInitialize.");
 	int a = 0; glutInit(&a, 0);
 	//Initialize GLUT and create the window
-	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA);
+	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize    (graphic2d->width, graphic2d->height);
 	graphic2d->singlebuf_window = glutCreateWindow(graphic2d->title);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	glutIgnoreKeyRepeat   (1);
 	if (graphic2d->fullscreen) glutFullScreen();
 
@@ -107,8 +123,9 @@ void Graphic2DInitialize()
 
 	log_line("Graphic2DInitialize - single buffer window set at 0x%08X.", graphic2d->singlebuf_window);
 
-	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA);
+	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 	graphic2d->doublebuf_window = glutCreateSubWindow(glutGetWindow(), 0, 0, graphic2d->width, graphic2d->height);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 	glutIgnoreKeyRepeat   (1);
 	if (graphic2d->fullscreen) glutFullScreen();
 
@@ -122,9 +139,6 @@ void Graphic2DInitialize()
 
 	log_line("Graphic2DInitialize - double buffer window set at 0x%08X.", graphic2d->doublebuf_window);
 
-	//Enter GLUT event processing cycle
-	glutSetWindow(graphic2d->doublebuf_window);
-	glutMainLoop();
 	log_line("Ended Graphic2DInitialize.");
 }
 
@@ -235,7 +249,7 @@ void Graphic2DClearScreen()
 	else
 	{
 		Graphic2DSetOrthographicProjection();
-		glColor4i(0, 0, 0, 1);
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 		glRasterPos2i(0, 0);
 		glBegin(GL_QUADS);
 		if (graphic2d->body_index_entered)
@@ -286,17 +300,15 @@ void Graphic2DFinalizeFrame()
 {
 	graphic2d->shared->frames++;
 	if (graphic2d->data->graphic_max_rate > 0) usleep((long long)(1000000 / graphic2d->data->graphic_max_rate));
-	glFinish();
 	if (graphic2d->clear_screen) glutSwapBuffers();
+	glFlush();
 	glutPostRedisplay();
 }
 
 void Graphic2DExit()
 {
-	log_line("Entered Graphic2DExit.");
 	graphic2d->shared->exit = true;
 	glutLeaveMainLoop();
-	log_line("Ended Graphic2DExit.");
 }
 void Graphic2DReset()
 {
@@ -456,25 +468,22 @@ void Graphic2DDrawBodies()
 }
 void Graphic2DDrawBodyIndex()
 {
-	char* string = (char*)malloc(1024);
-	Graphic2DSetOrthographicProjection();
-
 	if (graphic2d->body_index_entered)
 	{
+		Graphic2DSetOrthographicProjection();
 		glColor4f(1, 0, 0, 1);
-		sprintf(string, "%d", graphic2d->body_index);
-		Graphic2DRenderBitmapString(graphic2d->width - strlen(string) * 8, 13, string);
+		sprintf(graphic2d->temp_string, "%d", graphic2d->body_index);
+		Graphic2DRenderBitmapString(graphic2d->width - strlen(graphic2d->temp_string) * 8, 13, graphic2d->temp_string);
+		Graphic2DRestorePerspectiveProjection();
 	}
-
 	if (graphic2d->stick_body_index_entered)
 	{
+		Graphic2DSetOrthographicProjection();
 		glColor4f(0, 0, 1, 1);
-		sprintf(string, "%d", graphic2d->stick_body_index);
-		Graphic2DRenderBitmapString(graphic2d->width - strlen(string) * 8, 2 * 13, string);
+		sprintf(graphic2d->temp_string, "%d", graphic2d->stick_body_index);
+		Graphic2DRenderBitmapString(graphic2d->width - strlen(graphic2d->temp_string) * 8, 2 * 13, graphic2d->temp_string);
+		Graphic2DRestorePerspectiveProjection();
 	}
-	
-	free(string);
-	Graphic2DRestorePerspectiveProjection();
 }
 void Graphic2DDrawCrosshair(bool white)
 {
@@ -496,7 +505,6 @@ void Graphic2DDrawText()
 	if (graphic2d->min_text) return;
 
 	long long real_time;
-	char* string = (char*)malloc(1024);
 	int curY = 0;
 	if (graphic2d->shared->pause) real_time = graphic2d->shared->pause_start_time - graphic2d->shared->start_time;
 	else real_time = get_current_time_usec() - graphic2d->shared->start_time;
@@ -504,80 +512,77 @@ void Graphic2DDrawText()
 
 	glColor4f(1, 1, 1, 1);
 
-	sprintf(string, "Frames Per Second: %G", graphic2d->shared->frames_per_second);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Frames Per Second: %G", graphic2d->shared->frames_per_second);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Calculations Per Second:   %+E", graphic2d->shared->calculations_per_second);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Calculations Per Second:   %+E", graphic2d->shared->calculations_per_second);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Total Calculations Done:   %+E", (double)graphic2d->shared->calculations);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Total Calculations Done:   %+E", (double)graphic2d->shared->calculations);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "DeltaTime:                 %+E", graphic2d->data->dt);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "DeltaTime:                 %+E", graphic2d->data->dt);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Simulated Seconds Past:    %+E", (double)graphic2d->data->dt * (double)graphic2d->shared->calculations);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Simulated Seconds Past:    %+E", (double)graphic2d->data->dt * (double)graphic2d->shared->calculations);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Simulated Years Past:      %+E", (double)graphic2d->data->dt * (double)graphic2d->shared->calculations / (double)(31557600));
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Simulated Years Past:      %+E", (double)graphic2d->data->dt * (double)graphic2d->shared->calculations / (double)(31557600));
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Real Seconds Past:         %+E", (double)real_time / (double)1000000);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Real Seconds Past:         %+E", (double)real_time / (double)1000000);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Simulated-Real Time Ratio: %+E", ((double)graphic2d->data->dt * (double)graphic2d->shared->calculations) / ((double)real_time / (double)1000000));
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Simulated-Real Time Ratio: %+E", ((double)graphic2d->data->dt * (double)graphic2d->shared->calculations) / ((double)real_time / (double)1000000));
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Gravitational Constant:    %+E", graphic2d->data->g);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Gravitational Constant:    %+E", graphic2d->data->g);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	sprintf(string, "Number of Bodies: %d", graphic2d->data->num_of_bodies);
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Number of Bodies: %d", graphic2d->data->num_of_bodies);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
-	sprintf(string, "Integration Algorithm: %s %s", (graphic2d->data->two_dimensional_calculation ? "2D": "3D"), get_algorithm_name(graphic2d->data->algorithm));
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+	sprintf(graphic2d->temp_string, "Integration Algorithm: %s %s", (graphic2d->data->two_dimensional_calculation ? "2D": "3D"), graphic2d->data->algorithm_name);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	if (graphic2d->shared->calculated_energy)
-		sprintf(string, "Energy Error: %+E", graphic2d->shared->error_energy);
+		sprintf(graphic2d->temp_string, "Energy Error: %+E", graphic2d->shared->error_energy);
 	else
-		sprintf(string, "Energy Error: Pause to Calculate...");
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+		sprintf(graphic2d->temp_string, "Energy Error: Pause to Calculate...");
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	if (graphic2d->shared->calculated_momentum)
-		sprintf(string, "Momentum Error: %+E", graphic2d->shared->error_momentum);
+		sprintf(graphic2d->temp_string, "Momentum Error: %+E", graphic2d->shared->error_momentum);
 	else
-		sprintf(string, "Moment Error: Pause to Calculate...");
-	Graphic2DRenderBitmapString(0, curY += 13, string);
+		sprintf(graphic2d->temp_string, "Moment Error: Pause to Calculate...");
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	curY = graphic2d->height + 13 - 3;
 	
-	sprintf(string, "Camera Position Z: %+E", graphic2d->camera_positionZ);
-	Graphic2DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic2d->temp_string, "Camera Position Z: %+E", graphic2d->camera_positionZ);
+	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	sprintf(string, "Camera Position Y: %+E", graphic2d->camera_positionY);
-	Graphic2DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic2d->temp_string, "Camera Position Y: %+E", graphic2d->camera_positionY);
+	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	sprintf(string, "Camera Position X: %+E", graphic2d->camera_positionX);
-	Graphic2DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic2d->temp_string, "Camera Position X: %+E", graphic2d->camera_positionX);
+	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	sprintf(string, "Screen Height in Meters: %E", 4 * graphic2d->height_meters);
-	Graphic2DRenderBitmapString(0, curY -= 13, string);
+	sprintf(graphic2d->temp_string, "Screen Height in Meters: %E", 4 * graphic2d->height_meters);
+	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	free(string);
 	Graphic2DRestorePerspectiveProjection();
 }
 void Graphic2DDrawMinText()
 {
 	if (!graphic2d->min_text) return;
 
-	char* string = (char*)malloc(1024);
 	Graphic2DSetOrthographicProjection();
 
 	glColor4f(1, 1, 1, 1);
-	sprintf(string, "fps:%d cps:%d", (int)graphic2d->shared->frames_per_second, (int)graphic2d->shared->calculations_per_second);
-	Graphic2DRenderBitmapString(0, 13, string);
+	sprintf(graphic2d->temp_string, "fps:%d cps:%d", (int)graphic2d->shared->frames_per_second, (int)graphic2d->shared->calculations_per_second);
+	Graphic2DRenderBitmapString(0, 13, graphic2d->temp_string);
 	
-	free(string);
 	Graphic2DRestorePerspectiveProjection();
 }
 void Graphic2DDrawTrails()
@@ -628,7 +633,7 @@ void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, floa
 	glPushMatrix();
 	glColor4f(R, G, B, A);
 	glTranslated(X, Y, 0);
-	if (trail) 
+	if (trail)
 	{
 		glBegin(GL_QUADS);
 			glVertex3d(-radius,  radius, 0);
@@ -637,7 +642,7 @@ void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, floa
 			glVertex3d( radius,  radius, 0);
 		glEnd();
 	}
-	else 
+	else
 	{
 		double rsin, rcos;
 		glBegin(GL_TRIANGLE_FAN);
@@ -657,20 +662,10 @@ void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, floa
 
 void Graphic2DSetOrthographicProjection()
 {
-	//Switch to projection mode
 	glMatrixMode(GL_PROJECTION);
-
-	//Save previous matrix which contains the
-	//settings for the perspective projection
 	glPushMatrix();
-
-	//Reset matrix
 	glLoadIdentity();
-
-	//Set a 2D orthographic projection
 	gluOrtho2D(0, graphic2d->width, graphic2d->height, 0);
-
-	//Switch back to modelview mode
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -679,11 +674,7 @@ void Graphic2DRestorePerspectiveProjection()
 {
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);
-
-	//Restore previous projection matrix
 	glPopMatrix();
-
-	//Get back to modelview mode
 	glMatrixMode(GL_MODELVIEW);
 }
 void Graphic2DRenderBitmapString(int x, int y, char* string)

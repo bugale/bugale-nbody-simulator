@@ -51,7 +51,7 @@ namespace Errors
 		TooManyBodies,
 		Other
 	};
-	char* returnError(Error error, char* working_directory);
+	void returnError(Error error, char* working_directory, char* ret);
 }
 
 #endif
