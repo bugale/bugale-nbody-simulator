@@ -23,9 +23,10 @@ int main(int argc, char* argv[])
 {	
 	char* buffer;
 	buffer = getcwd(NULL, 0);
+	StringController::setLanguage(StringController::EnglishUS);
 	if (buffer == 0)
 	{
-		printf("Critical Error: getcwd failed!\n");
+		StringController::printString(0x0000);
 		while (true);
 	}
 	Run(buffer);

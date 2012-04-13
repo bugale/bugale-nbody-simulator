@@ -188,7 +188,7 @@ namespace BugaleNBodyDataEditor
             this.btn_new.Name = "btn_new";
             this.btn_new.ShortcutKeyDisplayString = "Ctrl++";
             this.btn_new.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Oemplus)));
-            this.btn_new.Size = new System.Drawing.Size(171, 22);
+            this.btn_new.Size = new System.Drawing.Size(203, 22);
             this.btn_new.Text = "New Body";
             this.btn_new.Click += new System.EventHandler(this.btn_new_Click);
             // 
@@ -197,7 +197,7 @@ namespace BugaleNBodyDataEditor
             this.btn_del.Enabled = false;
             this.btn_del.Name = "btn_del";
             this.btn_del.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.btn_del.Size = new System.Drawing.Size(171, 22);
+            this.btn_del.Size = new System.Drawing.Size(203, 22);
             this.btn_del.Text = "Remove Body";
             this.btn_del.Click += new System.EventHandler(this.btn_del_Click);
             // 
@@ -206,8 +206,8 @@ namespace BugaleNBodyDataEditor
             this.btn_up.Enabled = false;
             this.btn_up.Name = "btn_up";
             this.btn_up.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Up)));
-            this.btn_up.Size = new System.Drawing.Size(171, 22);
-            this.btn_up.Text = "Up";
+            this.btn_up.Size = new System.Drawing.Size(203, 22);
+            this.btn_up.Text = "Move Up";
             this.btn_up.Click += new System.EventHandler(this.btn_up_Click);
             // 
             // btn_down
@@ -215,8 +215,8 @@ namespace BugaleNBodyDataEditor
             this.btn_down.Enabled = false;
             this.btn_down.Name = "btn_down";
             this.btn_down.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Down)));
-            this.btn_down.Size = new System.Drawing.Size(171, 22);
-            this.btn_down.Text = "Down";
+            this.btn_down.Size = new System.Drawing.Size(203, 22);
+            this.btn_down.Text = "Move Down";
             this.btn_down.Click += new System.EventHandler(this.btn_down_Click);
             // 
             // MainForm
@@ -230,9 +230,8 @@ namespace BugaleNBodyDataEditor
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.Text = "Bugale N-Body Data Editor Beta 0.4";
+            this.Text = "Bugale N-Body Data Editor v1.0.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.splt_main.Panel1.ResumeLayout(false);
             this.splt_main.Panel2.ResumeLayout(false);
             this.splt_main.ResumeLayout(false);

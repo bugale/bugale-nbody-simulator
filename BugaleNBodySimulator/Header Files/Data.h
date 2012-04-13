@@ -27,8 +27,8 @@ public:
 	int filelength;
 	Errors::Error error;
 
-	int width;
-	int height;
+	unsigned int width;
+	unsigned int height;
 	bool two_dimensional_calculation;
 	bool two_dimensional_graphic;
 	bool two_dimensional_binary;
@@ -40,7 +40,7 @@ public:
 	bool wireframe;
 	bool paused;
 	bool log;
-	char algorithm;
+	unsigned char algorithm;
 	char* algorithm_name;
 	float graphic_max_rate;
 	float binary_max_rate;
@@ -48,9 +48,9 @@ public:
 	int max_trails;
 
 	//Graphic output related
-	int stick_to_body;
-    int sphere_slices;
-    int sphere_stacks;
+	unsigned int stick_to_body;
+    unsigned int sphere_slices;
+    unsigned int sphere_stacks;
 	float field_of_view;
 	double near_plane_distance;
 	double far_plane_distance;

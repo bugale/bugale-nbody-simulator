@@ -12,6 +12,12 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{c66af882-0a33-4404-b42c-55ed3833b092}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Strings">
+      <UniqueIdentifier>{7068f9f5-af43-4785-8fe6-a8e86ed67749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Legacy Support">
+      <UniqueIdentifier>{8bd88354-ebdc-418c-9a31-e865306c4cb2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -30,6 +36,15 @@
     </ClCompile>
     <ClCompile Include="Source Files\Errors.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Strings\StringController.cpp">
+      <Filter>Strings</Filter>
+    </ClCompile>
+    <ClCompile Include="Legacy Support\gs_report.c">
+      <Filter>Legacy Support</Filter>
+    </ClCompile>
+    <ClCompile Include="Legacy Support\invarg.c">
+      <Filter>Legacy Support</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -67,6 +82,13 @@
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="Info.h" />
+    <ClInclude Include="Strings\StringController.h">
+      <Filter>Strings</Filter>
+    </ClInclude>
+    <ClInclude Include="Strings\EnglishUS_Strings.h">
+      <Filter>Strings</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source Files\Engine.cpp">
@@ -80,13 +102,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="GalaxyIcon.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ResourceCompile Include="BugaleNBodySimulator.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Galaxy.ico">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

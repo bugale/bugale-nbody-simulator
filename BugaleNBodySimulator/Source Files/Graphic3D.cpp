@@ -22,7 +22,7 @@ Graphic3D* graphic3d;
 
 void NewGraphic3D(Data* data, SharedData* shared)
 {
-	log_line("Entered NewGraphic3D with data at 0x%08X and shared at 0x%08X.", data, shared);
+	log_line(0x0034, data, shared);
 	if (data->graphic_max_rate == 0) return;
 
 	graphic3d = new Graphic3D();
@@ -32,7 +32,8 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->width = data->width;
 	graphic3d->height = data->height;
 	graphic3d->ratio = (float)data->width / (float)graphic3d->height;
-	graphic3d->title = "Bugale N-Body Simulator 3D Graphical Output Window";
+	graphic3d->title = (char*)malloc(4096); graphic3d->title[0] = 0;
+	StringController::getString(0x0035, graphic3d->title);
 	graphic3d->fullscreen = data->fullscreen;
 	graphic3d->fullscreen = data->fullscreen;
 	graphic3d->clear_screen = data->clear_screen;
@@ -100,30 +101,14 @@ void NewGraphic3D(Data* data, SharedData* shared)
 
 	graphic3d->temp_string = (char*)malloc(4096);
 
-	printf("3D Graphical Output Instructions:\n\n");
-	printf("           ESC         : Close the Simulator\n");
-	printf("     Left  Mouse Key   : Move Your Camera Around the Target\n");
-	printf(" Left  Mouse Key and + : Move Your Target Against the Camera\n");
-	printf("     Right Mouse Key   : Move Your Target Around the Camera\n");
-	printf("          + or -       : Zoom In or Zoom Out\n");
-	printf("            r          : Reset Your Camera Position\n");
-	printf("            m          : Toggle Minimal Text Mode = Much More Frames Per Second\n");
-	printf("            t          : Toggle Trail Showal\n");
-	printf("            c          : Toggle Screen Clearance After Every Frame\n");
-	printf("            h          : Toggle Crosshair Showal\n");
-	printf("            w          : Toggle Wireframe = faster rendering\n");
-	printf("            p          : Toggle Pause\n");
-	printf("   After a Number Has Been Assigned, Press Enter to Show the Body with the\n");
-	printf("   Given Index on the Center of the Screen, or Press Space to Always show the\n");
-	printf("   Body with the Given Index on the Center of the Screen and press again to\n");
-	printf("   disable it.\n");
-	printf("\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
+	StringController::printString(0x0036);
 
 	Graphic3DInitialize();
 
 	glutMainLoop();
 	
-	log_line("Ended Glut Event Loop.");
+	log_line(0x0037);
+	graphic3d->shared->exit = true;
 
 	if (graphic3d->temp_string != 0) free(graphic3d->temp_string);
 	if (graphic3d->trailX != 0) free(graphic3d->trailX);
@@ -131,11 +116,11 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	if (graphic3d->trailZ != 0) free(graphic3d->trailZ);
 	if (graphic3d != 0) free(graphic3d);
 
-	log_line("Ended NewGraphic3D.");
+	log_line(0x0038);
 }
 void Graphic3DInitialize()
 {
-	log_line("Entered Graphic3DInitialize.");
+	log_line(0x0039);
 	//Initialize GLUT and create the window
 	int a = 0; glutInit(&a, 0);
 	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA | GLUT_MULTISAMPLE);
@@ -163,7 +148,7 @@ void Graphic3DInitialize()
 	glutMouseFunc     (Graphic3DMouseHandler       );
 	glutMotionFunc    (Graphic3DMotionHandler      );
 	
-	log_line("Graphic3DInitialize - single buffer window set at 0x%08X.", graphic3d->singlebuf_window);
+	log_line(0x003A, graphic3d->singlebuf_window);
 
 	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE);
 	graphic3d->doublebuf_window = glutCreateSubWindow(glutGetWindow(), 0, 0, graphic3d->width, graphic3d->height);
@@ -189,9 +174,9 @@ void Graphic3DInitialize()
 	glutMouseFunc     (Graphic3DMouseHandler       );
 	glutMotionFunc    (Graphic3DMotionHandler      );
 	
-	log_line("Graphic3DInitialize - double buffer window set at 0x%08X.", graphic3d->doublebuf_window);
+	log_line(0x003B, graphic3d->doublebuf_window);
 
-	log_line("Ended Graphic3DInitialize.");
+	log_line(0x003C);
 }
 
 void Graphic3DRenderHandlerDblBfr()
@@ -240,7 +225,7 @@ void Graphic3DRenderHandlerSglBfr()
 }
 void Graphic3DRatioHandler(int width, int height)
 {
-	log_line("Entered Graphic3DRatioHandler with width as %d and height as %d.", width, height);
+	log_line(0x003D, width, height);
 	if (height == 0) height++; //Prevent a division by zero.
 
 	graphic3d->width = width;
@@ -255,7 +240,7 @@ void Graphic3DRatioHandler(int width, int height)
 
 	//Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
-	log_line("Ended Graphic3DRatioHandler.");
+	log_line(0x003E);
 }
 void Graphic3DKeyboardHandler(unsigned char key, int x, int y)
 {
@@ -398,7 +383,6 @@ void Graphic3DFinalizeFrame()
 
 void Graphic3DExit()
 {
-	graphic3d->shared->exit = true;
 	glutLeaveMainLoop();
 }
 void Graphic3DReset()
@@ -750,67 +734,98 @@ void Graphic3DDrawText()
 
 	glColor4f(1, 1, 1, 1);
 
-	sprintf(graphic3d->temp_string, "Frames Per Second: %G", graphic3d->shared->frames_per_second);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Calculations Per Second:   %+E", graphic3d->shared->calculations_per_second);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Total Calculations Done:   %+E", (double)graphic3d->shared->calculations);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "DeltaTime:                 %+E", graphic3d->data->dt);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Simulated Seconds Past:    %+E", (double)graphic3d->data->dt*(double)graphic3d->shared->calculations);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Simulated Years Past:      %+E", (double)graphic3d->data->dt*(double)graphic3d->shared->calculations / (double)(31557600));
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Real Seconds Past:         %+E", (double)real_time / (double)1000000);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Simulated-Real Time Ratio: %+E", ((double)graphic3d->data->dt*(double)graphic3d->shared->calculations) / ((double)real_time / (double)1000000));
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Gravitational Constant:    %+E", graphic3d->data->g);
+	char* buffer = (char*)malloc(4096);
+	buffer[0] = 0; StringController::getString(0x003F, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->shared->frames_per_second);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	sprintf(graphic3d->temp_string, "Number of Bodies: %d", graphic3d->data->num_of_bodies);
+	buffer[0] = 0; StringController::getString(0x0040, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->shared->calculations_per_second);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Integration Algorithm: %s %s", (graphic3d->data->two_dimensional_calculation ? "3D": "3D"), graphic3d->data->algorithm_name);
+	
+	buffer[0] = 0; StringController::getString(0x0041, buffer);
+	sprintf(graphic3d->temp_string, buffer, (double)graphic3d->shared->calculations);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0042, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->data->dt);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0043, buffer);
+	sprintf(graphic3d->temp_string, buffer, (double)graphic3d->data->dt*(double)graphic3d->shared->calculations);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0044, buffer);
+	sprintf(graphic3d->temp_string, buffer, (double)graphic3d->data->dt*(double)graphic3d->shared->calculations / (double)(31557600));
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0045, buffer);
+	sprintf(graphic3d->temp_string, buffer, (double)real_time / (double)1000000);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0046, buffer);
+	sprintf(graphic3d->temp_string, buffer, ((double)graphic3d->data->dt*(double)graphic3d->shared->calculations) / ((double)real_time / (double)1000000));
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0047, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->data->g);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0048, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->data->num_of_bodies);
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0049, buffer);
+	sprintf(graphic3d->temp_string, buffer, (graphic3d->data->two_dimensional_calculation ? "2D": "3D"), graphic3d->data->algorithm_name);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	if (graphic3d->shared->calculated_energy)
-		sprintf(graphic3d->temp_string, "Energy Error: %+E", graphic3d->shared->error_energy);
+	{
+		buffer[0] = 0; StringController::getString(0x004A, buffer);
+		sprintf(graphic3d->temp_string, buffer, graphic3d->shared->error_energy);
+	}
 	else
-		sprintf(graphic3d->temp_string, "Energy Error: Pause to Calculate...");
+	{
+		buffer[0] = 0; StringController::getString(0x004B, buffer);
+		sprintf(graphic3d->temp_string, buffer);
+	}
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	if (graphic3d->shared->calculated_momentum)
-		sprintf(graphic3d->temp_string, "Momentum Error: %+E", graphic3d->shared->error_momentum);
+	{
+		buffer[0] = 0; StringController::getString(0x004C, buffer);
+		sprintf(graphic3d->temp_string, buffer, graphic3d->shared->error_momentum);
+	}
 	else
-		sprintf(graphic3d->temp_string, "Momentum Error: Pause to Calculate...");
+	{
+		buffer[0] = 0; StringController::getString(0x004D, buffer);
+		sprintf(graphic3d->temp_string, buffer);
+	}
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	curY = graphic3d->height + 13 - 3;
 	
-	sprintf(graphic3d->temp_string, "Camera Left:     (%+E,%+E,%+E)", leftX, leftY, leftZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Camera Forward:  (%+E,%+E,%+E)", forwardX, forwardY, forwardZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
-
-	sprintf(graphic3d->temp_string, "Camera Up:       (%+E,%+E,%+E)", upX, upY, upZ);
+	buffer[0] = 0; StringController::getString(0x004E, buffer);
+	sprintf(graphic3d->temp_string, buffer, leftX, leftY, leftZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	sprintf(graphic3d->temp_string, "Camera Target:   (%+E,%+E,%+E)", graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
+	buffer[0] = 0; StringController::getString(0x004F, buffer);
+	sprintf(graphic3d->temp_string, buffer, forwardX, forwardY, forwardZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0050, buffer);
+	sprintf(graphic3d->temp_string, buffer, upX, upY, upZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0051, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0052, buffer);
+	sprintf(graphic3d->temp_string, buffer, graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 
-	sprintf(graphic3d->temp_string, "Camera Position: (%+E,%+E,%+E)", graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
-	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
+	free(buffer);
 	
 	Graphic3DRestorePerspectiveProjection();
 }
@@ -907,9 +922,9 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 	leftZ     = forwardX*upY - upX*forwardY;
 	double forward_start_length = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
 
-	log_line("Entered Graphic3DProcessCameraMove(1/3) with angleVertical as %G angleHorizontal as %G zoom_duration_in as %G zoom_duration_out as %G forwardX as %G forwardY as %G.", angleVertical, angleHorizontal, zoom_duration_in, zoom_duration_out, forwardX, forwardY);
-	log_line("Entered Graphic3DProcessCameraMove(2/3) with forwardZ as %G upX as %G upY as %G upZ as %G leftX as %G.", forwardZ, upX, upY, upZ);
-	log_line("Entered Graphic3DProcessCameraMove(3/3) with leftX as %G leftY as %G and leftZ as %G.", leftX, leftY, leftZ);
+	log_line(0x0053, angleVertical, angleHorizontal, zoom_duration_in, zoom_duration_out, forwardX, forwardY);
+	log_line(0x0054, forwardZ, upX, upY, upZ);
+	log_line(0x0055, leftX, leftY, leftZ);
 
 	//Vertical Rotate
 	#pragma region Rotate about Z
@@ -928,7 +943,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line("Graphic3DProcessCameraMove: Vertical rotate about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G.", upX, upY, forwardX, forwardY);
+		log_line(0x00A3, upX, upY, forwardX, forwardY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
@@ -946,7 +961,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line("Graphic3DProcessCameraMove: Vertical rotate about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G.", upX, upZ, forwardX, forwardZ);
+		log_line(0x00A4, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
@@ -964,7 +979,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upY      = upZ      = 0;
 		if (forwardL == 0) forwardY = forwardZ = 0;
-		log_line("Graphic3DProcessCameraMove: Vertical rotate about X result is upY as %G upZ as %G forwardY as %G and forwardZ as %G.", upY, upZ, forwardY, forwardZ);
+		log_line(0x00A5, upY, upZ, forwardY, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Y back
 		//Normalize vecotrs for XZ
@@ -982,7 +997,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line("Graphic3DProcessCameraMove: Vertical rotate back about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G.", upX, upZ, forwardX, forwardZ);
+		log_line(0x00A6, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Z back
 		//Normalize vecotrs for XY
@@ -1000,7 +1015,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line("Graphic3DProcessCameraMove: Vertical rotate back about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G.", upX, upY, forwardX, forwardY);
+		log_line(0x0056, upX, upY, forwardX, forwardY);
 	#pragma endregion
 
 	//Horizontal Rotate
@@ -1024,7 +1039,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
 		if (leftL    == 0) leftX    = leftY    = 0;
-		log_line("Graphic3DProcessCameraMove: Horizontal rotate about Z result is upX as %G upY as %G forwardX as %G forwardY as %G leftX as %G and leftY as %G.", upX, upY, forwardX, forwardY, leftX, leftY);
+		log_line(0x00A7, upX, upY, forwardX, forwardY, leftX, leftY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
@@ -1046,7 +1061,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
 		if (leftL    == 0) leftX    = leftZ    = 0;
-		log_line("Graphic3DProcessCameraMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G leftX as %G and leftZ as %G.", upX, upZ, forwardX, forwardZ, leftX, leftZ);
+		log_line(0x00A8, upX, upZ, forwardX, forwardZ, leftX, leftZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
@@ -1064,7 +1079,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upY      = upZ      = 0;
 		if (forwardL == 0) forwardY = forwardZ = 0;
-		log_line("Graphic3DProcessCameraMove: Horizontal rotate about X result is upY as %G upZ as %G forwardY as %G forwardZ as %G.", upY, upZ, forwardY, forwardZ);
+		log_line(0x00A9, upY, upZ, forwardY, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Y back
 		//Normalize vecotrs for XZ
@@ -1082,7 +1097,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line("Graphic3DProcessCameraMove: Horizontal rotate back about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G.", upX, upZ, forwardX, forwardZ);
+		log_line(0x00AA, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Z back
 		//Normalize vecotrs for XY
@@ -1100,14 +1115,15 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line("Graphic3DProcessCameraMove: Horizontal rotate back about Z result is upX as %G upY as %G forwardX as %G forwardY as %G.", upX, upY, forwardX, forwardY);
+		log_line(0x0057, upX, upY, forwardX, forwardY);
 	#pragma endregion
 
 	//Zoom
 	float zoom_acceleration = graphic3d->data->keyboard_zoom_speed1 - graphic3d->data->keyboard_zoom_speed0;
 	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_out, zoom_duration_out);
 	forward_start_length /= zoom_distance_ratio;
-	log_line("Graphic3DProcessCameraMove: Zoom result is zoom_acceleration as %G zoom_distance_ratio as %G and forward_start_length as %G.", zoom_acceleration, zoom_distance_ratio, forward_start_length);
+
+	log_line(0x0058, zoom_acceleration, zoom_distance_ratio, forward_start_length);
 
 	//Normalize vecotrs
 	upL       = sqrt(upX     *upX      + upY     *upY      + upZ     *upZ     );
@@ -1121,7 +1137,7 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 	graphic3d->camera_positionY = graphic3d->camera_targetY - forwardY;
 	graphic3d->camera_positionZ = graphic3d->camera_targetZ - forwardZ;
 	graphic3d->camera_upX = (float)upX; graphic3d->camera_upY = (float)upY; graphic3d->camera_upZ = (float)upZ;
-	log_line("Ended Graphic3DProcessCameraMove with result positionX as %G positionY as %G and positionZ as %G.", graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
+	log_line(0x0059, graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
 }
 void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, float zoom_duration_in, float zoom_duration_out)
 {
@@ -1142,9 +1158,9 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 	leftZ     = forwardX*upY - upX*forwardY;
 	double forward_start_length = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
 	
-	log_line("Entered Graphic3DProcessTargetMove(1/3) with angleVertical as %G angleHorizontal as %G zoom_duration_in as %G zoom_duration_out as %G forwardX as %G forwardY as %G.", angleVertical, angleHorizontal, zoom_duration_in, zoom_duration_out, forwardX, forwardY);
-	log_line("Entered Graphic3DProcessTargetMove(2/3) with forwardZ as %G upX as %G upY as %G upZ as %G leftX as %G.", forwardZ, upX, upY, upZ);
-	log_line("Entered Graphic3DProcessTargetMove(3/3) with leftX as %G leftY as %G and leftZ as %G.", leftX, leftY, leftZ);
+	log_line(0x005A, angleVertical, angleHorizontal, zoom_duration_in, zoom_duration_out, forwardX, forwardY);
+	log_line(0x005B, forwardZ, upX, upY, upZ);
+	log_line(0x005C, leftX, leftY, leftZ);
 
 	//Vertical rotate
 	#pragma region Rotate about Z
@@ -1163,7 +1179,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line("Graphic3DProcessTargetMove: Vertical rotate about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G.", upX, upY, forwardX, forwardY);
+		log_line(0x00AB, upX, upY, forwardX, forwardY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
@@ -1181,7 +1197,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line("Graphic3DProcessTargetMove: Vertical rotate about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G.", upX, upZ, forwardX, forwardZ);
+		log_line(0x00AC, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
@@ -1199,7 +1215,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upY      = upZ      = 0;
 		if (forwardL == 0) forwardY = forwardZ = 0;
-		log_line("Graphic3DProcessTargetMove: Vertical rotate about X result is upY as %G upZ as %G forwardY as %G and forwardZ as %G.", upY, upZ, forwardY, forwardZ);
+		log_line(0x00AD, upY, upZ, forwardY, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Y back
 		//Normalize vecotrs for XZ
@@ -1217,7 +1233,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line("Graphic3DProcessTargetMove: Vertical rotate back about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G.", upX, upZ, forwardX, forwardZ);
+		log_line(0x00AE, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Z back
 		//Normalize vecotrs for XY
@@ -1235,7 +1251,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line("Graphic3DProcessTargetMove: Vertical rotate back about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G.", upX, upY, forwardX, forwardY);
+		log_line(0x005D, upX, upY, forwardX, forwardY);
 	#pragma endregion
 
 	//Horizontal rotate
@@ -1259,7 +1275,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
 		if (leftL    == 0) leftX    = leftY    = 0;
-		log_line("Graphic3DProcessTargetMove: Horizontal rotate about Z result is upX as %G upY as %G forwardX as %G forwardY as %G leftX as %G and leftY as %G.", upX, upY, forwardX, forwardY, leftX, leftY);
+		log_line(0x00AF, upX, upY, forwardX, forwardY, leftX, leftY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
@@ -1281,7 +1297,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
 		if (leftL    == 0) leftX    = leftZ    = 0;
-		log_line("Graphic3DProcessTargetMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G leftX as %G and leftZ as %G.", upX, upZ, forwardX, forwardZ, leftX, leftZ);
+		log_line(0x00B0, upX, upZ, forwardX, forwardZ, leftX, leftZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
@@ -1299,7 +1315,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upY      = upZ      = 0;
 		if (forwardL == 0) forwardY = forwardZ = 0;
-		log_line("Graphic3DProcessTargetMove: Horizontal rotate about X result is upY as %G upZ as %G forwardY as %G forwardZ as %G.", upY, upZ, forwardY, forwardZ);
+		log_line(0x00B1, upY, upZ, forwardY, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Y back
 		//Normalize vecotrs for XZ
@@ -1317,7 +1333,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line("Graphic3DProcessTargetMove: Horizontal rotate back about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G.", upX, upZ, forwardX, forwardZ);
+		log_line(0x00B2, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Rotate about Z back
 		//Normalize vecotrs for XY
@@ -1335,14 +1351,14 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line("Graphic3DProcessTargetMove: Horizontal rotate back about Z result is upX as %G upY as %G forwardX as %G forwardY as %G.", upX, upY, forwardX, forwardY);
+		log_line(0x005E, upX, upY, forwardX, forwardY);
 	#pragma endregion
 	
 	//Zoom
 	float zoom_acceleration = graphic3d->data->keyboard_zoom_speed1 - graphic3d->data->keyboard_zoom_speed0;
 	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_out, zoom_duration_out);
 	forward_start_length *= zoom_distance_ratio;
-	log_line("Graphic3DProcessTargetMove: Zoom result is zoom_acceleration as %G zoom_distance_ratio as %G and forward_start_length as %G.", zoom_acceleration, zoom_distance_ratio, forward_start_length);
+	log_line(0x005F, zoom_acceleration, zoom_distance_ratio, forward_start_length);
 
 	//Normalize vecotrs
 	upL       = sqrt(upX     *upX      + upY     *upY      + upZ     *upZ     );
@@ -1356,7 +1372,7 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 	graphic3d->camera_targetY = graphic3d->camera_positionY + forwardY;
 	graphic3d->camera_targetZ = graphic3d->camera_positionZ + forwardZ;
 	graphic3d->camera_upX = (float)upX; graphic3d->camera_upY = (float)upY; graphic3d->camera_upZ = (float)upZ;
-	log_line("Ended Graphic3DProcessTargetMoveVertical with result positionX as %G positionY as %G and positionZ as %G.", graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
+	log_line(0x0060, graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
 }
 void Graphic3DFixIndefinedValues()
 {

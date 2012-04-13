@@ -9,6 +9,14 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Legacy|Win32">
+      <Configuration>Legacy</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Legacy|x64">
+      <Configuration>Legacy</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -28,12 +36,21 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>NotSet</CharacterSet>
+    <PlatformToolset>v80</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -44,18 +61,31 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>
+    </LinkIncremental>
     <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
     <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>
+    </LinkIncremental>
     <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
     <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">
+    <LinkIncremental>
+    </LinkIncremental>
+    <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
+    <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
+    <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -67,12 +97,17 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4996;4099;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MinimalRebuild>
+      </MinimalRebuild>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -83,7 +118,6 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS /MP /D_SECURE_SCL=0 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
@@ -93,6 +127,9 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CompileAs>CompileAsCpp</CompileAs>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <DisableSpecificWarnings>4996;4099;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -102,24 +139,112 @@
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <ResourceCompile>
+      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <PreprocessorDefinitions>_LEGACY;WIN32;NDEBUG;_CONSOLE</PreprocessorDefinitions>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <DisableSpecificWarnings>4996;4099;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <UseUnicodeForAssemblerListing>
+      </UseUnicodeForAssemblerListing>
+      <TreatWChar_tAsBuiltInType>
+      </TreatWChar_tAsBuiltInType>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ForceConformanceInForLoopScope>
+      </ForceConformanceInForLoopScope>
+      <MinimalRebuild>false</MinimalRebuild>
+      <AdditionalOptions>
+      </AdditionalOptions>
+      <StringPooling>false</StringPooling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>freeglut_static_legacy.lib</AdditionalDependencies>
+      <Profile>false</Profile>
+      <EnableUAC>
+      </EnableUAC>
+      <RandomizedBaseAddress>
+      </RandomizedBaseAddress>
+      <LinkTimeCodeGeneration>
+      </LinkTimeCodeGeneration>
+      <LinkErrorReporting>QueueForNextLogin</LinkErrorReporting>
+      <ShowProgress>NotSet</ShowProgress>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>freeglut_static.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <ResourceCompile>
+      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
+      <SuppressStartupBanner>
+      </SuppressStartupBanner>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Legacy|x64'">
+    <Link>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Legacy Support\gs_report.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">$(VCInstallDir)crt\src</AdditionalIncludeDirectories>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Legacy Support\invarg.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">CompileAsC</CompileAs>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">$(VCInstallDir)crt\src</AdditionalIncludeDirectories>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Source Files\Errors.cpp" />
     <ClCompile Include="Source Files\Graphic3D.cpp" />
     <ClCompile Include="Source Files\Threads.cpp" />
+    <ClCompile Include="Strings\StringController.cpp" />
     <ClInclude Include="Header Files\Errors.h" />
     <ClInclude Include="Header Files\Graphic3D.h" />
     <ClInclude Include="Header Files\SharedData.h" />
     <ClInclude Include="Header Files\SharedFunctions.h" />
     <ClInclude Include="Header Files\Threads.h" />
+    <ClInclude Include="Info.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SharedHeader.h" />
+    <ClInclude Include="Strings\EnglishUS_Strings.h" />
+    <ClInclude Include="Strings\StringController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header Files\Body3D.h" />
@@ -136,10 +261,10 @@
     <ClCompile Include="Source Files\BinaryOutputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="BugaleNBodySimulator.rc" />
+    <None Include="GalaxyIcon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Galaxy.ico" />
+    <ResourceCompile Include="BugaleNBodySimulator.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

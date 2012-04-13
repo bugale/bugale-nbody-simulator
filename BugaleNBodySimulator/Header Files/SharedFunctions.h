@@ -28,10 +28,10 @@ int add_before(int* a, int b); //Calculate %a% + %b%, and Save the Answer in %a%
 void get_algorithm_name(char algorithm, char* out);
 long long get_current_time_usec();
 void usleep(long long useconds);
-void reset_shared_data(SharedData* shared);
+void reset_shared_data();
 float getAngle(float x, float y);
 void start_log(char* filename);
-void log_line(char* line, ...);
+void log_line(int stringID, ...);
 void end_log();
 void set_shared_data(SharedData* shared, Data* data);
 

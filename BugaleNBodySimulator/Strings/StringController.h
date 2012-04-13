@@ -16,19 +16,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __THREADS_INCLUDED__
-#define __THREADS_INCLUDED__
+#ifndef __STRINGCONTROLLER_INCLUDED__
+#define __STRINGCONTROLLER_INCLUDED__
 
-#include "../SharedHeader.h"
+	namespace StringController
+	{
+		enum Language { EnglishUS = 0 };
 
-void Run(char* working_directory);
-void InitializeConsole();
-void exit_signal(int sig);
-
-void GraphicThread(void* arg);
-void CalculationThread(void* arg);
-void SharedCalculationsThread(void* arg);
-void BinaryOutputThread(void* arg);
-void ExitThreads();
+		void setLanguage(Language lang);
+		void getString(int ID, char* buffer);
+		void printString(int ID, ...);
+	}
 
 #endif

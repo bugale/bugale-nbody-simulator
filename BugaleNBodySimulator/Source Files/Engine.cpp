@@ -20,7 +20,7 @@
 
 Engine::Engine(Data* data)
 {
-	log_line("Entered Engine constructor with data at 0x%08X.", data);
+	log_line(0x0086, data);
 	this->bodies = data->bodies;
 	this->num_of_bodies = data->num_of_bodies;
 	this->dt = data->dt;;
@@ -32,7 +32,8 @@ Engine::Engine(Data* data)
 	this->initial_momentum_sum_2d = this->GetMomentumSum2D();
 	this->initial_momentum_sum_3d = this->GetMomentumSum3D();
 	this->first_hermite = true;
-	log_line("Ended Engine constructor with this at 0x%08X.", this);
+	this->first_leapfrog = true;
+	log_line(0x0087, this);
 }
 Engine::~Engine()
 {
@@ -49,7 +50,7 @@ Engine::~Engine()
 
 void Engine::Precalculations()
 {
-	log_line("Entered Engine::Precalculations.");
+	log_line(0x0088);
 	this->dt_div_2 = this->dt / 2;
 	this->dt_div_12 = this->dt / 12;
 	this->dt_squared_mul_g_div_12 = this->g * this->dt * this->dt / 12;
@@ -74,15 +75,15 @@ void Engine::Precalculations()
 		this->mass1_mul_mass2_mul_g[i] = (double*)malloc(sizeof(double) * this->num_of_bodies);
 		for (int j = 0; j < this->num_of_bodies; j++) this->mass1_mul_mass2_mul_g[i][j] = this->g * this->bodies[i]._mass * this->bodies[j]._mass;
 	}
-	log_line("Ended Engine::Precalculations(1/4) with dt_div_2 as %d dt_div_12 as %d dt_squared_mul_g_div_12 as %d and dt_pow_3_div_6 as %d.", this->dt_div_2, this->dt_div_12, this->dt_squared_mul_g_div_12, this->dt_pow_3_div_6);
-	log_line("Ended Engine::Precalculations(2/4) with dt_squared_div_2 as %d dt_squared_div_12 as %d dt_div_mass at 0x%08X and dt_div_2mass at 0x%08X.", this->dt_squared_div_2, this->dt_squared_div_12, this->dt_div_mass, this->dt_div_2mass);
-	log_line("Ended Engine::Precalculations(3/4) with mass_mul_g at 0x%08X dt_squared_div_2mass at 0x%08X dt_squared_div_12mass at 0x%08X and dt_pow_3_div_6mass at 0x%08X.", this->mass_mul_g, this->dt_squared_div_2mass, this->dt_squared_div_12mass, this->dt_pow_3_div_6mass);
-	log_line("Ended Engine::Precalculations(4/4) with mass1_mul_mass2_mul_g at 0x%08X.", this->mass1_mul_mass2_mul_g);
+	log_line(0x0089, this->dt_div_2, this->dt_div_12, this->dt_squared_mul_g_div_12, this->dt_pow_3_div_6);
+	log_line(0x008A, this->dt_squared_div_2, this->dt_squared_div_12, this->dt_div_mass, this->dt_div_2mass);
+	log_line(0x008B, this->mass_mul_g, this->dt_squared_div_2mass, this->dt_squared_div_12mass, this->dt_pow_3_div_6mass);
+	log_line(0x008C, this->mass1_mul_mass2_mul_g);
 }
 
 double Engine::GetEnergySum2D()
 {
-	log_line("Entered Engine::GetEnergySum2D.");
+	log_line(0x008D);
 	double energy_kin = 0;
 	double energy_pot = 0;
 	double dX, dY;
@@ -99,12 +100,12 @@ double Engine::GetEnergySum2D()
 		energy_kin += this->bodies[i]._mass * (this->bodies[i]._velocityX * this->bodies[i]._velocityX + this->bodies[i]._velocityY * this->bodies[i]._velocityY);
 	}
 	energy_kin /= 2;
-	log_line("Ended Engine::GetEnergySum2D with result as %G.", energy_kin + energy_pot);
+	log_line(0x008E, energy_kin + energy_pot);
 	return energy_kin + energy_pot;
 }
 double Engine::GetEnergySum3D()
 {
-	log_line("Entered Engine::GetEnergySum3D.");
+	log_line(0x008F);
 	double energy_kin = 0;
 	double energy_pot = 0;
 	double dX, dY, dZ;
@@ -122,7 +123,7 @@ double Engine::GetEnergySum3D()
 		energy_kin += this->bodies[i]._mass * (this->bodies[i]._velocityX * this->bodies[i]._velocityX + this->bodies[i]._velocityY * this->bodies[i]._velocityY + this->bodies[i]._velocityZ * this->bodies[i]._velocityZ);
 	}
 	energy_kin /= 2;
-	log_line("Ended Engine::GetEnergySum3D with result as %G.", energy_kin + energy_pot);
+	log_line(0x0090, energy_kin + energy_pot);
 	return energy_kin + energy_pot;
 }
 double Engine::GetEnergyError2D()
@@ -136,7 +137,7 @@ double Engine::GetEnergyError3D()
 
 double Engine::GetMomentumSum2D()
 {
-	log_line("Entered Engine::GetMomentumSum2D.");
+	log_line(0x0091);
 	double momentumX = 0;
 	double momentumY = 0;
 	double ret;
@@ -146,12 +147,12 @@ double Engine::GetMomentumSum2D()
 		momentumY += this->bodies[i]._mass * this->bodies[i]._velocityY;
 	}
 	ret = sqrt(momentumX*momentumX + momentumY*momentumY);
-	log_line("Ended Engine::GetMomentumSum2D with result as %G.", ret);
+	log_line(0x0092, ret);
 	return ret;
 }
 double Engine::GetMomentumSum3D()
 {
-	log_line("Entered Engine::GetMomentumSum3D.");
+	log_line(0x0093);
 	double momentumX = 0;
 	double momentumY = 0;
 	double momentumZ = 0;
@@ -163,7 +164,7 @@ double Engine::GetMomentumSum3D()
 		momentumZ += this->bodies[i]._mass * this->bodies[i]._velocityZ;
 	}
 	ret = sqrt(momentumX*momentumX + momentumY*momentumY + momentumZ*momentumZ);
-	log_line("Ended Engine::GetMomentumSum3D with result as %G.", ret);
+	log_line(0x0094, ret);
 	return ret;
 }
 double Engine::GetMomentumError2D()
@@ -175,6 +176,196 @@ double Engine::GetMomentumError3D()
 	return (this->GetMomentumSum3D() - this->initial_momentum_sum_3d) / this->initial_momentum_sum_3d;
 }
 
+void Engine::NextFrameEuler2D()
+{
+	double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
+    double length_pow_3; //The third power of the length of the Rji vector.
+    double force_div_length; //The force(newtons) of gravitation between the two bodies, divided by the length of the Rji vector. The Rji vector is multiplied by this value to generate the force vector.
+    for (int i = 0; i < this->num_of_bodies - 1; i++)
+        for (int j = i + 1; j < this->num_of_bodies; j++) //Run on every two bodies
+        {
+            //Generate Rji vector
+            dRX = this->bodies[j]._positionX - this->bodies[i]._positionX;
+            dRY = this->bodies[j]._positionY - this->bodies[i]._positionY;
+
+            //Generate force size
+            length_pow_3 = (dRX * dRX) + (dRY * dRY);
+            length_pow_3 = length_pow_3 * sqrt(length_pow_3);
+            if (length_pow_3 == 0) force_div_length = 0;
+            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+
+            //Generate the force vector. Save it instead of the Rji vector
+            dRX *= force_div_length;
+            dRY *= force_div_length;
+
+            //Add the force vector to the bodies
+            this->bodies[i]._forceX += dRX; this->bodies[i]._forceY += dRY;
+            this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY;
+        }
+    for (int i = 0; i < this->num_of_bodies; i++) //Calculate the new position and velocity of every body.
+    {
+
+        //Calculate the new velocity of the body
+        this->bodies[i]._velocityX += this->bodies[i]._forceX * this->dt_div_mass[i];
+        this->bodies[i]._velocityY += this->bodies[i]._forceY * this->dt_div_mass[i];
+
+        //Calculate the new position of the body
+        this->bodies[i]._positionX += this->bodies[i]._velocityX * this->dt;
+        this->bodies[i]._positionY += this->bodies[i]._velocityY * this->dt;
+
+        //Zeroing Forces
+        this->bodies[i]._forceX = 0; this->bodies[i]._forceY = 0;
+    }
+}
+void Engine::NextFrameEuler3D()
+{
+	double dRX, dRY, dRZ; //used to find the connecting vector between two bodies. The Rji vector.
+    double length_pow_3; //The third power of the length of the Rji vector.
+    double force_div_length; //The force(newtons) of gravitation between the two bodies, divided by the length of the Rji vector. The Rji vector is multiplied by this value to generate the force vector.
+    for (int i = 0; i < this->num_of_bodies - 1; i++)
+        for (int j = i + 1; j < this->num_of_bodies; j++) //Run on every two bodies
+        {
+            //Generate Rji vector
+            dRX = this->bodies[j]._positionX - this->bodies[i]._positionX;
+            dRY = this->bodies[j]._positionY - this->bodies[i]._positionY;
+			dRZ = this->bodies[j]._positionZ - this->bodies[i]._positionZ;
+
+            //Generate force size
+            length_pow_3 = (dRX * dRX) + (dRY * dRY) + (dRZ * dRZ); //Length squared
+            length_pow_3 = length_pow_3 * sqrt(length_pow_3);
+            if (length_pow_3 == 0) force_div_length = 0;
+            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+
+            //Generate the force vector. Save it instead of the Rji vector
+            dRX *= force_div_length;
+            dRY *= force_div_length;
+			dRZ *= force_div_length;
+
+            //Add the force vector to the bodies
+            this->bodies[i]._forceX += dRX; this->bodies[i]._forceY += dRY; this->bodies[i]._forceZ += dRZ;
+            this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY; this->bodies[j]._forceZ -= dRZ;
+        }
+    for (int i = 0; i < this->num_of_bodies; i++) //Calculate the new position and velocity of every body.
+    {
+        //Calculate the new velocity of the body
+        this->bodies[i]._velocityX += this->bodies[i]._forceX * this->dt_div_mass[i];
+        this->bodies[i]._velocityY += this->bodies[i]._forceY * this->dt_div_mass[i];
+		this->bodies[i]._velocityZ += this->bodies[i]._forceZ * this->dt_div_mass[i];
+
+        //Calculate the new position of the body
+        this->bodies[i]._positionX += this->bodies[i]._velocityX * this->dt;
+        this->bodies[i]._positionY += this->bodies[i]._velocityY * this->dt;
+		this->bodies[i]._positionZ += this->bodies[i]._velocityZ * this->dt;
+
+        //Zeroing Forces
+        this->bodies[i]._forceX = 0; this->bodies[i]._forceY = 0; this->bodies[i]._forceZ = 0;
+    }
+}
+void Engine::NextFrameLeapfrog2D()
+{
+	if (this->first_leapfrog)
+	{
+		this->NextFrameEuler2D();
+		this->first_leapfrog = false;
+		return;
+	}
+	double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
+    double length_pow_3; //The third power of the length of the Rji vector.
+    double force_div_length; //The force(newtons) of gravitation between the two bodies, divided by the length of the Rji vector. The Rji vector is multiplied by this value to generate the force vector.
+    for (int i = 0; i < this->num_of_bodies - 1; i++)
+        for (int j = i + 1; j < this->num_of_bodies; j++) //Run on every two bodies
+        {
+            //Generate Rji vector
+            dRX = this->bodies[j]._positionX - this->bodies[i]._positionX;
+            dRY = this->bodies[j]._positionY - this->bodies[i]._positionY;
+
+            //Generate force size
+            length_pow_3 = (dRX * dRX) + (dRY * dRY);
+            length_pow_3 = length_pow_3 * sqrt(length_pow_3);
+            if (length_pow_3 == 0) force_div_length = 0;
+            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+
+            //Generate the force vector. Save it instead of the Rji vector
+            dRX *= force_div_length;
+            dRY *= force_div_length;
+
+            //Add the force vector to the bodies
+            this->bodies[i]._forceX += dRX; this->bodies[i]._forceY += dRY;
+            this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY;
+        }
+    for (int i = 0; i < this->num_of_bodies; i++) //Calculate the new position and velocity of every body.
+    {
+        //Calculate the new position of the body
+        this->bodies[i]._positionX += this->bodies[i]._velocityX * this->dt + this->bodies[i]._forceX * this->dt_squared_div_2mass[i];
+        this->bodies[i]._positionY += this->bodies[i]._velocityY * this->dt + this->bodies[i]._forceY * this->dt_squared_div_2mass[i];
+
+        //Calculate the new velocity of the body
+        this->bodies[i]._velocityX += 0.5 * (this->bodies[i]._forceX + this->bodies[i]._l_forceX) * this->dt_div_mass[i];
+        this->bodies[i]._velocityY += 0.5 * (this->bodies[i]._forceY + this->bodies[i]._l_forceY) * this->dt_div_mass[i];
+
+		//Duplicating data
+		this->bodies[i]._l_forceX = this->bodies[i]._forceX;
+		this->bodies[i]._l_forceY = this->bodies[i]._forceY;
+
+        //Zeroing Forces
+        this->bodies[i]._forceX = 0; this->bodies[i]._forceY = 0;
+    }
+}
+void Engine::NextFrameLeapfrog3D()
+{
+	if (this->first_leapfrog)
+	{
+		this->NextFrameEuler3D();
+		this->first_leapfrog = false;
+		return;
+	}
+	double dRX, dRY, dRZ; //used to find the connecting vector between two bodies. The Rji vector.
+    double length_pow_3; //The third power of the length of the Rji vector.
+    double force_div_length; //The force(newtons) of gravitation between the two bodies, divided by the length of the Rji vector. The Rji vector is multiplied by this value to generate the force vector.
+    for (int i = 0; i < this->num_of_bodies - 1; i++)
+        for (int j = i + 1; j < this->num_of_bodies; j++) //Run on every two bodies
+        {
+            //Generate Rji vector
+            dRX = this->bodies[j]._positionX - this->bodies[i]._positionX;
+            dRY = this->bodies[j]._positionY - this->bodies[i]._positionY;
+			dRZ = this->bodies[j]._positionZ - this->bodies[i]._positionZ;
+
+            //Generate force size
+            length_pow_3 = (dRX * dRX) + (dRY * dRY) + (dRZ * dRZ); //Length squared
+            length_pow_3 = length_pow_3 * sqrt(length_pow_3);
+            if (length_pow_3 == 0) force_div_length = 0;
+            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+
+            //Generate the force vector. Save it instead of the Rji vector
+            dRX *= force_div_length;
+            dRY *= force_div_length;
+			dRZ *= force_div_length;
+
+            //Add the force vector to the bodies
+            this->bodies[i]._forceX += dRX; this->bodies[i]._forceY += dRY; this->bodies[i]._forceZ += dRZ;
+            this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY; this->bodies[j]._forceZ -= dRZ;
+        }
+    for (int i = 0; i < this->num_of_bodies; i++) //Calculate the new position and velocity of every body.
+    {
+        //Calculate the new position of the body
+        this->bodies[i]._positionX += this->bodies[i]._velocityX * this->dt + this->bodies[i]._forceX * this->dt_squared_div_2mass[i];
+        this->bodies[i]._positionY += this->bodies[i]._velocityY * this->dt + this->bodies[i]._forceY * this->dt_squared_div_2mass[i];
+		this->bodies[i]._positionZ += this->bodies[i]._velocityZ * this->dt + this->bodies[i]._forceZ * this->dt_squared_div_2mass[i];
+
+        //Calculate the new velocity of the body
+        this->bodies[i]._velocityX += 0.5 * (this->bodies[i]._forceX + this->bodies[i]._l_forceX) * this->dt_div_mass[i];
+        this->bodies[i]._velocityY += 0.5 * (this->bodies[i]._forceY + this->bodies[i]._l_forceY) * this->dt_div_mass[i];
+		this->bodies[i]._velocityZ += 0.5 * (this->bodies[i]._forceZ + this->bodies[i]._l_forceZ) * this->dt_div_mass[i];
+
+		//Duplicating data
+		this->bodies[i]._l_forceX = this->bodies[i]._forceX;
+		this->bodies[i]._l_forceY = this->bodies[i]._forceY;
+		this->bodies[i]._l_forceZ = this->bodies[i]._forceZ;
+
+        //Zeroing Forces
+        this->bodies[i]._forceX = 0; this->bodies[i]._forceY = 0; this->bodies[i]._forceZ = 0;
+    }
+}
 void Engine::NextFrameModifiedEuler2D()
 {
     double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
@@ -426,7 +617,7 @@ void Engine::NextFrameHermite3D()
 
 void Engine::InitializeHermite2D()
 {
-	log_line("Entered Engine::InitializeHermite2D.");
+	log_line(0x0095);
 	double dRX, dRY; //used to find the connecting vector between two bodies. The Rji vector.
 	double dVX, dVY; //used to find the Vji for the hermite formula.
 	double dRdV_mul_three_div_length_pow_2; //(dR dot-multiply dV) multiplied by the minus-second(-2) power of the length of the Rji vector multiplied by 3 for the hermite formula.
@@ -521,11 +712,11 @@ void Engine::InitializeHermite2D()
             this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY;
         }
 	this->first_hermite = false;
-	log_line("Ended Engine::InitializeHermite2D.");
+	log_line(0x0096);
 }
 void Engine::InitializeHermite3D()
 {
-	log_line("Entered Engine::InitializeHermite3D.");
+	log_line(0x0097);
 	double dRX, dRY, dRZ; //used to find the connecting vector between two bodies. The Rji vector.
 	double dVX, dVY, dVZ; //used to find the Vji for the hermite formula.
 	double dRdV_mul_three_div_length_pow_2; //(dR dot-multiply dV) multiplied by the minus-second(-2) power of the length of the Rji vector multiplied by 3 for the hermite formula.
@@ -634,5 +825,5 @@ void Engine::InitializeHermite3D()
             this->bodies[j]._forceX -= dRX; this->bodies[j]._forceY -= dRY; this->bodies[j]._forceZ -= dRZ;
         }
 	this->first_hermite = false;
-	log_line("Ended Engine::InitializeHermite3D.");
+	log_line(0x0098);
 }

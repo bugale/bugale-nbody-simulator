@@ -30,7 +30,14 @@ tthread::thread* thread_binary = 0;
 
 void Run(char* working_directory)
 {
-	printf("Working Directory: %s\n\n", working_directory);
+	StringController::printString(0x0001, working_directory);
+
+	if (working_directory[strlen(working_directory)-1] == '\\' || working_directory[strlen(working_directory)-1] == '/')
+	{
+		working_directory = strcpy((char*)malloc(4096), working_directory);
+		working_directory[strlen(working_directory)-1] = 0;
+	}
+
 	signal(SIGINT, &exit_signal);
 	InitializeConsole();
 	
@@ -44,91 +51,100 @@ void Run(char* working_directory)
 	bodies_path[0] = 0;
 	binaryoutput_path[0] = 0;
 	log_path[0] = 0;
-	getpath(working_directory, SETTINGS_FILENAME, settings_path);
-	getpath(working_directory, BODIES_FILENAME, bodies_path);
-	getpath(working_directory, BINARYOUTPUT_FILENAME, binaryoutput_path);
-	getpath(working_directory, LOG_FILENAME, log_path);
+	getpath(working_directory, INFO_SETTINGS_FILENAME, settings_path);
+	getpath(working_directory, INFO_BODIES_FILENAME, bodies_path);
+	getpath(working_directory, INFO_BINARY_FILENAME, binaryoutput_path);
+	getpath(working_directory, INFO_LOG_FILENAME, log_path);
 
 	data   = new Data(settings_path, bodies_path);
 	shared = new SharedData();
-	reset_shared_data(shared);
 	set_shared_data(shared, data);
+	reset_shared_data();
 
 	if (data->error == Errors::NoError)
 	{
 		if (data->log)
 		{
-			printf("Logging started.\n");
+			StringController::printString(0x0002);
 			start_log(log_path);
 		}
-		log_line("No data errors.");
+		log_line(0x0003);
 		shared->pause = data->paused;
-		bom    = new BinaryOutputManager(data, 100, binaryoutput_path);
-		engine = new Engine(data);
+		bom                = new BinaryOutputManager(data, 100, binaryoutput_path);
+		engine             = new Engine(data);
 		thread_graphic     = new tthread::thread(GraphicThread, 0);
 		thread_shared_calc = new tthread::thread(SharedCalculationsThread, 0);
 		thread_calculation = new tthread::thread(CalculationThread, 0);
 		thread_binary      = new tthread::thread(BinaryOutputThread, 0);
 	}
-	else
+	else shared->error = data->error;
+
+	while (!shared->exit)
 	{
-		char* err = (char*)malloc(4096);
-		Errors::returnError(data->error, working_directory, err);
-		printf("%s\n", err);
-		free(err);
+		usleep(100000);
+		if (shared->error != Errors::NoError)
+		{
+			char* err = (char*)malloc(4096);
+			Errors::returnError(shared->error, working_directory, err);
+			printf("%s\n", err);
+			free(err);
+			getchar();
+		}
 	}
 
-	while (!shared->exit) usleep(100000);
-
-	end_log();
+	if (data->log) end_log();
 
 	ExitThreads();
 
-	if (thread_binary != 0) delete(thread_binary);
+	if (thread_binary != 0)      delete(thread_binary);
 	if (thread_calculation != 0) delete(thread_calculation);
 	if (thread_shared_calc != 0) delete(thread_shared_calc);
-	if (thread_graphic != 0) delete(thread_graphic);
-	if (engine != 0) delete(engine);
-	if (bom != 0) delete(bom);
-	if (data != 0) delete(data);
-	if (shared != 0) free(shared);
-	if (settings_path != 0) free(settings_path);
-	if (bodies_path != 0) free(bodies_path);
-	if (binaryoutput_path != 0) free(binaryoutput_path);
-	if (log_path != 0) free(log_path);
+	if (thread_graphic != 0)     delete(thread_graphic);
+	if (engine != 0)             delete(engine);
+	if (bom != 0)                delete(bom);
+	if (data != 0)               delete(data);
+	if (shared != 0)             free(shared);
+	if (settings_path != 0)      free(settings_path);
+	if (bodies_path != 0)        free(bodies_path);
+	if (binaryoutput_path != 0)  free(binaryoutput_path);
+	if (log_path != 0)           free(log_path);
 }
 void InitializeConsole()
 {
-	printf("Welcome to %s version %s!\n", PROGRAM_NAME, PROGRAM_VERSION);
-	printf("You may interrupt the console to close the program (usually Ctrl+C).\n");
-	printf("Please Wait...\n\n");
+	StringController::printString(0x0004, INFO_PROGRAM_NAME, INFO_PROGRAM_VERSION);
+	StringController::printString(0x0005);
+	StringController::printString(0x0006);
 }
 void exit_signal(int sig)
 {
-	log_line("Entered exit_signal with shared at 0x%08X.", shared);
+	log_line(0x0007, shared);
 	shared->exit = true;
-	log_line("Ended exit_signal.");
+	log_line(0x0008);
 }
 
 void GraphicThread(void* arg)
 {
-	log_line("Entered GraphicThread with data at 0x%08X and shared at 0x%08X.", data, shared);
+	log_line(0x0009, data, shared);
 	if (data->two_dimensional_graphic) NewGraphic2D(data, shared);
 	else NewGraphic3D(data, shared);
-	log_line("Ended GraphicThread.");
+	log_line(0x000A);
 }
 void CalculationThread(void* arg)
 {
-	log_line("Entered CalculationThread with engine at 0x%08X data at 0x%08X and shared at 0x%08X.", engine, data, shared);
+	log_line(0x000B, engine, data, shared);
 	if (data->max_calculations == 0) return;
 	while (!shared->exit)
 	{
 		if (shared->pause) usleep(100000);
 		if (shared->pause) continue;
-		if ( data->two_dimensional_calculation && data->algorithm == 0) engine->NextFrameModifiedEuler2D();
-		if (!data->two_dimensional_calculation && data->algorithm == 0) engine->NextFrameModifiedEuler3D();
-		if ( data->two_dimensional_calculation && data->algorithm == 1) engine->NextFrameHermite2D();
-		if (!data->two_dimensional_calculation && data->algorithm == 1) engine->NextFrameHermite3D();
+		if ( data->two_dimensional_calculation && data->algorithm == 0x02) engine->NextFrameEuler2D();
+		if (!data->two_dimensional_calculation && data->algorithm == 0x02) engine->NextFrameEuler3D();
+		if ( data->two_dimensional_calculation && data->algorithm == 0x03) engine->NextFrameLeapfrog2D();
+		if (!data->two_dimensional_calculation && data->algorithm == 0x03) engine->NextFrameLeapfrog3D();
+		if ( data->two_dimensional_calculation && data->algorithm == 0x00) engine->NextFrameModifiedEuler2D();
+		if (!data->two_dimensional_calculation && data->algorithm == 0x00) engine->NextFrameModifiedEuler3D();
+		if ( data->two_dimensional_calculation && data->algorithm == 0x01) engine->NextFrameHermite2D();
+		if (!data->two_dimensional_calculation && data->algorithm == 0x01) engine->NextFrameHermite3D();
 
 		shared->calculations++;
 
@@ -136,14 +152,14 @@ void CalculationThread(void* arg)
 		{
 			shared->pause = true;
 			shared->reached_max_calculations = true;
-			printf("Maximum Calculations Reached!\n");
+			StringController::printString(0x000C);
 		}
 	}
-	log_line("Ended CalculationThread.");
+	log_line(0x000D);
 }
 void SharedCalculationsThread(void* arg)
 {
-	log_line("Entered SharedCalculationsThread with engine at 0x%08X data at 0x%08X and shared at 0x%08X.", engine, data, shared);
+	log_line(0x000E, engine, data, shared);
 	long long time = 0;
 	while (!shared->exit)
 	{
@@ -186,25 +202,25 @@ void SharedCalculationsThread(void* arg)
 		}
 		while (get_current_time_usec() - time < 500000) usleep(1000);
 	}
-	log_line("Ended SharedCalculationsThread.");
+	log_line(0x000F);
 }
 void BinaryOutputThread(void* arg)
 {
-	log_line("Entered BinaryOutputThread with bom at 0x%08X data at 0x%08X and shared at 0x%08X.", bom, data, shared);
+	log_line(0x0010, bom, data, shared);
 	if (data->binary_max_rate == 0) return;
 	while (!shared->exit)
 		if (shared->pause) usleep(100000);
 		else if (bom->Capture(get_current_time_usec())) bom->Save();
 	bom->Finalize();
-	log_line("Ended BinaryOutputThread.");
+	log_line(0x0011);
 }
 void ExitThreads()
 {
-	log_line("Entered ExitThreads with thread_shared_calc at 0x%08X thread_calculation at 0x%08X thread_binary at 0x%08X and data at 0x%08X.", thread_shared_calc, thread_calculation, thread_binary, data);
+	log_line(0x0012, thread_shared_calc, thread_calculation, thread_binary, data);
 	thread_shared_calc->join();
 	thread_calculation->join();
 	thread_graphic    ->join();
 	thread_binary     ->join();
-	log_line("Ended ExitThreads.");
+	log_line(0x0013);
 	if (data->log) end_log();
 }

@@ -22,7 +22,7 @@ Graphic2D* graphic2d;
 
 void NewGraphic2D(Data* data, SharedData* shared)
 {
-	log_line("Entered NewGraphic2D with data at 0x%08X and shared at 0x%08X.", data, shared);
+	log_line(0x0061, data, shared);
 	if (data->graphic_max_rate == 0) return;
 
 	graphic2d = new Graphic2D();
@@ -32,7 +32,8 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->width = data->width;
 	graphic2d->height = data->height;
 	graphic2d->ratio = (float)data->width / (float)graphic2d->height;
-	graphic2d->title = "Bugale N-Body Simulator 2D Graphical Output Window";
+	graphic2d->title = (char*)malloc(4096); graphic2d->title[0] = 0;
+	StringController::getString(0x0062, graphic2d->title);
 	graphic2d->fullscreen = data->fullscreen;
 	graphic2d->clear_screen = data->clear_screen;
 	graphic2d->show_trails = data->show_trails;
@@ -68,27 +69,14 @@ void NewGraphic2D(Data* data, SharedData* shared)
 
 	graphic2d->temp_string = (char*)malloc(4096);
 
-	printf("2D Graphical Output Instructions:\n\n");
-	printf("    ESC  : Close the Simulator\n");
-	printf("   Arrows: Move Your Camera\n");
-	printf("   + or -: Zoom In or Zoom Out\n");
-	printf("     r   : Reset Your Camera Position\n");
-	printf("     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n");
-	printf("     t   : Toggle Trail Showal\n");
-	printf("     c   : Toggle Screen Clearance After Every Frame\n");
-	printf("     h   : Toggle Crosshair Showal\n");
-	printf("     p   : Toggle Pause\n");
-	printf("   After a Number Has Been Assigned, Press Enter to Show the Body with the\n");
-	printf("   Given Index on the Center of the Screen, or Press Space to Always show the\n");
-	printf("   Body with the Given Index on the Center of the Screen and press again to\n");
-	printf("   disable it.\n");
-	printf("\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n");
+	StringController::printString(0x0063);
 
 	Graphic2DInitialize();
 
 	glutMainLoop();
 	
-	log_line("Ended Glut Event Loop.");
+	log_line(0x0064);
+	graphic2d->shared->exit = true;
 	
 	if (graphic2d->trailX != 0) free(graphic2d->trailX);
 	if (graphic2d->trailY != 0) free(graphic2d->trailY);
@@ -98,11 +86,11 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	if (graphic2d->keyboard_move_start_value != 0) free(graphic2d->keyboard_move_start_value);
 	if (graphic2d != 0) free(graphic2d);
 
-	log_line("Ended NewGraphic2D.");
+	log_line(0x0065);
 }
 void Graphic2DInitialize()
 {
-	log_line("Entered Graphic2DInitialize.");
+	log_line(0x0066);
 	int a = 0; glutInit(&a, 0);
 	//Initialize GLUT and create the window
 	glutInitDisplayMode   (GLUT_SINGLE | GLUT_RGBA | GLUT_MULTISAMPLE);
@@ -121,7 +109,7 @@ void Graphic2DInitialize()
 	glutSpecialFunc   (Graphic2DSKeyboardHandler   );
 	glutSpecialUpFunc (Graphic2DSKeyboardUpHandler );
 
-	log_line("Graphic2DInitialize - single buffer window set at 0x%08X.", graphic2d->singlebuf_window);
+	log_line(0x0067, graphic2d->singlebuf_window);
 
 	glutInitDisplayMode   (GLUT_DOUBLE | GLUT_RGBA | GLUT_MULTISAMPLE);
 	graphic2d->doublebuf_window = glutCreateSubWindow(glutGetWindow(), 0, 0, graphic2d->width, graphic2d->height);
@@ -137,9 +125,9 @@ void Graphic2DInitialize()
 	glutSpecialFunc   (Graphic2DSKeyboardHandler   );
 	glutSpecialUpFunc (Graphic2DSKeyboardUpHandler );
 
-	log_line("Graphic2DInitialize - double buffer window set at 0x%08X.", graphic2d->doublebuf_window);
+	log_line(0x0068, graphic2d->doublebuf_window);
 
-	log_line("Ended Graphic2DInitialize.");
+	log_line(0x0069);
 }
 
 void Graphic2DRenderHandlerDblBfr()
@@ -188,7 +176,7 @@ void Graphic2DRenderHandlerSglBfr()
 }
 void Graphic2DRatioHandler(int width, int height)
 {
-	log_line("Entered Graphic2DRatioHandler with width as %d and height as %d.", width, height);
+	log_line(0x006A, width, height);
 	if (height == 0) height++; //Prevent a division by zero.
 
 	graphic2d->width = width;
@@ -203,7 +191,7 @@ void Graphic2DRatioHandler(int width, int height)
 
 	//Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
-	log_line("Ended Graphic2DRatioHandler.");
+	log_line(0x006B);
 }
 void Graphic2DKeyboardHandler(unsigned char key, int x, int y)
 {
@@ -307,7 +295,6 @@ void Graphic2DFinalizeFrame()
 
 void Graphic2DExit()
 {
-	graphic2d->shared->exit = true;
 	glutLeaveMainLoop();
 }
 void Graphic2DReset()
@@ -512,64 +499,94 @@ void Graphic2DDrawText()
 
 	glColor4f(1, 1, 1, 1);
 
-	sprintf(graphic2d->temp_string, "Frames Per Second: %G", graphic2d->shared->frames_per_second);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Calculations Per Second:   %+E", graphic2d->shared->calculations_per_second);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Total Calculations Done:   %+E", (double)graphic2d->shared->calculations);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "DeltaTime:                 %+E", graphic2d->data->dt);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Simulated Seconds Past:    %+E", (double)graphic2d->data->dt * (double)graphic2d->shared->calculations);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Simulated Years Past:      %+E", (double)graphic2d->data->dt * (double)graphic2d->shared->calculations / (double)(31557600));
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Real Seconds Past:         %+E", (double)real_time / (double)1000000);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Simulated-Real Time Ratio: %+E", ((double)graphic2d->data->dt * (double)graphic2d->shared->calculations) / ((double)real_time / (double)1000000));
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Gravitational Constant:    %+E", graphic2d->data->g);
+	char* buffer = (char*)malloc(4096);
+	buffer[0] = 0; StringController::getString(0x003F, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->shared->frames_per_second);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	sprintf(graphic2d->temp_string, "Number of Bodies: %d", graphic2d->data->num_of_bodies);
+	buffer[0] = 0; StringController::getString(0x0040, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->shared->calculations_per_second);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-
-	sprintf(graphic2d->temp_string, "Integration Algorithm: %s %s", (graphic2d->data->two_dimensional_calculation ? "2D": "3D"), graphic2d->data->algorithm_name);
+	
+	buffer[0] = 0; StringController::getString(0x0041, buffer);
+	sprintf(graphic2d->temp_string, buffer, (double)graphic2d->shared->calculations);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0042, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->data->dt);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0043, buffer);
+	sprintf(graphic2d->temp_string, buffer, (double)graphic2d->data->dt*(double)graphic2d->shared->calculations);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0044, buffer);
+	sprintf(graphic2d->temp_string, buffer, (double)graphic2d->data->dt*(double)graphic2d->shared->calculations / (double)(31557600));
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0045, buffer);
+	sprintf(graphic2d->temp_string, buffer, (double)real_time / (double)1000000);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0046, buffer);
+	sprintf(graphic2d->temp_string, buffer, ((double)graphic2d->data->dt*(double)graphic2d->shared->calculations) / ((double)real_time / (double)1000000));
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0047, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->data->g);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0048, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->data->num_of_bodies);
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	
+	buffer[0] = 0; StringController::getString(0x0049, buffer);
+	sprintf(graphic2d->temp_string, buffer, (graphic2d->data->two_dimensional_calculation ? "2D": "3D"), graphic2d->data->algorithm_name);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	if (graphic2d->shared->calculated_energy)
-		sprintf(graphic2d->temp_string, "Energy Error: %+E", graphic2d->shared->error_energy);
+	{
+		buffer[0] = 0; StringController::getString(0x004A, buffer);
+		sprintf(graphic2d->temp_string, buffer, graphic2d->shared->error_energy);
+	}
 	else
-		sprintf(graphic2d->temp_string, "Energy Error: Pause to Calculate...");
+	{
+		buffer[0] = 0; StringController::getString(0x004B, buffer);
+		sprintf(graphic2d->temp_string, buffer);
+	}
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	if (graphic2d->shared->calculated_momentum)
-		sprintf(graphic2d->temp_string, "Momentum Error: %+E", graphic2d->shared->error_momentum);
+	{
+		buffer[0] = 0; StringController::getString(0x004C, buffer);
+		sprintf(graphic2d->temp_string, buffer, graphic2d->shared->error_momentum);
+	}
 	else
-		sprintf(graphic2d->temp_string, "Moment Error: Pause to Calculate...");
+	{
+		buffer[0] = 0; StringController::getString(0x004D, buffer);
+		sprintf(graphic2d->temp_string, buffer);
+	}
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	curY = graphic2d->height + 13 - 3;
 	
-	sprintf(graphic2d->temp_string, "Camera Position Z: %+E", graphic2d->camera_positionZ);
+	buffer[0] = 0; StringController::getString(0x006C, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->camera_positionZ);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	sprintf(graphic2d->temp_string, "Camera Position Y: %+E", graphic2d->camera_positionY);
+	buffer[0] = 0; StringController::getString(0x006D, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->camera_positionY);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	sprintf(graphic2d->temp_string, "Camera Position X: %+E", graphic2d->camera_positionX);
+	buffer[0] = 0; StringController::getString(0x006E, buffer);
+	sprintf(graphic2d->temp_string, buffer, graphic2d->camera_positionX);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	sprintf(graphic2d->temp_string, "Screen Height in Meters: %E", 4 * graphic2d->height_meters);
+	buffer[0] = 0; StringController::getString(0x006F, buffer);
+	sprintf(graphic2d->temp_string, buffer, 4 * graphic2d->height_meters);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
+
+	free(buffer);
 	
 	Graphic2DRestorePerspectiveProjection();
 }
@@ -647,7 +664,7 @@ void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, floa
 		double rsin, rcos;
 		glBegin(GL_TRIANGLE_FAN);
 		glVertex2d(radius, 0);
-		for (int i = 1; i < graphic2d->data->sphere_slices; i++)
+		for (unsigned int i = 1; i < graphic2d->data->sphere_slices; i++)
 		{
 			rsin = radius * sin(graphic2d->pi_mul_2_div_slices * i);
 			rcos = radius * cos(graphic2d->pi_mul_2_div_slices * i);
@@ -679,7 +696,7 @@ void Graphic2DRestorePerspectiveProjection()
 }
 void Graphic2DRenderBitmapString(int x, int y, char* string)
 {
-  for (char* c = string; *c != '\0'; c++) 
+  for (char* c = string; *c != 0; c++) 
   {
 	if (*c != ' ') glRasterPos2i(x, y);
 	if (*c != ' ') glutBitmapCharacter(GLUT_BITMAP_8_BY_13, *c);

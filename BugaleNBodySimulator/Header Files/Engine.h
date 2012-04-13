@@ -37,6 +37,7 @@ public:
 	double initial_momentum_sum_2d;
 	double initial_momentum_sum_3d;
 	bool first_hermite;
+	bool first_leapfrog;
 
 	//Precalculations
 	double* dt_div_mass; //dt / mass   for each mass
@@ -71,6 +72,10 @@ public:
 	double GetMomentumError3D();
 	
 	//Integration calculations
+	void NextFrameEuler2D();
+	void NextFrameEuler3D();
+	void NextFrameLeapfrog2D();
+	void NextFrameLeapfrog3D();
 	void NextFrameModifiedEuler2D();
 	void NextFrameModifiedEuler3D();
 	void NextFrameHermite2D();

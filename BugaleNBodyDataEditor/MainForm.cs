@@ -37,94 +37,131 @@ namespace BugaleNBodyDataEditor
             InitializeComponent();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void RefreshList()
         {
-            this.lbx_main.Items.Clear();
-            this.lbx_main.Items.Add("Main Settings");
-            for (int i = 0; i < this.bodies.Count; i++)
-                this.lbx_main.Items.Add("Body #" + i.ToString() + ", Name: " + this.bodies[i].Name);
+            try
+            {
+                this.lbx_main.Items.Clear();
+                this.lbx_main.Items.Add("Main Settings");
+                for (int i = 0; i < this.bodies.Count; i++)
+                    this.lbx_main.Items.Add("Body #" + i.ToString() + ", Name: " + this.bodies[i].Name);
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void lbx_main_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (this.lbx_main.SelectedIndex == 0)
+            try
             {
-                this.btn_up.Enabled = false;
-                this.btn_down.Enabled = false;
-                this.btn_del.Enabled = false;
-                this.btn_new.Enabled = true;
-                if (this.changeGrid) this.grd_settings.SelectedObject = this.mainSettings;
+                if (this.lbx_main.SelectedIndex == 0)
+                {
+                    this.btn_up.Enabled = false;
+                    this.btn_down.Enabled = false;
+                    this.btn_del.Enabled = false;
+                    this.btn_new.Enabled = true;
+                    if (this.changeGrid) this.grd_settings.SelectedObject = this.mainSettings;
+                }
+                else if (this.lbx_main.SelectedIndex == this.bodies.Count)
+                {
+                    this.btn_up.Enabled = this.bodies.Count != 1;
+                    this.btn_down.Enabled = false;
+                    this.btn_del.Enabled = true;
+                    this.btn_new.Enabled = true;
+                    if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[this.bodies.Count - 1];
+                }
+                else if (this.lbx_main.SelectedIndex == 1)
+                {
+                    this.btn_up.Enabled = false;
+                    this.btn_down.Enabled = this.bodies.Count != 1;
+                    this.btn_del.Enabled = true;
+                    this.btn_new.Enabled = true;
+                    if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[0];
+                }
+                else if (this.lbx_main.SelectedIndex > 1 && this.lbx_main.SelectedIndex < this.bodies.Count)
+                {
+                    this.btn_up.Enabled = true;
+                    this.btn_down.Enabled = true;
+                    this.btn_del.Enabled = true;
+                    this.btn_new.Enabled = true;
+                    if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[this.lbx_main.SelectedIndex - 1];
+                }
             }
-            else if (this.lbx_main.SelectedIndex == this.bodies.Count)
+            catch (Exception err)
             {
-                this.btn_up.Enabled = this.bodies.Count != 1;
-                this.btn_down.Enabled = false;
-                this.btn_del.Enabled = true;
-                this.btn_new.Enabled = true;
-                if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[this.bodies.Count - 1];
-            }
-            else if (this.lbx_main.SelectedIndex == 1)
-            {
-                this.btn_up.Enabled = false;
-                this.btn_down.Enabled = this.bodies.Count != 1;
-                this.btn_del.Enabled = true;
-                this.btn_new.Enabled = true;
-                if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[0];
-            }
-            else if (this.lbx_main.SelectedIndex > 1 && this.lbx_main.SelectedIndex < this.bodies.Count)
-            {
-                this.btn_up.Enabled = true;
-                this.btn_down.Enabled = true;
-                this.btn_del.Enabled = true;
-                this.btn_new.Enabled = true;
-                if (this.changeGrid) this.grd_settings.SelectedObject = this.bodies[this.lbx_main.SelectedIndex - 1];
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btn_up_Click(object sender, EventArgs e)
         {
-            this.changeGrid = false;
-            int select = this.lbx_main.SelectedIndex;
-            Body3D temp = this.bodies[select - 2];
-            this.bodies[select - 2] = this.bodies[select - 1];
-            this.bodies[select - 1] = temp;
-            this.RefreshList();
-            this.lbx_main.SelectedIndex = select - 1;
-            this.changeGrid = true;
+            try
+            {
+                this.changeGrid = false;
+                int select = this.lbx_main.SelectedIndex;
+                Body3D temp = this.bodies[select - 2];
+                this.bodies[select - 2] = this.bodies[select - 1];
+                this.bodies[select - 1] = temp;
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = select - 1;
+                this.changeGrid = true;
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btn_down_Click(object sender, EventArgs e)
         {
-            this.changeGrid = false;
-            int select = this.lbx_main.SelectedIndex;
-            Body3D temp = this.bodies[select];
-            this.bodies[select] = this.bodies[select - 1];
-            this.bodies[select - 1] = temp;
-            this.RefreshList();
-            this.lbx_main.SelectedIndex = select + 1;
-            this.changeGrid = true;
+            try
+            {
+                this.changeGrid = false;
+                int select = this.lbx_main.SelectedIndex;
+                Body3D temp = this.bodies[select];
+                this.bodies[select] = this.bodies[select - 1];
+                this.bodies[select - 1] = temp;
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = select + 1;
+                this.changeGrid = true;
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btn_del_Click(object sender, EventArgs e)
         {
-            this.bodies.RemoveAt(this.lbx_main.SelectedIndex - 1);
-            this.RefreshList();
-            this.grd_settings.SelectedObject = null;
+            try
+            {
+                this.bodies.RemoveAt(this.lbx_main.SelectedIndex - 1);
+                this.RefreshList();
+                this.grd_settings.SelectedObject = null;
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btn_new_Click(object sender, EventArgs e)
         {
-            this.changeGrid = false;
-            int select = this.lbx_main.SelectedIndex;
-            this.bodies.Add(new Body3D());
-            this.RefreshList();
-            this.lbx_main.SelectedIndex = select;
-            this.changeGrid = true;
+            try
+            {
+                this.changeGrid = false;
+                int select = this.lbx_main.SelectedIndex;
+                this.bodies.Add(new Body3D());
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = select;
+                this.changeGrid = true;
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btn_save_Click(object sender, EventArgs e)
@@ -135,9 +172,9 @@ namespace BugaleNBodyDataEditor
                 System.IO.File.WriteAllBytes(Application.StartupPath + "\\bodies.bdf", Body3D.ListToBytes(this.bodies, this.mainSettings.G));
                 changed = false;
             }
-            catch (Exception x)
+            catch (Exception err)
             {
-                MessageBox.Show(x.ToString());
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -168,21 +205,29 @@ namespace BugaleNBodyDataEditor
                 this.grd_settings.SelectedObject = this.mainSettings;
                 this.btn_new.Enabled = true;
             }
-            catch (Exception x)
+            catch (Exception err)
             {
-                MessageBox.Show(x.ToString());
+                MessageBox.Show("An error has occourred during the opening of the files. It is possible that they are corrupted or in use. You may try to create new files using File->New and override the existing files (Creating a backup is recommended). Press OK to see error details.", "Error reading files", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void grd_settings_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
-            if (e.ChangedItem.Label != "Name") return;
-            this.changeGrid = false;
-            int select = this.lbx_main.SelectedIndex;
-            this.RefreshList();
-            this.lbx_main.SelectedIndex = select;
-            this.changeGrid = true;
-            this.changed = true;
+            try
+            {
+                if (e.ChangedItem.Label != "Name") return;
+                this.changeGrid = false;
+                int select = this.lbx_main.SelectedIndex;
+                this.RefreshList();
+                this.lbx_main.SelectedIndex = select;
+                this.changeGrid = true;
+                this.changed = true;
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btn_open_old_Click(object sender, EventArgs e)
@@ -210,40 +255,54 @@ namespace BugaleNBodyDataEditor
                 this.grd_settings.SelectedObject = this.mainSettings;
                 this.btn_new.Enabled = true;
             }
-            catch (Exception x)
+            catch (Exception err)
             {
-                MessageBox.Show(x.ToString());
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btn_close_Click(object sender, EventArgs e)
         {
-            if (this.changed)
-                switch (MessageBox.Show("Do you want to save before closing?", "Attention!", MessageBoxButtons.YesNoCancel))
-                {
-                    case System.Windows.Forms.DialogResult.No:
-                        changed = false;
-                        this.Close();
-                        return;
-                    case System.Windows.Forms.DialogResult.Yes:
-                        btn_save_Click(null, null);
-                        this.Close();
-                        return;
-                }
+            try
+            {
+                if (this.changed)
+                    switch (MessageBox.Show("Do you want to save before closing?", "Attention!", MessageBoxButtons.YesNoCancel))
+                    {
+                        case System.Windows.Forms.DialogResult.No:
+                            changed = false;
+                            this.Close();
+                            return;
+                        case System.Windows.Forms.DialogResult.Yes:
+                            btn_save_Click(null, null);
+                            this.Close();
+                            return;
+                    }
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (this.changed)
-                switch (MessageBox.Show("Do you want to save before closing?", "Attention!", MessageBoxButtons.YesNoCancel))
-                {
-                    case System.Windows.Forms.DialogResult.Cancel:
-                        e.Cancel = true;
-                        return;
-                    case System.Windows.Forms.DialogResult.Yes:
-                        btn_save_Click(null, null);
-                        return;
-                }
+            try
+            {
+                if (this.changed)
+                    switch (MessageBox.Show("Do you want to save before closing?", "Attention!", MessageBoxButtons.YesNoCancel))
+                    {
+                        case System.Windows.Forms.DialogResult.Cancel:
+                            e.Cancel = true;
+                            return;
+                        case System.Windows.Forms.DialogResult.Yes:
+                            btn_save_Click(null, null);
+                            return;
+                    }
+            }
+            catch (Exception err)
+            {
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btn_newfile_Click(object sender, EventArgs e)
@@ -258,9 +317,9 @@ namespace BugaleNBodyDataEditor
                 this.grd_settings.SelectedObject = this.mainSettings;
                 this.btn_new.Enabled = true;
             }
-            catch (Exception x)
+            catch (Exception err)
             {
-                MessageBox.Show(x.ToString());
+                MessageBox.Show(err.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

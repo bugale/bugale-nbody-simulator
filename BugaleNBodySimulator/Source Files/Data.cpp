@@ -40,17 +40,17 @@ void Data::parseSettings(char* filename)
 		this->error = Errors::MissingSettingsFile;
 		return;
 	}
-	if (this->filelength != settings_size)
+	if (this->filelength != INFO_SETTINGS_SIZE)
 	{
 		this->error = Errors::WrongSettingsFileSize;
 		return;
 	}
-	if (*(unsigned long long*)&data[0] != 0xBDF0BDF01111BDF0)
+	if (*(unsigned long long*)&data[0] != INFO_SETTINGS_START)
 	{
 		this->error = Errors::WrongSettingsFileHeader;
 		return;
 	}
-	if (*(int*)&data[8] != data_files_version)
+	if (*(int*)&data[8] != INFO_DATA_FILES_VERSION)
 	{
 		this->error = Errors::WrongSettingsFileVersion;
 		return;
@@ -74,33 +74,33 @@ void Data::parseSettings(char* filename)
 	this->log                         = this->readBool(data, 13, cur++);
 
 	cur = 14;
-	this->width                = *(int      *)&data[cur]; cur += 4;
-	this->height               = *(int      *)&data[cur]; cur += 4;
-	this->algorithm            =               data[cur]; cur += 1;
-	this->dt                   = *(double   *)&data[cur]; cur += 8;
-	this->graphic_max_rate     = *(float    *)&data[cur]; cur += 4;
-	this->binary_max_rate      = *(float    *)&data[cur]; cur += 4;
-	this->max_calculations     = *(long long*)&data[cur]; cur += 8;
-	this->max_trails           = *(int      *)&data[cur]; cur += 4;
-	this->stick_to_body        = *(int      *)&data[cur]; cur += 4;
-	this->sphere_slices        = *(int      *)&data[cur]; cur += 4;
-	this->sphere_stacks        = *(int      *)&data[cur]; cur += 4;
-	this->field_of_view        = *(float    *)&data[cur]; cur += 4;
-	this->near_plane_distance  = *(double   *)&data[cur]; cur += 8;
-	this->far_plane_distance   = *(double   *)&data[cur]; cur += 8;
-	this->camera_positionX     = *(double   *)&data[cur]; cur += 8;
-	this->camera_positionY     = *(double   *)&data[cur]; cur += 8;
-	this->camera_positionZ     = *(double   *)&data[cur]; cur += 8;
-	this->camera_targetX       = *(double   *)&data[cur]; cur += 8;
-	this->camera_targetY       = *(double   *)&data[cur]; cur += 8;
-	this->camera_targetZ       = *(double   *)&data[cur]; cur += 8;
-	this->camera_upX           = *(float    *)&data[cur]; cur += 4;
-	this->camera_upY           = *(float    *)&data[cur]; cur += 4;
-	this->camera_upZ           = *(float    *)&data[cur]; cur += 4;
-	this->keyboard_move_speed0 = *(float    *)&data[cur]; cur += 4;
-	this->keyboard_move_speed1 = *(float    *)&data[cur]; cur += 4;
-	this->keyboard_zoom_speed0 = *(float    *)&data[cur]; cur += 4;
-	this->keyboard_zoom_speed1 = *(float    *)&data[cur]; cur += 4;
+	this->width                = *(unsigned int*)&data[cur]; cur += 4;
+	this->height               = *(unsigned int*)&data[cur]; cur += 4;
+	this->algorithm            =                  data[cur]; cur += 1;
+	this->dt                   = *(double      *)&data[cur]; cur += 8;
+	this->graphic_max_rate     = *(float       *)&data[cur]; cur += 4;
+	this->binary_max_rate      = *(float       *)&data[cur]; cur += 4;
+	this->max_calculations     = *(long long   *)&data[cur]; cur += 8;
+	this->max_trails           = *(unsigned int*)&data[cur]; cur += 4;
+	this->stick_to_body        = *(unsigned int*)&data[cur]; cur += 4;
+	this->sphere_slices        = *(unsigned int*)&data[cur]; cur += 4;
+	this->sphere_stacks        = *(unsigned int*)&data[cur]; cur += 4;
+	this->field_of_view        = *(float       *)&data[cur]; cur += 4;
+	this->near_plane_distance  = *(double      *)&data[cur]; cur += 8;
+	this->far_plane_distance   = *(double      *)&data[cur]; cur += 8;
+	this->camera_positionX     = *(double      *)&data[cur]; cur += 8;
+	this->camera_positionY     = *(double      *)&data[cur]; cur += 8;
+	this->camera_positionZ     = *(double      *)&data[cur]; cur += 8;
+	this->camera_targetX       = *(double      *)&data[cur]; cur += 8;
+	this->camera_targetY       = *(double      *)&data[cur]; cur += 8;
+	this->camera_targetZ       = *(double      *)&data[cur]; cur += 8;
+	this->camera_upX           = *(float       *)&data[cur]; cur += 4;
+	this->camera_upY           = *(float       *)&data[cur]; cur += 4;
+	this->camera_upZ           = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_move_speed0 = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_move_speed1 = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_zoom_speed0 = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_zoom_speed1 = *(float       *)&data[cur]; cur += 4;
 
 	free(data);
 
@@ -119,17 +119,17 @@ void Data::parseBodies(char* filename)
 		this->error = Errors::MissingBodyDataFile;
 		return;
 	}
-	if (this->filelength < body_data_header_size)
+	if (this->filelength < INFO_BODY_HEADER_SIZE)
 	{
 		this->error = Errors::WrongBodyDataFileSize;
 		return;
 	}
-	if (*(unsigned long long*)&data[0] != 0xBDF0BDF02222BDF0)
+	if (*(unsigned long long*)&data[0] != INFO_BODIES_START)
 	{
 		this->error = Errors::WrongBodyDataFileHeader;
 		return;
 	}
-	if (*(int*)&data[8] != data_files_version)
+	if (*(int*)&data[8] != INFO_DATA_FILES_VERSION)
 	{
 		this->error = Errors::WrongBodyDataFileVersion;
 		return;
@@ -144,7 +144,7 @@ void Data::parseBodies(char* filename)
 		this->error = Errors::TooManyBodies;
 		return;
 	}
-	if (this->filelength < (body_data_header_size + this->num_of_bodies * body_size))
+	if (this->filelength < (INFO_BODY_HEADER_SIZE + this->num_of_bodies * INFO_BODY_SIZE))
 	{
 		this->error = Errors::WrongBodyDataFileSize2;
 		return;
@@ -152,7 +152,7 @@ void Data::parseBodies(char* filename)
 
 	this->bodies = (Body3D*)malloc(num_of_bodies * sizeof(Body3D));
 	for (int i = 0; i < this->num_of_bodies; i++)
-		readBody(data, i * body_size + body_data_header_size, this->bodies, i);
+		readBody(data, i * INFO_BODY_SIZE + INFO_BODY_HEADER_SIZE, this->bodies, i);
 
 	this->validateBodies();
 
@@ -229,12 +229,7 @@ unsigned char* Data::readData(char* filename)
 }
 void Data::validateData()
 {
-	if (this->width < 0)                 this->error = Errors::NoError;
-	if (this->height < 0)                this->error = Errors::NegativeHeight;
 	if (this->dt < 0)                    this->error = Errors::NegativeDT;
-	if (this->max_trails < 0)            this->error = Errors::NegativeMaxTrails;
-	if (this->sphere_slices <= 0)        this->error = Errors::NonPositiveSlices;
-	if (this->sphere_stacks <= 0)        this->error = Errors::NonPositiveStacks;
 	if (this->field_of_view <= 0)        this->error = Errors::NonPositiveFieldOfView;
 	if (this->keyboard_move_speed0 < 0)  this->error = Errors::NegativeMoveSpeed0;
 	if (this->keyboard_move_speed1 <= 0) this->error = Errors::NonPositiveMoveSpeed1;

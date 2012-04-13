@@ -34,12 +34,7 @@ namespace Errors
 		WrongSettingsFileSize,
 		WrongBodyDataFileSize,
 		WrongBodyDataFileSize2,
-		NegativeWidth,
-		NegativeHeight,
 		NegativeDT,
-		NegativeMaxTrails,
-		NonPositiveSlices,
-		NonPositiveStacks,
 		NonPositiveFieldOfView,
 		NegativeMoveSpeed0,
 		NonPositiveMoveSpeed1,
@@ -49,6 +44,9 @@ namespace Errors
 		NegativeBodyRadius,
 		NegativeBodyTrailWidth,
 		TooManyBodies,
+
+		CannotOpenLogFile,
+
 		Other
 	};
 	void returnError(Error error, char* working_directory, char* ret);

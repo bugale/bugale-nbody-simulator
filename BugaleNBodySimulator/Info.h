@@ -16,19 +16,20 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __THREADS_INCLUDED__
-#define __THREADS_INCLUDED__
+#ifndef __INFO_INCLUDED__
+#define __INFO_INCLUDED__
 
-#include "../SharedHeader.h"
-
-void Run(char* working_directory);
-void InitializeConsole();
-void exit_signal(int sig);
-
-void GraphicThread(void* arg);
-void CalculationThread(void* arg);
-void SharedCalculationsThread(void* arg);
-void BinaryOutputThread(void* arg);
-void ExitThreads();
+	#define INFO_SETTINGS_SIZE 159 //Size of the settings file
+	#define INFO_BODY_HEADER_SIZE 24 //Size of the header in the body data file
+	#define INFO_BODY_SIZE 80 //Size in Bytes of One Body on the Disk
+	#define INFO_SETTINGS_START 0xBDF0BDF01111BDF0
+	#define INFO_BODIES_START   0xBDF0BDF02222BDF0
+	#define INFO_DATA_FILES_VERSION 2
+	#define INFO_SETTINGS_FILENAME "settings.bdf"
+	#define INFO_BODIES_FILENAME "bodies.bdf"
+	#define INFO_BINARY_FILENAME "binary.bin"
+	#define INFO_LOG_FILENAME "log.txt"
+	#define INFO_PROGRAM_NAME "Bugale N-Body Simulator"
+	#define INFO_PROGRAM_VERSION "0.2.0 (Beta 2.0)"
 
 #endif

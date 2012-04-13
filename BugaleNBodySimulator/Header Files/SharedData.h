@@ -23,7 +23,8 @@
 
 struct SharedData
 {
-	FILE* log_file;
+	bool logging_now;
+	char* log_file;
 	long long frames;
 	long long calculations;
 	long long frames_saved;
@@ -42,6 +43,8 @@ struct SharedData
 	bool calculated_energy;
 	bool calculated_momentum;
 	bool reached_max_calculations;
+
+	Errors::Error error;
 };
 
 #endif
