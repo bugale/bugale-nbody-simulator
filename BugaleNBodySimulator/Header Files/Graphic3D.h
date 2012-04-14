@@ -80,6 +80,8 @@ struct Graphic3D
 	bool stick_body_index_entered;
 
 	char* temp_string;
+	unsigned int vertices;
+	unsigned int faces;
 };
 
 void NewGraphic3D(Data* data, SharedData* shared);

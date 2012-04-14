@@ -79,7 +79,7 @@
 						 "      Right Mouse Key    : Move Your Target Around the Camera\n"\
 						 "           + or -        : Zoom In or Zoom Out\n"\
 						 "             r           : Reset Your Camera Position\n"\
-						 "             m           : Toggle Minimal Text Mode = Much More Frames Per Second\n"\
+						 "             m           : Toggle Minimal Text Mode = Much Faster Rendering\n"\
 						 "             t           : Toggle Trail Showal\n"\
 						 "             c           : Toggle Screen Clearance After Every Frame\n"\
 						 "             h           : Toggle Crosshair Showal\n"\
@@ -230,18 +230,18 @@
 #define LNG00_STRING00B0 "Graphic3DProcessTargetMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G leftX as %G and leftZ as %G."
 #define LNG00_STRING00B1 "Graphic3DProcessTargetMove: Horizontal rotate about X result is upY as %G upZ as %G forwardY as %G forwardZ as %G."
 #define LNG00_STRING00B2 "Graphic3DProcessTargetMove: Horizontal rotate back about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G."
-#define LNG00_STRING00B3 "Cannot open log file! It may be in use or read-only."
+#define LNG00_STRING00B3 "Unable to open log file! It may be in use or read-only."
 #define LNG00_STRING00B4 "\nConsider disabling the logging in the settings file.\n"
-#define LNG00_STRING00B5 ""
-#define LNG00_STRING00B6 ""
-#define LNG00_STRING00B7 ""
-#define LNG00_STRING00B8 ""
-#define LNG00_STRING00B9 ""
-#define LNG00_STRING00BA ""
-#define LNG00_STRING00BB ""
-#define LNG00_STRING00BC ""
-#define LNG00_STRING00BD ""
-#define LNG00_STRING00BE ""
+#define LNG00_STRING00B5 "The file glu32.dll is corrupted!"
+#define LNG00_STRING00B6 "The file opengl32.dll is corrupted!"
+#define LNG00_STRING00B7 "Unable to find glu32.dll!"
+#define LNG00_STRING00B8 "Unable to find opengl32.dll!"
+#define LNG00_STRING00B9 "Unidentified error opening glu32.dll! Error code: %d."
+#define LNG00_STRING00BA "Unidentified error opening opengl32.dll! Error code: %d."
+#define LNG00_STRING00BB "\nPlease note that this application is using OpenGL and it must be present on your computer.\n"
+#define LNG00_STRING00BC "Critical Error: Unable to allocate enough memory. Size is: %d."
+#define LNG00_STRING00BD "\nWarning: The ratio FarPlaneDistance/NearPlaneDistance is extremely large. If not in wireframe mode(w), you might get artifacts.\n"
+#define LNG00_STRING00BE "Vertex/Face Count: %9d,%9d"
 #define LNG00_STRING00BF ""
 #define LNG00_STRING00C0 ""
 #define LNG00_STRING00C1 ""

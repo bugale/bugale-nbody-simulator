@@ -32,8 +32,7 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->width = data->width;
 	graphic3d->height = data->height;
 	graphic3d->ratio = (float)data->width / (float)graphic3d->height;
-	graphic3d->title = (char*)malloc(4096); graphic3d->title[0] = 0;
-	StringController::getString(0x0035, graphic3d->title);
+	graphic3d->title = StringController::getStringh(0x0035);
 	graphic3d->fullscreen = data->fullscreen;
 	graphic3d->fullscreen = data->fullscreen;
 	graphic3d->clear_screen = data->clear_screen;
@@ -66,9 +65,9 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->trail_curpos = 0;
 	if (graphic3d->data->max_trails != 0)
 	{
-		graphic3d->trailX = (double*)malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
-		graphic3d->trailY = (double*)malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
-		graphic3d->trailZ = (double*)malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		graphic3d->trailX = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		graphic3d->trailY = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		graphic3d->trailZ = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
 		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailX[i] = (DBL_MAX + 1);
 		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailY[i] = (DBL_MAX + 1);
 		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailZ[i] = (DBL_MAX + 1);
@@ -99,9 +98,12 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->stick_body_index = 0;
 	graphic3d->stick_body_index_entered = false;
 
-	graphic3d->temp_string = (char*)malloc(4096);
+	graphic3d->temp_string = (char*)safe_malloc(4096);
 
 	StringController::printString(0x0036);
+
+	if (graphic3d->data->far_plane_distance / graphic3d->data->near_plane_distance > 100000000)
+		StringController::printString(0x00BD);
 
 	Graphic3DInitialize();
 
@@ -114,7 +116,7 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	if (graphic3d->trailX != 0) free(graphic3d->trailX);
 	if (graphic3d->trailY != 0) free(graphic3d->trailY);
 	if (graphic3d->trailZ != 0) free(graphic3d->trailZ);
-	if (graphic3d != 0) free(graphic3d);
+	if (graphic3d != 0) delete(graphic3d);
 
 	log_line(0x0038);
 }
@@ -157,7 +159,7 @@ void Graphic3DInitialize()
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
+	if (!graphic3d->wireframe) glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
@@ -191,8 +193,8 @@ void Graphic3DRenderHandlerDblBfr()
 	Graphic3DSetCamera();
 	Graphic3DCalculateTemp();
 
-	Graphic3DDrawTrails();
 	Graphic3DDrawBodies();
+	Graphic3DDrawTrails();
 	Graphic3DDrawBodyIndex();
 	Graphic3DDrawCrosshair(true);
 	Graphic3DDrawMinText();
@@ -347,10 +349,10 @@ void Graphic3DClearScreen()
 			glVertex3i(42*8, 14*13, 0);
 			glVertex3i(42*8, 0, 0);
 
-			glVertex3i(0, graphic3d->height - 13*5, 0);
+			glVertex3i(0, graphic3d->height - 13*6, 0);
 			glVertex3i(0, graphic3d->height, 0);
 			glVertex3i(63*8, graphic3d->height, 0);
-			glVertex3i(63*8, graphic3d->height - 13*5, 0);
+			glVertex3i(63*8, graphic3d->height - 13*6, 0);
 		}
 		if (graphic3d->min_text)
 		{
@@ -365,7 +367,7 @@ void Graphic3DClearScreen()
 }
 void Graphic3DSetCamera()
 {
-	float light_pos[4] = {(float)graphic3d->camera_positionX, (float)graphic3d->camera_positionY, (float)graphic3d->camera_positionZ, 0.0f};
+	float light_pos[4] = {(float)graphic3d->camera_positionX, (float)graphic3d->camera_positionY, (float)graphic3d->camera_positionZ, 1.0f};
 	glLoadIdentity();
 	gluLookAt(graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ,
 			  graphic3d->camera_targetX,   graphic3d->camera_targetY,   graphic3d->camera_targetZ,
@@ -472,6 +474,10 @@ void Graphic3DTogglePause()
 void Graphic3DToggleWireframe()
 {
 	graphic3d->wireframe = !graphic3d->wireframe;
+	if (graphic3d->wireframe)
+		glDisable(GL_DEPTH_TEST);
+	else
+		glEnable(GL_DEPTH_TEST);
 }
 void Graphic3DToggleStickToBody()
 {
@@ -652,6 +658,9 @@ void Graphic3DCalculateTemp()
 	graphic3d->frustum[5][1] *= t;
 	graphic3d->frustum[5][2] *= t;
 	graphic3d->frustum[5][3] *= t;
+	
+	graphic3d->vertices = 0;
+	graphic3d->faces = 0;
 }
 void Graphic3DDrawBodies()
 {
@@ -691,7 +700,6 @@ void Graphic3DDrawBodyIndex()
 void Graphic3DDrawCrosshair(bool white)
 {
 	if (!graphic3d->crosshair) return;
-
 	Graphic3DSetOrthographicProjection();
 	glColor4f(white, white, white, 1);
 	float length = graphic3d->height*0.01f;
@@ -706,7 +714,6 @@ void Graphic3DDrawCrosshair(bool white)
 void Graphic3DDrawText()
 {
 	if (graphic3d->min_text) return;
-
 	long long real_time;
 	int curY = 0;
 	if (graphic3d->shared->pause) real_time = graphic3d->shared->pause_start_time - graphic3d->shared->start_time;
@@ -734,105 +741,76 @@ void Graphic3DDrawText()
 
 	glColor4f(1, 1, 1, 1);
 
-	char* buffer = (char*)malloc(4096);
-	buffer[0] = 0; StringController::getString(0x003F, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->shared->frames_per_second);
+	StringController::getStringf(0x003F, graphic3d->temp_string, graphic3d->shared->frames_per_second);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0040, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->shared->calculations_per_second);
+	StringController::getStringf(0x0040, graphic3d->temp_string, graphic3d->shared->calculations_per_second);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0041, buffer);
-	sprintf(graphic3d->temp_string, buffer, (double)graphic3d->shared->calculations);
+	StringController::getStringf(0x0041, graphic3d->temp_string, (double)graphic3d->shared->calculations);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0042, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->data->dt);
+	StringController::getStringf(0x0042, graphic3d->temp_string, graphic3d->data->dt);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0043, buffer);
-	sprintf(graphic3d->temp_string, buffer, (double)graphic3d->data->dt*(double)graphic3d->shared->calculations);
+	StringController::getStringf(0x0043, graphic3d->temp_string, (double)graphic3d->data->dt*(double)graphic3d->shared->calculations);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0044, buffer);
-	sprintf(graphic3d->temp_string, buffer, (double)graphic3d->data->dt*(double)graphic3d->shared->calculations / (double)(31557600));
+	StringController::getStringf(0x0044, graphic3d->temp_string, (double)graphic3d->data->dt*(double)graphic3d->shared->calculations / (double)(31557600));
+	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
+	  
+	StringController::getStringf(0x0045, graphic3d->temp_string, (double)real_time / (double)1000000);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0045, buffer);
-	sprintf(graphic3d->temp_string, buffer, (double)real_time / (double)1000000);
+	StringController::getStringf(0x0046, graphic3d->temp_string, ((double)graphic3d->data->dt*(double)graphic3d->shared->calculations) / ((double)real_time / (double)1000000));
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0046, buffer);
-	sprintf(graphic3d->temp_string, buffer, ((double)graphic3d->data->dt*(double)graphic3d->shared->calculations) / ((double)real_time / (double)1000000));
+	StringController::getStringf(0x0047, graphic3d->temp_string, graphic3d->data->g);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0047, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->data->g);
+	StringController::getStringf(0x0048, graphic3d->temp_string, graphic3d->data->num_of_bodies);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0048, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->data->num_of_bodies);
-	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
-	
-	buffer[0] = 0; StringController::getString(0x0049, buffer);
-	sprintf(graphic3d->temp_string, buffer, (graphic3d->data->two_dimensional_calculation ? "2D": "3D"), graphic3d->data->algorithm_name);
+	StringController::getStringf(0x0049, graphic3d->temp_string, (graphic3d->data->two_dimensional_calculation ? "2D": "3D"), graphic3d->data->algorithm_name);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	if (graphic3d->shared->calculated_energy)
-	{
-		buffer[0] = 0; StringController::getString(0x004A, buffer);
-		sprintf(graphic3d->temp_string, buffer, graphic3d->shared->error_energy);
-	}
+		StringController::getStringf(0x004A, graphic3d->temp_string, graphic3d->shared->error_energy);
 	else
-	{
-		buffer[0] = 0; StringController::getString(0x004B, buffer);
-		sprintf(graphic3d->temp_string, buffer);
-	}
+		StringController::getStringf(0x004B, graphic3d->temp_string);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	if (graphic3d->shared->calculated_momentum)
-	{
-		buffer[0] = 0; StringController::getString(0x004C, buffer);
-		sprintf(graphic3d->temp_string, buffer, graphic3d->shared->error_momentum);
-	}
+		StringController::getStringf(0x004C, graphic3d->temp_string, graphic3d->shared->error_momentum);
 	else
-	{
-		buffer[0] = 0; StringController::getString(0x004D, buffer);
-		sprintf(graphic3d->temp_string, buffer);
-	}
+		StringController::getStringf(0x004D, graphic3d->temp_string);
 	Graphic3DRenderBitmapString(0, curY += 13, graphic3d->temp_string);
 
 	curY = graphic3d->height + 13 - 3;
 	
-	buffer[0] = 0; StringController::getString(0x004E, buffer);
-	sprintf(graphic3d->temp_string, buffer, leftX, leftY, leftZ);
+	StringController::getStringf(0x004E, graphic3d->temp_string, leftX, leftY, leftZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x004F, buffer);
-	sprintf(graphic3d->temp_string, buffer, forwardX, forwardY, forwardZ);
+	StringController::getStringf(0x004F, graphic3d->temp_string, forwardX, forwardY, forwardZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0050, buffer);
-	sprintf(graphic3d->temp_string, buffer, upX, upY, upZ);
+	StringController::getStringf(0x0050, graphic3d->temp_string, upX, upY, upZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0051, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
+	StringController::getStringf(0x0051, graphic3d->temp_string, graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0052, buffer);
-	sprintf(graphic3d->temp_string, buffer, graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
+	StringController::getStringf(0x0052, graphic3d->temp_string, graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
 	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
 
-	free(buffer);
-	
+	StringController::getStringf(0x00BE, graphic3d->temp_string, graphic3d->vertices, graphic3d->faces);
+	Graphic3DRenderBitmapString(0, curY -= 13, graphic3d->temp_string);
+		
 	Graphic3DRestorePerspectiveProjection();
 }
 void Graphic3DDrawMinText()
 {
 	if (!graphic3d->min_text) return;
-
 	Graphic3DSetOrthographicProjection();
 	sprintf(graphic3d->temp_string, "fps:%d cps:%d", (int)graphic3d->shared->frames_per_second, (int)graphic3d->shared->calculations_per_second);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -896,12 +874,18 @@ void Graphic3DDrawBody(double X, double Y, double Z, double radius, float R, flo
 		else glutWireSphere(radius, graphic3d->data->sphere_slices, graphic3d->data->sphere_stacks);
 	else
 	{
+		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
 		if (trail) glutSolidCube(radius);
 		else glutSolidSphere(radius, graphic3d->data->sphere_slices, graphic3d->data->sphere_stacks);
 		glDisable(GL_LIGHTING);
+		glDisable(GL_DEPTH_TEST);
 	}
 	glPopMatrix();
+	if (trail) graphic3d->vertices += 8;
+	else       graphic3d->vertices += (graphic3d->data->sphere_stacks*graphic3d->data->sphere_slices<<1)+2;
+	if (trail) graphic3d->faces += 6;
+	else       graphic3d->faces += graphic3d->data->sphere_slices*(graphic3d->data->sphere_stacks+1)<<2;
 }
 void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, float zoom_duration_in, float zoom_duration_out)
 {

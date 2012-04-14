@@ -25,7 +25,7 @@ void getpath(char* arg, char* file, char* out); //Get the Path of the File with 
 void copy_double_to_char_array(char* arr, int index, double d);
 void copy_long_to_char_array(char* arr, int index, long long l);
 int add_before(int* a, int b); //Calculate %a% + %b%, and Save the Answer in %a%. Return the Value of %a% Before the Addition.
-void get_algorithm_name(char algorithm, char* out);
+char* get_algorithm_name(char algorithm);
 long long get_current_time_usec();
 void usleep(long long useconds);
 void reset_shared_data();
@@ -34,5 +34,7 @@ void start_log(char* filename);
 void log_line(int stringID, ...);
 void end_log();
 void set_shared_data(SharedData* shared, Data* data);
+
+void* safe_malloc(int size);
 
 #endif

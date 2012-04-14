@@ -59,6 +59,7 @@
 	#include "Header Files/Body3D.h"
 	#include "Header Files/Data.h"
 	#include "Header Files/SharedFunctions.h"
+	#include "Header Files/ErrorHandler.h"
 	#include "Header Files/Engine.h"
 	#include "Header Files/Graphic2D.h"
 	#include "Header Files/Graphic3D.h"

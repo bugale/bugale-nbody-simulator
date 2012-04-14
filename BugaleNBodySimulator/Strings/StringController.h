@@ -24,8 +24,11 @@
 		enum Language { EnglishUS = 0 };
 
 		void setLanguage(Language lang);
-		void getString(int ID, char* buffer);
-		void printString(int ID, ...);
+		char* getStringh(int ID);
+		void  getString (int ID, char* buffer);
+		void  addString (int ID, char* buffer);
+		void  getStringf(int ID, char* buffer, ...);
+		void  printString(int ID, ...);
 	}
 
 #endif

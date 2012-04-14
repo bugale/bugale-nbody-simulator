@@ -32,8 +32,7 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->width = data->width;
 	graphic2d->height = data->height;
 	graphic2d->ratio = (float)data->width / (float)graphic2d->height;
-	graphic2d->title = (char*)malloc(4096); graphic2d->title[0] = 0;
-	StringController::getString(0x0062, graphic2d->title);
+	graphic2d->title = StringController::getStringh(0x0062);
 	graphic2d->fullscreen = data->fullscreen;
 	graphic2d->clear_screen = data->clear_screen;
 	graphic2d->show_trails = data->show_trails;
@@ -45,8 +44,8 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->trail_curpos = 0;
 	if (graphic2d->data->max_trails != 0)
 	{
-		graphic2d->trailX = (double*)malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
-		graphic2d->trailY = (double*)malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
+		graphic2d->trailX = (double*)safe_malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
+		graphic2d->trailY = (double*)safe_malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
 		for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailX[i] = (DBL_MAX + 1);
 		for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailY[i] = (DBL_MAX + 1);
 	}
@@ -55,9 +54,9 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->camera_positionY = data->camera_positionY;
 	graphic2d->camera_positionZ = data->camera_positionZ;
 
-	graphic2d->keyboard_move_starttime   = (long long*)malloc(sizeof(long long) * 0x100);
-	graphic2d->keyboard_move_started     = (bool     *)malloc(sizeof(bool     ) * 0x100);
-	graphic2d->keyboard_move_start_value = (double   *)malloc(sizeof(double   ) * 0x100);
+	graphic2d->keyboard_move_starttime   = (long long*)safe_malloc(sizeof(long long) * 0x100);
+	graphic2d->keyboard_move_started     = (bool     *)safe_malloc(sizeof(bool     ) * 0x100);
+	graphic2d->keyboard_move_start_value = (double   *)safe_malloc(sizeof(double   ) * 0x100);
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_starttime  [i] = 0;
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_started    [i] = false;
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_start_value[i] = false;
@@ -67,7 +66,7 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->stick_body_index = 0;
 	graphic2d->stick_body_index_entered = false;
 
-	graphic2d->temp_string = (char*)malloc(4096);
+	graphic2d->temp_string = (char*)safe_malloc(4096);
 
 	StringController::printString(0x0063);
 
@@ -84,7 +83,7 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	if (graphic2d->keyboard_move_starttime != 0) free(graphic2d->keyboard_move_starttime);
 	if (graphic2d->keyboard_move_started != 0) free(graphic2d->keyboard_move_started);
 	if (graphic2d->keyboard_move_start_value != 0) free(graphic2d->keyboard_move_start_value);
-	if (graphic2d != 0) free(graphic2d);
+	if (graphic2d != 0) delete(graphic2d);
 
 	log_line(0x0065);
 }
@@ -261,10 +260,10 @@ void Graphic2DClearScreen()
 			glVertex3i(42 * 8, 14 * 13, 0);
 			glVertex3i(42 * 8, 0, 0);
 
-			glVertex3i(0, graphic2d->height - 13 * 5, 0);
+			glVertex3i(0, graphic2d->height - 13 * 6, 0);
 			glVertex3i(0, graphic2d->height, 0);
-			glVertex3i(63 * 8, graphic2d->height, 0);
-			glVertex3i(63 * 8, graphic2d->height - 13 * 5, 0);
+			glVertex3i(38 * 8, graphic2d->height, 0);
+			glVertex3i(38 * 8, graphic2d->height - 13 * 6, 0);
 		}
 		if (graphic2d->min_text)
 		{
@@ -437,6 +436,8 @@ void Graphic2DCalculateTemp()
 	graphic2d->posX_minus_width_meters_div_2  = graphic2d->camera_positionX - graphic2d->width_meters_div_2;
 	graphic2d->posY_plus_height_meters_div_2  = graphic2d->camera_positionY + graphic2d->height_meters_div_2;
 	graphic2d->posY_minus_height_meters_div_2 = graphic2d->camera_positionY - graphic2d->height_meters_div_2;
+	graphic2d->vertices = 0;
+	graphic2d->faces = 0;
 }
 void Graphic2DDrawBodies()
 {
@@ -499,95 +500,68 @@ void Graphic2DDrawText()
 
 	glColor4f(1, 1, 1, 1);
 
-	char* buffer = (char*)malloc(4096);
-	buffer[0] = 0; StringController::getString(0x003F, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->shared->frames_per_second);
+	StringController::getStringf(0x003F, graphic2d->temp_string, graphic2d->shared->frames_per_second);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0040, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->shared->calculations_per_second);
+	StringController::getStringf(0x0040, graphic2d->temp_string, graphic2d->shared->calculations_per_second);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0041, buffer);
-	sprintf(graphic2d->temp_string, buffer, (double)graphic2d->shared->calculations);
+	StringController::getStringf(0x0041, graphic2d->temp_string, (double)graphic2d->shared->calculations);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0042, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->data->dt);
+	StringController::getStringf(0x0042, graphic2d->temp_string, graphic2d->data->dt);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0043, buffer);
-	sprintf(graphic2d->temp_string, buffer, (double)graphic2d->data->dt*(double)graphic2d->shared->calculations);
+	StringController::getStringf(0x0043, graphic2d->temp_string, (double)graphic2d->data->dt*(double)graphic2d->shared->calculations);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0044, buffer);
-	sprintf(graphic2d->temp_string, buffer, (double)graphic2d->data->dt*(double)graphic2d->shared->calculations / (double)(31557600));
+	StringController::getStringf(0x0044, graphic2d->temp_string, (double)graphic2d->data->dt*(double)graphic2d->shared->calculations / (double)(31557600));
+	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
+	  
+	StringController::getStringf(0x0045, graphic2d->temp_string, (double)real_time / (double)1000000);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0045, buffer);
-	sprintf(graphic2d->temp_string, buffer, (double)real_time / (double)1000000);
+	StringController::getStringf(0x0046, graphic2d->temp_string, ((double)graphic2d->data->dt*(double)graphic2d->shared->calculations) / ((double)real_time / (double)1000000));
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0046, buffer);
-	sprintf(graphic2d->temp_string, buffer, ((double)graphic2d->data->dt*(double)graphic2d->shared->calculations) / ((double)real_time / (double)1000000));
+	StringController::getStringf(0x0047, graphic2d->temp_string, graphic2d->data->g);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0047, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->data->g);
+	StringController::getStringf(0x0048, graphic2d->temp_string, graphic2d->data->num_of_bodies);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x0048, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->data->num_of_bodies);
-	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
-	
-	buffer[0] = 0; StringController::getString(0x0049, buffer);
-	sprintf(graphic2d->temp_string, buffer, (graphic2d->data->two_dimensional_calculation ? "2D": "3D"), graphic2d->data->algorithm_name);
+	StringController::getStringf(0x0049, graphic2d->temp_string, (graphic2d->data->two_dimensional_calculation ? "2D": "3D"), graphic2d->data->algorithm_name);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	if (graphic2d->shared->calculated_energy)
-	{
-		buffer[0] = 0; StringController::getString(0x004A, buffer);
-		sprintf(graphic2d->temp_string, buffer, graphic2d->shared->error_energy);
-	}
+		StringController::getStringf(0x004A, graphic2d->temp_string, graphic2d->shared->error_energy);
 	else
-	{
-		buffer[0] = 0; StringController::getString(0x004B, buffer);
-		sprintf(graphic2d->temp_string, buffer);
-	}
+		StringController::getStringf(0x004B, graphic2d->temp_string);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	if (graphic2d->shared->calculated_momentum)
-	{
-		buffer[0] = 0; StringController::getString(0x004C, buffer);
-		sprintf(graphic2d->temp_string, buffer, graphic2d->shared->error_momentum);
-	}
+		StringController::getStringf(0x004C, graphic2d->temp_string, graphic2d->shared->error_momentum);
 	else
-	{
-		buffer[0] = 0; StringController::getString(0x004D, buffer);
-		sprintf(graphic2d->temp_string, buffer);
-	}
+		StringController::getStringf(0x004D, graphic2d->temp_string);
 	Graphic2DRenderBitmapString(0, curY += 13, graphic2d->temp_string);
 
 	curY = graphic2d->height + 13 - 3;
 	
-	buffer[0] = 0; StringController::getString(0x006C, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->camera_positionZ);
+	StringController::getStringf(0x006C, graphic2d->temp_string, graphic2d->camera_positionZ);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x006D, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->camera_positionY);
+	StringController::getStringf(0x006D, graphic2d->temp_string, graphic2d->camera_positionY);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x006E, buffer);
-	sprintf(graphic2d->temp_string, buffer, graphic2d->camera_positionX);
+	StringController::getStringf(0x006E, graphic2d->temp_string, graphic2d->camera_positionX);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 	
-	buffer[0] = 0; StringController::getString(0x006F, buffer);
-	sprintf(graphic2d->temp_string, buffer, 4 * graphic2d->height_meters);
+	StringController::getStringf(0x006F, graphic2d->temp_string, 4 * graphic2d->height_meters);
 	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
 
-	free(buffer);
-	
+	StringController::getStringf(0x00BE, graphic2d->temp_string, graphic2d->vertices, graphic2d->faces);
+	Graphic2DRenderBitmapString(0, curY -= 13, graphic2d->temp_string);
+
 	Graphic2DRestorePerspectiveProjection();
 }
 void Graphic2DDrawMinText()
@@ -658,6 +632,8 @@ void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, floa
 			glVertex3d( radius, -radius, 0);
 			glVertex3d( radius,  radius, 0);
 		glEnd();
+		graphic2d->vertices += 4;
+		graphic2d->faces++;
 	}
 	else
 	{
@@ -673,6 +649,8 @@ void Graphic2DDrawBody(double X, double Y, double radius, float R, float G, floa
 		}
 		glVertex2d(radius, 0);
 		glEnd();
+		graphic2d->vertices += 1+(graphic2d->data->sphere_slices<<1);
+		graphic2d->faces += graphic2d->data->sphere_slices;
 	}
 	glPopMatrix();
 }

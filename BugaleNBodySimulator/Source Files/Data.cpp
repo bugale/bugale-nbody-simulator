@@ -27,7 +27,6 @@ Data::Data(char* settings_filename, char* bodies_filename)
 Data::~Data()
 {
 	if (this->bodies != 0) free(this->bodies);
-	if (this->algorithm_name != 0) free(this->algorithm_name);
 }
 
 void Data::parseSettings(char* filename)
@@ -104,8 +103,7 @@ void Data::parseSettings(char* filename)
 
 	free(data);
 
-	this->algorithm_name = (char*)malloc(256);
-	get_algorithm_name(this->algorithm, this->algorithm_name);
+	this->algorithm_name = get_algorithm_name(this->algorithm);
 
 	this->validateData();
 }
@@ -150,7 +148,7 @@ void Data::parseBodies(char* filename)
 		return;
 	}
 
-	this->bodies = (Body3D*)malloc(num_of_bodies * sizeof(Body3D));
+	this->bodies = (Body3D*)safe_malloc(num_of_bodies * sizeof(Body3D));
 	for (int i = 0; i < this->num_of_bodies; i++)
 		readBody(data, i * INFO_BODY_SIZE + INFO_BODY_HEADER_SIZE, this->bodies, i);
 
@@ -219,7 +217,7 @@ unsigned char* Data::readData(char* filename)
 	{
 		fseek(data_file, 0, SEEK_END); //Seek to the End of the File
 		this->filelength = ftell(data_file); //Get Current Position = End of the File = File Length
-		unsigned char* data = (unsigned char*)malloc(this->filelength);
+		unsigned char* data = (unsigned char*)safe_malloc(this->filelength);
 		rewind(data_file); //Go Back to the Start of the File
 		fread(data, 1, this->filelength, data_file); //Read the File
 		fclose(data_file);

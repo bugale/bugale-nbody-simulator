@@ -30,6 +30,6 @@
 	#define INFO_BINARY_FILENAME "binary.bin"
 	#define INFO_LOG_FILENAME "log.txt"
 	#define INFO_PROGRAM_NAME "Bugale N-Body Simulator"
-	#define INFO_PROGRAM_VERSION "0.2.0 (Beta 2.0)"
+	#define INFO_PROGRAM_VERSION "0.2.1 (Beta 2.1)"
 
 #endif

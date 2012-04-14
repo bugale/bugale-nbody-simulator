@@ -57,13 +57,13 @@ void Engine::Precalculations()
 	this->dt_pow_3_div_6 = this->dt * this->dt * this->dt / 6;
 	this->dt_squared_div_2 = this->dt * this->dt / 2;
 	this->dt_squared_div_12 = this->dt * this->dt / 12;
-	this->dt_div_mass = (double*)malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_div_2mass = (double*)malloc(sizeof(double) * this->num_of_bodies);
-	this->mass_mul_g = (double*)malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_squared_div_2mass = (double*)malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_squared_div_12mass = (double*)malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_pow_3_div_6mass = (double*)malloc(sizeof(double) * this->num_of_bodies);
-	this->mass1_mul_mass2_mul_g = (double**)malloc(sizeof(double*) * this->num_of_bodies);
+	this->dt_div_mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
+	this->dt_div_2mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
+	this->mass_mul_g = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
+	this->dt_squared_div_2mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
+	this->dt_squared_div_12mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
+	this->dt_pow_3_div_6mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
+	this->mass1_mul_mass2_mul_g = (double**)safe_malloc(sizeof(double*) * this->num_of_bodies);
 	for (int i = 0; i < this->num_of_bodies; i++)
 	{
 		this->dt_div_mass[i] = this->dt / this->bodies[i]._mass;
@@ -72,7 +72,7 @@ void Engine::Precalculations()
 		this->dt_squared_div_2mass[i] = this->dt * this->dt / (2 * this->bodies[i]._mass);
 		this->dt_squared_div_12mass[i] = this->dt * this->dt / (12 * this->bodies[i]._mass);
 		this->dt_pow_3_div_6mass[i] = this->dt * this->dt * this->dt / (6 * this->bodies[i]._mass);
-		this->mass1_mul_mass2_mul_g[i] = (double*)malloc(sizeof(double) * this->num_of_bodies);
+		this->mass1_mul_mass2_mul_g[i] = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
 		for (int j = 0; j < this->num_of_bodies; j++) this->mass1_mul_mass2_mul_g[i][j] = this->g * this->bodies[i]._mass * this->bodies[j]._mass;
 	}
 	log_line(0x0089, this->dt_div_2, this->dt_div_12, this->dt_squared_mul_g_div_12, this->dt_pow_3_div_6);

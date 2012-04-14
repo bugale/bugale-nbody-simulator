@@ -68,6 +68,8 @@ struct Graphic2D
 	bool stick_body_index_entered;
 
 	char* temp_string;
+	unsigned int vertices;
+	unsigned int faces;
 };
 
 void NewGraphic2D(Data* data, SharedData* shared);

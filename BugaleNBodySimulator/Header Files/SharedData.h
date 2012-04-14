@@ -45,6 +45,8 @@ struct SharedData
 	bool reached_max_calculations;
 
 	Errors::Error error;
+	int error_data_int;
+	char* error_data_charptr;
 };
 
 #endif

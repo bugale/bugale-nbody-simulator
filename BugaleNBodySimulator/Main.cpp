@@ -20,7 +20,7 @@
 #include <tinythread.cpp>
 
 int main(int argc, char* argv[])
-{	
+{
 	char* buffer;
 	buffer = getcwd(NULL, 0);
 	StringController::setLanguage(StringController::EnglishUS);

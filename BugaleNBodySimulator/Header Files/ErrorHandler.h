@@ -16,46 +16,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef __ERRORS_INCLUDED__
-#define __ERRORS_INCLUDED__
+#ifndef __ERRORHANDLER_INCLUDED__
+#define __ERRORHANDLER_INCLUDED__
 #include "../SharedHeader.h"
 
 namespace Errors
 {
-	enum Error
-	{
-		NoError,
-		MissingSettingsFile,
-		MissingBodyDataFile,
-		WrongSettingsFileHeader,
-		WrongBodyDataFileHeader,
-		WrongSettingsFileVersion,
-		WrongBodyDataFileVersion,
-		WrongSettingsFileSize,
-		WrongBodyDataFileSize,
-		WrongBodyDataFileSize2,
-		NegativeDT,
-		NonPositiveFieldOfView,
-		NegativeMoveSpeed0,
-		NonPositiveMoveSpeed1,
-		NegativeZoomSpeed0,
-		NonPositiveZoomSpeed1,
-		NegativeBodyMass,
-		NegativeBodyRadius,
-		NegativeBodyTrailWidth,
-		TooManyBodies,
-
-		CannotOpenLogFile,
-		
-		CorruptedGlu32,
-		CorruptedOpengl32,
-		MissingGlu32,
-		MissingOpengl32,
-		OtherGlu32,
-		OtherOpengl32,
-
-		Other
-	};
+	void returnError(SharedData* shared);
 }
 
 #endif
