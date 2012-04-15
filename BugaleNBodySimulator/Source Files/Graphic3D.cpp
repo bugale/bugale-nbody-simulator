@@ -65,9 +65,9 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->trail_curpos = 0;
 	if (graphic3d->data->max_trails != 0)
 	{
-		graphic3d->trailX = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
-		graphic3d->trailY = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
-		graphic3d->trailZ = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails);
+		graphic3d->trailX = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails, 0x00D2);
+		graphic3d->trailY = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails, 0x00D3);
+		graphic3d->trailZ = (double*)safe_malloc(sizeof(double)*graphic3d->data->num_of_bodies*graphic3d->data->max_trails, 0x00D4);
 		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailX[i] = (DBL_MAX + 1);
 		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailY[i] = (DBL_MAX + 1);
 		for (int i = 0; i < graphic3d->data->num_of_bodies*graphic3d->data->max_trails; i++) graphic3d->trailZ[i] = (DBL_MAX + 1);
@@ -92,13 +92,14 @@ void NewGraphic3D(Data* data, SharedData* shared)
 	graphic3d->mouse_start_value_forwardZ = 0;
 	graphic3d->mouse_pressed = false;
 	graphic3d->mouse_left = false;
+	graphic3d->mouse_up_rotate_angle = 0;
 
 	graphic3d->body_index = 0;
 	graphic3d->body_index_entered = false;
 	graphic3d->stick_body_index = 0;
 	graphic3d->stick_body_index_entered = false;
 
-	graphic3d->temp_string = (char*)safe_malloc(4096);
+	graphic3d->temp_string = (char*)safe_malloc(4096, 0x00D5);
 
 	StringController::printString(0x0036);
 
@@ -188,7 +189,7 @@ void Graphic3DRenderHandlerDblBfr()
 		glutPostRedisplay();
 		return;
 	}
-	Graphic3DProcessCameraMove();
+	Graphic3DCameraMove();
 	Graphic3DClearScreen();
 	Graphic3DSetCamera();
 	Graphic3DCalculateTemp();
@@ -210,13 +211,13 @@ void Graphic3DRenderHandlerSglBfr()
 		glutPostRedisplay();
 		return;
 	}
-	Graphic3DProcessCameraMove();
+	Graphic3DCameraMove();
 	Graphic3DClearScreen();
 	Graphic3DSetCamera();
 	Graphic3DCalculateTemp();
 
-	Graphic3DDrawTrails();
 	Graphic3DDrawBodies();
+	Graphic3DDrawTrails();
 	Graphic3DDrawBodyIndex();
 	Graphic3DDrawCrosshair(true);
 	Graphic3DDrawMinText();
@@ -282,9 +283,10 @@ void Graphic3DMouseHandler(int button, int state, int x, int y)
 		if (!graphic3d->mouse_left && button == GLUT_RIGHT_BUTTON) graphic3d->keyboard_zoom_duration_in = graphic3d->keyboard_zoom_duration_out = 0;
 		graphic3d->mouse_pressed = false;
 	}
-	else if (button == GLUT_LEFT_BUTTON && !graphic3d->mouse_pressed)
+	else if (graphic3d->mouse_pressed || graphic3d->keyboard_zoom_started_in || graphic3d->keyboard_zoom_started_out);
+	else if (button == GLUT_LEFT_BUTTON || button == GLUT_RIGHT_BUTTON)
 	{
-		graphic3d->mouse_left = true;
+		graphic3d->mouse_left = (button == GLUT_LEFT_BUTTON);
 		graphic3d->mouse_startX = x;
 		graphic3d->mouse_startY = y;
 		graphic3d->mouse_curX = x;
@@ -297,20 +299,9 @@ void Graphic3DMouseHandler(int button, int state, int x, int y)
 		graphic3d->mouse_start_value_upZ      = graphic3d->camera_upZ;
 		graphic3d->mouse_pressed = true;
 	}
-	else if (button == GLUT_RIGHT_BUTTON && !graphic3d->mouse_pressed)
+	else if (button == 0x0003 || button == 0x0004) //Wheel
 	{
-		graphic3d->mouse_left = false;
-		graphic3d->mouse_startX = x;
-		graphic3d->mouse_startY = y;
-		graphic3d->mouse_curX = x;
-		graphic3d->mouse_curY = y;
-		graphic3d->mouse_start_value_forwardX = graphic3d->camera_targetX - graphic3d->camera_positionX;
-		graphic3d->mouse_start_value_forwardY = graphic3d->camera_targetY - graphic3d->camera_positionY;
-		graphic3d->mouse_start_value_forwardZ = graphic3d->camera_targetZ - graphic3d->camera_positionZ;
-		graphic3d->mouse_start_value_upX      = graphic3d->camera_upX;
-		graphic3d->mouse_start_value_upY      = graphic3d->camera_upY;
-		graphic3d->mouse_start_value_upZ      = graphic3d->camera_upZ;
-		graphic3d->mouse_pressed = true;
+		graphic3d->mouse_up_rotate_angle += (float)((button == 0x0003 ? -1 : 1) * M_PI_4 * 0.25);
 	}
 }
 void Graphic3DMotionHandler(int x, int y)
@@ -380,7 +371,8 @@ void Graphic3DFinalizeFrame()
 	if (graphic3d->data->graphic_max_rate > 0) usleep((long long)(1000000 / graphic3d->data->graphic_max_rate));
 	if (graphic3d->clear_screen) glutSwapBuffers();
 	glFlush();
-	glutPostRedisplay();
+	if (graphic3d->shared->exit) Graphic3DExit();
+	else glutPostRedisplay();
 }
 
 void Graphic3DExit()
@@ -513,7 +505,7 @@ void Graphic3DAddDigitToBodyIndex(int digit)
 	graphic3d->body_index_entered = true;
 }
 
-void Graphic3DProcessCameraMove()
+void Graphic3DCameraMove()
 {
 	if (!graphic3d->keyboard_zoom_started_in) graphic3d->keyboard_zoom_starttime_in = get_current_time_usec();
 	if (!graphic3d->keyboard_zoom_started_out) graphic3d->keyboard_zoom_starttime_out = get_current_time_usec();
@@ -536,6 +528,9 @@ void Graphic3DProcessCameraMove()
 								   zoom_duration_in, zoom_duration_out);
 	if (!graphic3d->mouse_pressed && (graphic3d->keyboard_zoom_started_in || graphic3d->keyboard_zoom_started_out))
 		Graphic3DProcessCameraMove(0, 0, zoom_duration_in, zoom_duration_out);
+	if (graphic3d->mouse_up_rotate_angle != 0)
+		Graphic3DProcessUpMove(graphic3d->mouse_up_rotate_angle);
+	graphic3d->mouse_up_rotate_angle = 0;
 	Graphic3DFixIndefinedValues();
 }
 void Graphic3DCalculateTemp()
@@ -664,6 +659,8 @@ void Graphic3DCalculateTemp()
 }
 void Graphic3DDrawBodies()
 {
+	glEnable(GL_DEPTH_TEST);
+	if (!graphic3d->wireframe) glEnable(GL_LIGHTING);
 	for (int i = 0; i < graphic3d->data->num_of_bodies; i++)
 	{
 		double x = graphic3d->data->bodies[i]._positionX;
@@ -677,6 +674,8 @@ void Graphic3DDrawBodies()
 		float A = (float)graphic3d->data->bodies[i]._colorA*0.003921568f;
 		Graphic3DDrawBody(x, y, z, r, R, G, B, A, false);
 	}
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
 }
 void Graphic3DDrawBodyIndex()
 {
@@ -821,6 +820,8 @@ void Graphic3DDrawTrails()
 {
 	if (graphic3d->data->max_trails == 0) return;
 	if (!graphic3d->show_trails) return;
+	glEnable(GL_DEPTH_TEST);
+	if (!graphic3d->wireframe) glEnable(GL_LIGHTING);
 	for (int trail = graphic3d->trail_curpos; trail < graphic3d->data->max_trails; trail++)
 		for (int body = 0; body < graphic3d->data->num_of_bodies; body++)
 		{
@@ -849,6 +850,8 @@ void Graphic3DDrawTrails()
 			float A = (float)graphic3d->data->bodies[body]._trailcolorA*0.003921568f;
 			Graphic3DDrawBody(x, y, z, r, R, G, B, A, true);
 		}
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
 }
 void Graphic3DSaveTrails()
 {
@@ -865,22 +868,15 @@ void Graphic3DSaveTrails()
 }
 void Graphic3DDrawBody(double X, double Y, double Z, double radius, float R, float G, float B, float A, bool trail)
 {
-	float color[4] = {R, G, B, A};
 	glPushMatrix();
-	glColor4fv(color);
+	glColor4f(R, G, B, A);
 	glTranslated(X, Y, Z);
 	if (graphic3d->wireframe)
 		if (trail) glutWireCube(radius);
 		else glutWireSphere(radius, graphic3d->data->sphere_slices, graphic3d->data->sphere_stacks);
 	else
-	{
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_LIGHTING);
 		if (trail) glutSolidCube(radius);
 		else glutSolidSphere(radius, graphic3d->data->sphere_slices, graphic3d->data->sphere_stacks);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-	}
 	glPopMatrix();
 	if (trail) graphic3d->vertices += 8;
 	else       graphic3d->vertices += (graphic3d->data->sphere_stacks*graphic3d->data->sphere_slices<<1)+2;
@@ -915,44 +911,50 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XY
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the z axis so that the up vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY);
 		forwardAngle  = getAngle((float)forwardX, (float)forwardY);
 		angleRotateZ  = -upAngle;
-		upAngle += angleRotateZ; forwardAngle += angleRotateZ;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle);
-		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
+		forwardAngle += angleRotateZ;
+		upX = 1; forwardX      = cos(forwardAngle);
+		upY = 0; forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line(0x00A3, upX, upY, forwardX, forwardY);
+		log_line(0x00A3, forwardX, forwardY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the y axis so that the right vector lies along the x axis
 		upAngle       = getAngle((float)upX,      (float)upZ     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardZ);
 		angleRotateY  = -upAngle;
-		upAngle += angleRotateY; forwardAngle += angleRotateY;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle);
-		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
+		forwardAngle += angleRotateY;
+		upX = 1; forwardX      = cos(forwardAngle);
+		upZ = 0; forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line(0x00A4, upX, upZ, forwardX, forwardZ);
+		log_line(0x00A4, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
 		upL       = sqrt(upY     *upY      + upZ     *upZ     );
 		forwardL  = sqrt(forwardY*forwardY + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the x axis to get desired rotation
 		upAngle       = getAngle((float)upY,      (float)upZ     );
@@ -969,14 +971,15 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the y axis back to original
 		upAngle       = getAngle((float)upX,      (float)upZ     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardZ);
-		angleRotateY  = -angleRotateY;
-		upAngle += angleRotateY; forwardAngle += angleRotateY;
+		upAngle -= angleRotateY; forwardAngle -= angleRotateY;
 		upX      = cos(upAngle); forwardX      = cos(forwardAngle);
 		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
@@ -987,14 +990,15 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XY
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the z axis so that the right vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardY);
-		angleRotateZ  = -angleRotateZ;
-		upAngle += angleRotateZ; forwardAngle += angleRotateZ;
+		upAngle -= angleRotateZ; forwardAngle -= angleRotateZ;
 		upX      = cos(upAngle); forwardX      = cos(forwardAngle);
 		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
@@ -1008,51 +1012,59 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
 		leftL     = sqrt(leftX   *leftX    + leftY   *leftY   );
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
-		if (leftL    != 0) { leftX    /= leftL;    leftY    /= leftL;    leftZ    /= leftL;    }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (leftL    != 0) leftL    = 1/leftL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
+		if (leftL    != 0) { leftX    *= leftL;    leftY    *= leftL;    leftZ    *= leftL;    }
 
 		//Rotate space about the z axis so that the left vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardY);
 		leftAngle     = getAngle((float)leftX,    (float)leftY   );
 		angleRotateZ  = -leftAngle;
-		upAngle += angleRotateZ; forwardAngle += angleRotateZ; leftAngle += angleRotateZ;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = cos(leftAngle);
-		upY      = sin(upAngle); forwardY      = sin(forwardAngle); leftY = sin(leftAngle);
+		upAngle += angleRotateZ; forwardAngle += angleRotateZ;
+		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = 1;
+		upY      = sin(upAngle); forwardY      = sin(forwardAngle); leftY = 0;
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
 		if (leftL    == 0) leftX    = leftY    = 0;
-		log_line(0x00A7, upX, upY, forwardX, forwardY, leftX, leftY);
+		log_line(0x00A7, upX, upY, forwardX, forwardY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
 		leftL     = sqrt(leftX   *leftX    + leftZ   *leftZ   );
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
-		if (leftL    != 0) { leftX    /= leftL;    leftY    /= leftL;    leftZ    /= leftL;    }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (leftL    != 0) leftL    = 1/leftL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
+		if (leftL    != 0) { leftX    *= leftL;    leftY    *= leftL;    leftZ    *= leftL;    }
 
 		//Rotate space about the y axis so that the left vector lies along the x axis
 		upAngle       = getAngle((float)upX,      (float)upZ     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardZ);
 		leftAngle     = getAngle((float)leftX,    (float)leftZ   );
 		angleRotateY  = -leftAngle;
-		upAngle += angleRotateY; forwardAngle += angleRotateY; leftAngle += angleRotateY;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = cos(leftAngle);
-		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle); leftZ = sin(leftAngle);
+		upAngle += angleRotateY; forwardAngle += angleRotateY;
+		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = 1;
+		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle); leftZ = 0;
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
 		if (leftL    == 0) leftX    = leftZ    = 0;
-		log_line(0x00A8, upX, upZ, forwardX, forwardZ, leftX, leftZ);
+		log_line(0x00A8, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
-		upL       = sqrt(upY     *upY      + upZ     *upZ     );
-		forwardL  = sqrt(forwardY*forwardY + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		upL       = sqrt(upZ     *upZ      + upY     *upY     );
+		forwardL  = sqrt(forwardZ*forwardZ + forwardY*forwardY);
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the x axis to get desired rotation
 		upAngle       = getAngle((float)upY,      (float)upZ     );
@@ -1069,8 +1081,10 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the y axis back to original
 		upAngle       = getAngle((float)upX,      (float)upZ     );
@@ -1087,8 +1101,10 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XY
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the z axis so that the left vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
@@ -1102,7 +1118,6 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 		log_line(0x0057, upX, upY, forwardX, forwardY);
 	#pragma endregion
 
-	//Zoom
 	float zoom_acceleration = graphic3d->data->keyboard_zoom_speed1 - graphic3d->data->keyboard_zoom_speed0;
 	float zoom_distance_ratio = pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_in, zoom_duration_in) / pow(graphic3d->data->keyboard_zoom_speed0 + zoom_acceleration*zoom_duration_out, zoom_duration_out);
 	forward_start_length /= zoom_distance_ratio;
@@ -1110,10 +1125,12 @@ void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, floa
 	log_line(0x0058, zoom_acceleration, zoom_distance_ratio, forward_start_length);
 
 	//Normalize vecotrs
-	upL       = sqrt(upX     *upX      + upY     *upY      + upZ     *upZ     );
+	upL       = sqrt(upX     *upX      + upY     *upY      + upZ     *upZ);
 	forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
-	if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-	if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+	if (upL      != 0) upL      = 1/upL;
+	if (forwardL != 0) forwardL = 1/forwardL;
+	if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+	if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 	forwardX *= forward_start_length; forwardY *= forward_start_length; forwardZ *= forward_start_length;
 
 	//Save the vectors
@@ -1151,44 +1168,50 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XY
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the z axis so that the up vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardY);
 		angleRotateZ  = -upAngle;
-		upAngle += angleRotateZ; forwardAngle += angleRotateZ;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle);
-		upY      = sin(upAngle); forwardY      = sin(forwardAngle);
+		forwardAngle += angleRotateZ;
+		upX = 1; forwardX      = cos(forwardAngle);
+		upY = 0; forwardY      = sin(forwardAngle);
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
-		log_line(0x00AB, upX, upY, forwardX, forwardY);
+		log_line(0x00AB, forwardX, forwardY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the y axis so that the right vector lies along the x axis
 		upAngle       = getAngle((float)upX,      (float)upZ     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardZ);
 		angleRotateY  = -upAngle;
-		upAngle += angleRotateY; forwardAngle += angleRotateY;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle);
-		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle);
+		forwardAngle += angleRotateY;
+		upX = 1; forwardX      = cos(forwardAngle);
+		upZ = 0; forwardZ      = sin(forwardAngle);
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
-		log_line(0x00AC, upX, upZ, forwardX, forwardZ);
+		log_line(0x00AC, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
-		upL       = sqrt(upY     *upY      + upZ     *upZ     );
-		forwardL  = sqrt(forwardY*forwardY + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		upL       = sqrt(upZ     *upZ      + upY     *upY     );
+		forwardL  = sqrt(forwardZ*forwardZ + forwardY*forwardY);
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the x axis to get desired rotation
 		upAngle       = getAngle((float)upY,      (float)upZ     );
@@ -1205,8 +1228,10 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the y axis back to original
 		upAngle       = getAngle((float)upX,      (float)upZ     );
@@ -1223,8 +1248,10 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XY
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the z axis so that the right vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
@@ -1244,51 +1271,59 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
 		leftL     = sqrt(leftX   *leftX    + leftY   *leftY   );
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
-		if (leftL    != 0) { leftX    /= leftL;    leftY    /= leftL;    leftZ    /= leftL;    }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (leftL    != 0) leftL    = 1/leftL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
+		if (leftL    != 0) { leftX    *= leftL;    leftY    *= leftL;    leftZ    *= leftL;    }
 
 		//Rotate space about the z axis so that the left vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardY);
 		leftAngle     = getAngle((float)leftX,    (float)leftY   );
 		angleRotateZ  = -leftAngle;
-		upAngle += angleRotateZ; forwardAngle += angleRotateZ; leftAngle += angleRotateZ;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = cos(leftAngle);
-		upY      = sin(upAngle); forwardY      = sin(forwardAngle); leftY = sin(leftAngle);
+		upAngle += angleRotateZ; forwardAngle += angleRotateZ;
+		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = 1;
+		upY      = sin(upAngle); forwardY      = sin(forwardAngle); leftY = 0;
 		if (upL      == 0) upX      = upY      = 0;
 		if (forwardL == 0) forwardX = forwardY = 0;
 		if (leftL    == 0) leftX    = leftY    = 0;
-		log_line(0x00AF, upX, upY, forwardX, forwardY, leftX, leftY);
+		log_line(0x00AF, upX, upY, forwardX, forwardY);
 	#pragma endregion
 	#pragma region Rotate about Y
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
 		leftL     = sqrt(leftX   *leftX    + leftZ   *leftZ   );
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
-		if (leftL    != 0) { leftX    /= leftL;    leftY    /= leftL;    leftZ    /= leftL;    }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (leftL    != 0) leftL    = 1/leftL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
+		if (leftL    != 0) { leftX    *= leftL;    leftY    *= leftL;    leftZ    *= leftL;    }
 
 		//Rotate space about the y axis so that the left vector lies along the x axis
 		upAngle       = getAngle((float)upX,      (float)upZ     );
 		forwardAngle  = getAngle((float)forwardX, (float)forwardZ);
 		leftAngle     = getAngle((float)leftX,    (float)leftZ   );
 		angleRotateY  = -leftAngle;
-		upAngle += angleRotateY; forwardAngle += angleRotateY; leftAngle += angleRotateY;
-		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = cos(leftAngle);
-		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle); leftZ = sin(leftAngle);
+		upAngle += angleRotateY; forwardAngle += angleRotateY;
+		upX      = cos(upAngle); forwardX      = cos(forwardAngle); leftX = 1;
+		upZ      = sin(upAngle); forwardZ      = sin(forwardAngle); leftZ = 0;
 		if (upL      == 0) upX      = upZ      = 0;
 		if (forwardL == 0) forwardX = forwardZ = 0;
 		if (leftL    == 0) leftX    = leftZ    = 0;
-		log_line(0x00B0, upX, upZ, forwardX, forwardZ, leftX, leftZ);
+		log_line(0x00B0, upX, upZ, forwardX, forwardZ);
 	#pragma endregion
 	#pragma region Make the actual rotation(about X)
 		//Normalize vecotrs for YZ
-		upL       = sqrt(upY     *upY      + upZ     *upZ     );
-		forwardL  = sqrt(forwardY*forwardY + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		upL       = sqrt(upZ     *upZ      + upY     *upY     );
+		forwardL  = sqrt(forwardZ*forwardZ + forwardY*forwardY);
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the x axis to get desired rotation
 		upAngle       = getAngle((float)upY,      (float)upZ     );
@@ -1305,8 +1340,10 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XZ
 		upL       = sqrt(upX     *upX      + upZ     *upZ     );
 		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the y axis back to original
 		upAngle       = getAngle((float)upX,      (float)upZ     );
@@ -1323,8 +1360,10 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 		//Normalize vecotrs for XY
 		upL       = sqrt(upX     *upX      + upY     *upY     );
 		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
-		if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-		if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 
 		//Rotate space about the z axis so that the left vector lies in the xz plane
 		upAngle       = getAngle((float)upX,      (float)upY     );
@@ -1345,10 +1384,12 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 	log_line(0x005F, zoom_acceleration, zoom_distance_ratio, forward_start_length);
 
 	//Normalize vecotrs
-	upL       = sqrt(upX     *upX      + upY     *upY      + upZ     *upZ     );
+	upL       = sqrt(upX     *upX      + upY     *upY      + upZ     *upZ);
 	forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY + forwardZ*forwardZ);
-	if (upL      != 0) { upX      /= upL;      upY      /= upL;      upZ      /= upL;      }
-	if (forwardL != 0) { forwardX /= forwardL; forwardY /= forwardL; forwardZ /= forwardL; }
+	if (upL      != 0) upL      = 1/upL;
+	if (forwardL != 0) forwardL = 1/forwardL;
+	if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+	if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
 	forwardX *= forward_start_length; forwardY *= forward_start_length; forwardZ *= forward_start_length;
 
 	//Save the vectors
@@ -1356,7 +1397,112 @@ void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, floa
 	graphic3d->camera_targetY = graphic3d->camera_positionY + forwardY;
 	graphic3d->camera_targetZ = graphic3d->camera_positionZ + forwardZ;
 	graphic3d->camera_upX = (float)upX; graphic3d->camera_upY = (float)upY; graphic3d->camera_upZ = (float)upZ;
-	log_line(0x0060, graphic3d->camera_positionX, graphic3d->camera_positionY, graphic3d->camera_positionZ);
+	log_line(0x0060, graphic3d->camera_targetX, graphic3d->camera_targetY, graphic3d->camera_targetZ);
+}
+void Graphic3DProcessUpMove    (float angle)
+{
+	float angleRotateX, angleRotateY, angleRotateZ, upAngle, forwardAngle;
+	double upX,      upY,      upZ,      upL;
+	double forwardX, forwardY, forwardZ, forwardL;
+	
+	//Set vectors
+	upX       = graphic3d->camera_upX;
+	upY       = graphic3d->camera_upY;
+	upZ       = graphic3d->camera_upZ;
+	forwardX  = graphic3d->camera_targetX - graphic3d->camera_positionX;
+	forwardY  = graphic3d->camera_targetY - graphic3d->camera_positionY;
+	forwardZ  = graphic3d->camera_targetZ - graphic3d->camera_positionZ;
+	
+	log_line(0x0005, angle, forwardX, forwardY, forwardZ, upX, upY, upZ);
+
+	//Vertical Rotate
+	#pragma region Rotate about Z
+		//Normalize vecotrs for XY
+		upL       = sqrt(upX     *upX      + upY     *upY     );
+		forwardL  = sqrt(forwardX*forwardX + forwardY*forwardY);
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
+
+		//Rotate space about the z axis so that the forward vector lies in the xz plane
+		upAngle       = getAngle((float)upX,      (float)upY);
+		forwardAngle  = getAngle((float)forwardX, (float)forwardY);
+		angleRotateZ  = -forwardAngle;
+		upAngle += angleRotateZ;
+		upX = cos(upAngle); forwardX = 1;
+		upY = sin(upAngle); forwardY = 0;
+		if (upL      == 0) upX      = upY      = 0;
+		if (forwardL == 0) forwardX = forwardY = 0;
+		log_line(0x0006, upX, upY);
+	#pragma endregion
+	#pragma region Rotate about Y
+		//Normalize vecotrs for XZ
+		upL       = sqrt(upX     *upX      + upZ     *upZ     );
+		forwardL  = sqrt(forwardX*forwardX + forwardZ*forwardZ);
+		if (upL      != 0) upL      = 1/upL;
+		if (forwardL != 0) forwardL = 1/forwardL;
+		if (upL      != 0) { upX      *= upL;      upY      *= upL;      upZ      *= upL;      }
+		if (forwardL != 0) { forwardX *= forwardL; forwardY *= forwardL; forwardZ *= forwardL; }
+
+		//Rotate space about the y axis so that the forward vector lies along the x axis
+		upAngle       = getAngle((float)upX,      (float)upZ     );
+		forwardAngle  = getAngle((float)forwardX, (float)forwardZ);
+		angleRotateY  = -forwardAngle;
+		upAngle += angleRotateY;
+		upX = cos(upAngle); upZ = sin(upAngle);
+		if (upL      == 0) upX = upZ = 0;
+		log_line(0x008C, upX, upZ);
+	#pragma endregion
+	#pragma region Make the actual rotation(about X)
+		//Normalize vecotrs for YZ
+		upL = sqrt(upY*upY + upZ*upZ);
+		if (upL != 0) upL = 1/upL;
+		if (upL != 0) { upX *= upL; upY *= upL; upZ *= upL; }
+
+		//Rotate space about the x axis to get desired rotation
+		upAngle       = getAngle((float)upY, (float)upZ);
+		angleRotateX  = -angle;
+		upAngle += angleRotateX;
+		upY = cos(upAngle); upZ = sin(upAngle);
+		if (upL == 0) upY = upZ = 0;
+		log_line(0x00BC, upY, upZ);
+	#pragma endregion
+	#pragma region Rotate about Y back
+		//Normalize vecotrs for XZ
+		upL = sqrt(upX*upX + upZ*upZ);
+		if (upL != 0) upL = 1/upL;
+		if (upL != 0) { upX *= upL; upY *= upL; upZ *= upL; }
+
+		//Rotate space about the y axis back to original
+		upAngle = getAngle((float)upX, (float)upZ);
+		upAngle -= angleRotateY;
+		upX = cos(upAngle); upZ = sin(upAngle);
+		if (upL == 0) upX = upZ = 0;
+		log_line(0x00C9, upX, upZ);
+	#pragma endregion
+	#pragma region Rotate about Z back
+		//Normalize vecotrs for XY
+		upL = sqrt(upX*upX + upY*upY);
+		if (upL != 0) upL = 1/upL;
+		if (upL != 0) { upX *= upL; upY *= upL; upZ *= upL; }
+		
+		//Rotate space about the z axis back to original
+		upAngle = getAngle((float)upX, (float)upY);
+		upAngle -= angleRotateZ;
+		upX = cos(upAngle);	upY = sin(upAngle);
+		if (upL == 0) upX = upY = 0;
+		log_line(0x00CA, upX, upY);
+	#pragma endregion
+
+	//Normalize vecotrs
+	upL = sqrt(upX*upX + upY*upY + upZ*upZ);
+	if (upL != 0) upL = 1/upL;
+	if (upL != 0) { upX *= upL; upY *= upL; upZ *= upL; }
+
+	//Save the vectors
+	graphic3d->camera_upX = (float)upX; graphic3d->camera_upY = (float)upY; graphic3d->camera_upZ = (float)upZ;
+	log_line(0x00DB, graphic3d->camera_upX, graphic3d->camera_upY, graphic3d->camera_upZ);
 }
 void Graphic3DFixIndefinedValues()
 {

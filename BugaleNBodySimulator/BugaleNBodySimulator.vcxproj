@@ -73,6 +73,7 @@
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>
@@ -246,17 +247,22 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Source Files\ErrorHandler.cpp" />
     <ClCompile Include="Source Files\Graphic3D.cpp" />
+    <ClCompile Include="Source Files\LibraryLoader.cpp" />
     <ClCompile Include="Source Files\Threads.cpp" />
     <ClCompile Include="Strings\StringController.cpp" />
+    <ClInclude Include="CUDA\PTXFile.h" />
+    <ClInclude Include="Header Files\CUDAHandler.h" />
     <ClInclude Include="Header Files\ErrorHandler.h" />
     <ClInclude Include="Header Files\Errors.h" />
     <ClInclude Include="Header Files\Graphic3D.h" />
+    <ClInclude Include="Header Files\LibraryLoader.h" />
     <ClInclude Include="Header Files\SharedData.h" />
     <ClInclude Include="Header Files\SharedFunctions.h" />
     <ClInclude Include="Header Files\Threads.h" />
     <ClInclude Include="Info.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SharedHeader.h" />
+    <ClInclude Include="Source Files\CUDAHandler.cpp" />
     <ClInclude Include="Strings\EnglishUS_Strings.h" />
     <ClInclude Include="Strings\StringController.h" />
   </ItemGroup>
@@ -283,4 +289,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="BugaleNBodySimulator.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

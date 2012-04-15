@@ -90,7 +90,6 @@ void reset_shared_data()
 	_shared->error_energy = 0;
 	_shared->error_momentum = 0;
 	_shared->log_file = 0;
-	_shared->logging_now = false;
 	_shared->pause = false;
 	_shared->exit = false;
 	_shared->reached_max_calculations = false;
@@ -112,6 +111,7 @@ void start_log(char* filename)
 	_shared->log_file = filename;
 	FILE* log_f = fopen(_shared->log_file, "a");
 	if (log_f == 0) _shared->error = Errors::CannotOpenLogFile;
+	if (log_f == 0) _shared->error_data_charptr = _shared->log_file;
 	if (log_f == 0) return;
 	time_t now = time(0);
 	fprintf(log_f, StringController::getStringh(0x001E));
@@ -135,10 +135,10 @@ void log_line(int stringID, ...)
 {
 	if (!data_log) return;
 	if (_shared == 0 || _data == 0 || !_data->log || _shared->log_file == 0) return;
-	while (_shared->logging_now) usleep(1000);
-	_shared->logging_now = true;
+	_shared->logging_now.lock();
 	FILE* log_f = fopen(_shared->log_file, "a");
 	if (log_f == 0) _shared->error = Errors::CannotOpenLogFile;
+	if (log_f == 0) _shared->error_data_charptr = _shared->log_file;
 	else
 	{
 		double runtime = (double)(get_current_time_usec() - _shared->real_start_time) / 1000000;
@@ -150,15 +150,16 @@ void log_line(int stringID, ...)
 		va_end(args);
 		fclose(log_f);
 	}
-	_shared->logging_now = false;
+	_shared->logging_now.unlock();
 }
 void end_log()
 {
-	while (_shared->logging_now) usleep(1000);
+	_shared->logging_now.lock();
 	double simulationtime = (double)((get_current_time_usec() - (_shared->start_time + (_shared->pause ? (get_current_time_usec() - _shared->pause_start_time) : 0)))) / 1000000;
 	double runtime = (double)(get_current_time_usec() - _shared->real_start_time) / 1000000;
 	FILE* log_f = fopen(_shared->log_file, "a");
 	if (log_f == 0) _shared->error = Errors::CannotOpenLogFile;
+	if (log_f == 0) _shared->error_data_charptr = _shared->log_file;
 	if (log_f == 0) return;
 	time_t now = time(0);
 	fprintf(log_f, StringController::getStringh(0x002D), ctime(&now));
@@ -177,12 +178,12 @@ void set_shared_data(SharedData* shared, Data* data)
 	data_log = _data->log;
 }
 
-void* safe_malloc(int size)
+void* safe_malloc(int size, int fail_stringID)
 {
 	void* ret = 0;
 	if (size < 0 || (ret = malloc(size)) == 0)
 	{
-		printf(StringController::getStringh(0x00BC), size);
+		printf(StringController::getStringh(fail_stringID), size);
 		while (getchar());
 	}
 	return ret;

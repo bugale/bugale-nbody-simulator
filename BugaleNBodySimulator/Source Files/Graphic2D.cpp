@@ -44,8 +44,8 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->trail_curpos = 0;
 	if (graphic2d->data->max_trails != 0)
 	{
-		graphic2d->trailX = (double*)safe_malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
-		graphic2d->trailY = (double*)safe_malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails);
+		graphic2d->trailX = (double*)safe_malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails, 0x00CC);
+		graphic2d->trailY = (double*)safe_malloc(sizeof(double) * graphic2d->data->num_of_bodies * graphic2d->data->max_trails, 0x00CD);
 		for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailX[i] = (DBL_MAX + 1);
 		for (int i = 0; i < graphic2d->data->num_of_bodies * graphic2d->data->max_trails; i++) graphic2d->trailY[i] = (DBL_MAX + 1);
 	}
@@ -54,9 +54,9 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->camera_positionY = data->camera_positionY;
 	graphic2d->camera_positionZ = data->camera_positionZ;
 
-	graphic2d->keyboard_move_starttime   = (long long*)safe_malloc(sizeof(long long) * 0x100);
-	graphic2d->keyboard_move_started     = (bool     *)safe_malloc(sizeof(bool     ) * 0x100);
-	graphic2d->keyboard_move_start_value = (double   *)safe_malloc(sizeof(double   ) * 0x100);
+	graphic2d->keyboard_move_starttime   = (long long*)safe_malloc(sizeof(long long) * 0x100, 0x00CE);
+	graphic2d->keyboard_move_started     = (bool     *)safe_malloc(sizeof(bool     ) * 0x100, 0x00CF);
+	graphic2d->keyboard_move_start_value = (double   *)safe_malloc(sizeof(double   ) * 0x100, 0x00D0);
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_starttime  [i] = 0;
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_started    [i] = false;
 	for (int i = 0; i < 0xFF; i++) graphic2d->keyboard_move_start_value[i] = false;
@@ -66,7 +66,7 @@ void NewGraphic2D(Data* data, SharedData* shared)
 	graphic2d->stick_body_index = 0;
 	graphic2d->stick_body_index_entered = false;
 
-	graphic2d->temp_string = (char*)safe_malloc(4096);
+	graphic2d->temp_string = (char*)safe_malloc(4096, 0x00D1);
 
 	StringController::printString(0x0063);
 
@@ -289,7 +289,8 @@ void Graphic2DFinalizeFrame()
 	if (graphic2d->data->graphic_max_rate > 0) usleep((long long)(1000000 / graphic2d->data->graphic_max_rate));
 	if (graphic2d->clear_screen) glutSwapBuffers();
 	glFlush();
-	glutPostRedisplay();
+	if (graphic2d->shared->exit) Graphic2DExit();
+	else glutPostRedisplay();
 }
 
 void Graphic2DExit()

@@ -37,15 +37,12 @@ Engine::Engine(Data* data)
 }
 Engine::~Engine()
 {
-	for (int i = 0; i < this->num_of_bodies; i++)
-		if (this->mass1_mul_mass2_mul_g[i] != 0) free(this->mass1_mul_mass2_mul_g[i]);
 	if (this->dt_div_mass != 0) free(this->dt_div_mass);
 	if (this->dt_div_2mass != 0) free(this->dt_div_2mass);
 	if (this->mass_mul_g != 0) free(this->mass_mul_g);
 	if (this->dt_squared_div_2mass != 0) free(this->dt_squared_div_2mass);
 	if (this->dt_squared_div_12mass != 0) free(this->dt_squared_div_12mass);
 	if (this->dt_pow_3_div_6mass != 0) free(this->dt_pow_3_div_6mass);
-	if (this->mass1_mul_mass2_mul_g != 0) free(this->mass1_mul_mass2_mul_g);
 }
 
 void Engine::Precalculations()
@@ -57,13 +54,12 @@ void Engine::Precalculations()
 	this->dt_pow_3_div_6 = this->dt * this->dt * this->dt / 6;
 	this->dt_squared_div_2 = this->dt * this->dt / 2;
 	this->dt_squared_div_12 = this->dt * this->dt / 12;
-	this->dt_div_mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_div_2mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-	this->mass_mul_g = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_squared_div_2mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_squared_div_12mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-	this->dt_pow_3_div_6mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-	this->mass1_mul_mass2_mul_g = (double**)safe_malloc(sizeof(double*) * this->num_of_bodies);
+	this->dt_div_mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies, 0x00C3);
+	this->dt_div_2mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies, 0x00C4);
+	this->mass_mul_g = (double*)safe_malloc(sizeof(double) * this->num_of_bodies, 0x00C5);
+	this->dt_squared_div_2mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies, 0x00C6);
+	this->dt_squared_div_12mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies, 0x00C7);
+	this->dt_pow_3_div_6mass = (double*)safe_malloc(sizeof(double) * this->num_of_bodies, 0x00C8);
 	for (int i = 0; i < this->num_of_bodies; i++)
 	{
 		this->dt_div_mass[i] = this->dt / this->bodies[i]._mass;
@@ -72,15 +68,11 @@ void Engine::Precalculations()
 		this->dt_squared_div_2mass[i] = this->dt * this->dt / (2 * this->bodies[i]._mass);
 		this->dt_squared_div_12mass[i] = this->dt * this->dt / (12 * this->bodies[i]._mass);
 		this->dt_pow_3_div_6mass[i] = this->dt * this->dt * this->dt / (6 * this->bodies[i]._mass);
-		this->mass1_mul_mass2_mul_g[i] = (double*)safe_malloc(sizeof(double) * this->num_of_bodies);
-		for (int j = 0; j < this->num_of_bodies; j++) this->mass1_mul_mass2_mul_g[i][j] = this->g * this->bodies[i]._mass * this->bodies[j]._mass;
 	}
 	log_line(0x0089, this->dt_div_2, this->dt_div_12, this->dt_squared_mul_g_div_12, this->dt_pow_3_div_6);
 	log_line(0x008A, this->dt_squared_div_2, this->dt_squared_div_12, this->dt_div_mass, this->dt_div_2mass);
 	log_line(0x008B, this->mass_mul_g, this->dt_squared_div_2mass, this->dt_squared_div_12mass, this->dt_pow_3_div_6mass);
-	log_line(0x008C, this->mass1_mul_mass2_mul_g);
 }
-
 double Engine::GetEnergySum2D()
 {
 	log_line(0x008D);
@@ -95,7 +87,7 @@ double Engine::GetEnergySum2D()
 			dX = this->bodies[j]._positionX - this->bodies[i]._positionX;
             dY = this->bodies[j]._positionY - this->bodies[i]._positionY;
             length = sqrt((dX * dX) + (dY * dY));
-			if (length != 0) energy_pot -= this->mass1_mul_mass2_mul_g[i][j] / length;
+			if (length != 0) energy_pot -= this->mass_mul_g[i]*this->bodies[j]._mass / length;
 		}
 		energy_kin += this->bodies[i]._mass * (this->bodies[i]._velocityX * this->bodies[i]._velocityX + this->bodies[i]._velocityY * this->bodies[i]._velocityY);
 	}
@@ -118,7 +110,7 @@ double Engine::GetEnergySum3D()
             dY = this->bodies[j]._positionY - this->bodies[i]._positionY;
 			dZ = this->bodies[j]._positionZ - this->bodies[i]._positionZ;
             length = sqrt((dX * dX) + (dY * dY) + (dZ * dZ));
-			if (length != 0) energy_pot -= this->mass1_mul_mass2_mul_g[i][j] / length;
+			if (length != 0) energy_pot -= this->mass_mul_g[i]*this->bodies[j]._mass / length;
 		}
 		energy_kin += this->bodies[i]._mass * (this->bodies[i]._velocityX * this->bodies[i]._velocityX + this->bodies[i]._velocityY * this->bodies[i]._velocityY + this->bodies[i]._velocityZ * this->bodies[i]._velocityZ);
 	}
@@ -192,7 +184,7 @@ void Engine::NextFrameEuler2D()
             length_pow_3 = (dRX * dRX) + (dRY * dRY);
             length_pow_3 = length_pow_3 * sqrt(length_pow_3);
             if (length_pow_3 == 0) force_div_length = 0;
-            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+            else                   force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass / length_pow_3;
 
             //Generate the force vector. Save it instead of the Rji vector
             dRX *= force_div_length;
@@ -234,7 +226,7 @@ void Engine::NextFrameEuler3D()
             length_pow_3 = (dRX * dRX) + (dRY * dRY) + (dRZ * dRZ); //Length squared
             length_pow_3 = length_pow_3 * sqrt(length_pow_3);
             if (length_pow_3 == 0) force_div_length = 0;
-            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+            else                   force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass / length_pow_3;
 
             //Generate the force vector. Save it instead of the Rji vector
             dRX *= force_div_length;
@@ -283,7 +275,7 @@ void Engine::NextFrameLeapfrog2D()
             length_pow_3 = (dRX * dRX) + (dRY * dRY);
             length_pow_3 = length_pow_3 * sqrt(length_pow_3);
             if (length_pow_3 == 0) force_div_length = 0;
-            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+            else                   force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass / length_pow_3;
 
             //Generate the force vector. Save it instead of the Rji vector
             dRX *= force_div_length;
@@ -334,7 +326,7 @@ void Engine::NextFrameLeapfrog3D()
             length_pow_3 = (dRX * dRX) + (dRY * dRY) + (dRZ * dRZ); //Length squared
             length_pow_3 = length_pow_3 * sqrt(length_pow_3);
             if (length_pow_3 == 0) force_div_length = 0;
-            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+            else                   force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass / length_pow_3;
 
             //Generate the force vector. Save it instead of the Rji vector
             dRX *= force_div_length;
@@ -382,7 +374,7 @@ void Engine::NextFrameModifiedEuler2D()
             length_pow_3 = (dRX * dRX) + (dRY * dRY);
             length_pow_3 = length_pow_3 * sqrt(length_pow_3);
             if (length_pow_3 == 0) force_div_length = 0;
-            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+            else                   force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass / length_pow_3;
 
             //Generate the force vector. Save it instead of the Rji vector
             dRX *= force_div_length;
@@ -423,7 +415,7 @@ void Engine::NextFrameModifiedEuler3D()
             length_pow_3 = (dRX * dRX) + (dRY * dRY) + (dRZ * dRZ); //Length squared
             length_pow_3 = length_pow_3 * sqrt(length_pow_3);
             if (length_pow_3 == 0) force_div_length = 0;
-            else                   force_div_length = this->mass1_mul_mass2_mul_g[i][j] / length_pow_3;
+            else                   force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass / length_pow_3;
 
             //Generate the force vector. Save it instead of the Rji vector
             dRX *= force_div_length;
@@ -508,7 +500,7 @@ void Engine::NextFrameHermite2D()
             inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
 
 			//Calculate the jerk and the force size
-			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass * inv_length_pow_3;
 			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY) * 3 * inv_length_pow_2;
 			jerk_sharedX = (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
 			jerk_sharedY = (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;
@@ -594,7 +586,7 @@ void Engine::NextFrameHermite3D()
             inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
 
 			//Calculate the jerk (without G and mass) and force size
-			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass * inv_length_pow_3;
 			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY + dRZ*dVZ) * 3 * inv_length_pow_2;
 			jerk_sharedX = (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
 			jerk_sharedY = (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;
@@ -640,7 +632,7 @@ void Engine::InitializeHermite2D()
             inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
 
 			//Calculate the jerk (without G and mass) and the force size
-			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass * inv_length_pow_3;
 			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY) * 3 * inv_length_pow_2;
 			jerk_sharedX = (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
 			jerk_sharedY = (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;
@@ -694,7 +686,7 @@ void Engine::InitializeHermite2D()
             inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
 
 			//Calculate the jerk and the force size
-			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass * inv_length_pow_3;
 			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY) * 3 * inv_length_pow_2;
 			jerk_sharedX = (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
 			jerk_sharedY = (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;
@@ -741,7 +733,7 @@ void Engine::InitializeHermite3D()
             inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
 
 			//Calculate the jerk (without G and mass) and force size
-			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass * inv_length_pow_3;
 			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY + dRZ*dVZ) * 3 * inv_length_pow_2;
 			jerk_sharedX = (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
 			jerk_sharedY = (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;
@@ -805,7 +797,7 @@ void Engine::InitializeHermite3D()
             inv_length_pow_3 = inv_length_pow_2 * sqrt(inv_length_pow_2);
 
 			//Calculate the jerk (without G and mass) and force size
-			force_div_length = this->mass1_mul_mass2_mul_g[i][j] * inv_length_pow_3;
+			force_div_length = this->mass_mul_g[i]*this->bodies[j]._mass * inv_length_pow_3;
 			dRdV_mul_three_div_length_pow_2 = (dRX*dVX + dRY*dVY + dRZ*dVZ) * 3 * inv_length_pow_2;
 			jerk_sharedX = (dVX - dRdV_mul_three_div_length_pow_2 * dRX) * force_div_length;
 			jerk_sharedY = (dVY - dRdV_mul_three_div_length_pow_2 * dRY) * force_div_length;

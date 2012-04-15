@@ -72,6 +72,7 @@ struct Graphic3D
 	bool mouse_pressed; bool mouse_left;
 	float mouse_start_value_upX; float mouse_start_value_upY; float mouse_start_value_upZ;
 	double mouse_start_value_forwardX; double mouse_start_value_forwardY; double mouse_start_value_forwardZ;
+	float mouse_up_rotate_angle;
 
 	//Show Body
 	int body_index;
@@ -114,7 +115,7 @@ void Graphic3DToggleStickToBody();
 void Graphic3DShowBodyIndex();
 void Graphic3DAddDigitToBodyIndex(int digit);
 
-void Graphic3DProcessCameraMove();
+void Graphic3DCameraMove();
 void Graphic3DCalculateTemp();
 void Graphic3DDrawBodies();
 void Graphic3DDrawBodyIndex();
@@ -126,6 +127,7 @@ void Graphic3DSaveTrails();
 void Graphic3DDrawBody(double X, double Y, double Z, double radius, float R, float G, float B, float A, bool trail);
 void Graphic3DProcessCameraMove(float angleHorizontal, float angleVertical, float zoom_duration_in, float zoom_duration_out);
 void Graphic3DProcessTargetMove(float angleHorizontal, float angleVertical, float zoom_duration_in, float zoom_duration_out);
+void Graphic3DProcessUpMove    (float angle);
 void Graphic3DFixIndefinedValues();
 
 void Graphic3DSetOrthographicProjection();

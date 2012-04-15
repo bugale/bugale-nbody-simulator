@@ -16,45 +16,44 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-/*WARNING: use only one type of dimension(2d or 3d) and only one type of integration(ModifiedEuler, Hermite, etc.) for each instance of this class*/
-#ifndef __ENGINE_INCLUDED__
-#define __ENGINE_INCLUDED__
+#ifdef _DEBUG
+#ifndef __CUDAHANDLER_INCLUDED__
+#define __CUDAHANDLER_INCLUDED__
 
 #include "../SharedHeader.h"
 
-class Engine
+class CUDAHandler
 {
+private:
+	CUdevice _device;
+	CUcontext _context;
+	CUmodule _module;
+	CUfunction _function;
+	CUdeviceptr _bodies; //Device Memory
+	CUdeviceptr _data; //Device Memory - exit(char),pause(char),calculations(long long)
+
+	enum Caller {Init, DeviceGet, CtxCreate, ModuleLoadData, ModuleGetFunction, MemAllocData, MemAllocBodies, MemCpyHtoDData, MemCpyHtoDBodies, LaunchKernel};
+	Errors::Error getError(CUresult r, Caller c);
+
 public:
-	//Input
-	Body3D* bodies;
+	Body3D* bodies; //Host Memory
+	void* data; //Host Memory - exit(char),pause(char),calculations(long long)
+	long long max_calculations;
 	int num_of_bodies;
 	double dt;
 	double g;
-	
-	//Logic
 	double initial_energy_sum_2d;
 	double initial_energy_sum_3d;
 	double initial_momentum_sum_2d;
 	double initial_momentum_sum_3d;
-	bool first_hermite;
-	bool first_leapfrog;
+	int num_of_threads;
+	Errors::Error error;
+	int error_data_int;
 
-	//Precalculations
-	double* dt_div_mass; //dt / mass   for each mass
-	double* dt_div_2mass; //dt / (2*mass)   for each mass
-	double* dt_squared_div_2mass; //dt^2 / (2*mass)   for each mass
-	double* dt_squared_div_12mass; //dt^2 / (12*mass)   for each mass
-	double* dt_pow_3_div_6mass; //dt^3 / (6*mass)   for each mass
-	double* mass_mul_g; //G * mass   for each mass
-	double dt_pow_3_div_6; //dt^3 / 6
-	double dt_squared_div_2; //dt^2 / 2
-	double dt_squared_div_12; //dt^2 / 12
-	double dt_div_2; //dt / 2
-	double dt_div_12; //dt / 12
-	double dt_squared_mul_g_div_12; //dt^2 * G / 12
-	
-	Engine(Data* data);
-	~Engine();
+	CUDAHandler(SharedData* shared, Data* data);
+	~CUDAHandler();
+
+	void InitializeCUDA();
 
 	void Precalculations(); //Precalculate some constant expressions which are commonly used in the algorithms
 	
@@ -69,19 +68,10 @@ public:
 	double GetMomentumSum3D();
 	double GetMomentumError2D();
 	double GetMomentumError3D();
-	
-	//Integration calculations
-	void NextFrameEuler2D();
-	void NextFrameEuler3D();
-	void NextFrameLeapfrog2D();
-	void NextFrameLeapfrog3D();
-	void NextFrameModifiedEuler2D();
-	void NextFrameModifiedEuler3D();
-	void NextFrameHermite2D();
-	void NextFrameHermite3D();
 
-	void InitializeHermite2D();
-	void InitializeHermite3D();
+	void RefreshData();
+
 };
 
+#endif
 #endif

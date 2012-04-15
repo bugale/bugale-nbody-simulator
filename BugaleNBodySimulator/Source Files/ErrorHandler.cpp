@@ -20,21 +20,22 @@
 
 void Errors::returnError(SharedData* shared)
 {
-	char* ret = (char*)safe_malloc(4096); ret[0] = 0;
-	char* buffer = (char*)safe_malloc(4096); buffer[0] = 0;
+	char* ret = (char*)safe_malloc(4096, 0x00CB); ret[0] = 0;
 	switch (shared->error)
 	{
-	case Errors::NoError:
+		case Errors::NoError:
 			break;
-		case Errors::MissingSettingsFile:
-			StringController::getString(0x0070, buffer);
-			sprintf(ret, buffer, shared->error_data_charptr);
+		case Errors::CannotOpenSettingsFile:
+			sprintf(ret, StringController::getStringh(0x0070), shared->error_data_charptr);
 			log_line(0x0070, shared->error_data_charptr);
 			break;
-		case Errors::MissingBodyDataFile:
-			StringController::getString(0x0071, buffer);
-			sprintf(ret, buffer, shared->error_data_charptr);
+		case Errors::CannotOpenBodyDataFile:
+			sprintf(ret, StringController::getStringh(0x0071), shared->error_data_charptr);
 			log_line(0x0071, shared->error_data_charptr);
+			break;
+		case Errors::CannotOpenLogFile:
+			sprintf(ret, StringController::getStringh(0x00B3), shared->error_data_charptr);
+			log_line(0x00B3, shared->error_data_charptr);
 			break;
 		case Errors::WrongSettingsFileHeader:  StringController::getStringf(0x0072, ret); log_line(0x0072); break;
 		case Errors::WrongBodyDataFileHeader:  StringController::getStringf(0x0073, ret); log_line(0x0073); break;
@@ -53,20 +54,23 @@ void Errors::returnError(SharedData* shared)
 		case Errors::NegativeBodyRadius:	   StringController::getStringf(0x0080, ret); log_line(0x0080); break;
 		case Errors::NegativeBodyTrailWidth:   StringController::getStringf(0x0081, ret); log_line(0x0081); break;
 		case Errors::TooManyBodies:			   StringController::getStringf(0x0082, ret); log_line(0x0082); break;
-		case Errors::CannotOpenLogFile:	       StringController::getStringf(0x00B3, ret); log_line(0x00B3); break;
 		case Errors::CorruptedGlu32:	       StringController::getStringf(0x00B5, ret); log_line(0x00B5); break;
 		case Errors::CorruptedOpengl32:		   StringController::getStringf(0x00B6, ret); log_line(0x00B6); break;
 		case Errors::MissingGlu32:		       StringController::getStringf(0x00B7, ret); log_line(0x00B7); break;
 		case Errors::MissingOpengl32:		   StringController::getStringf(0x00B8, ret); log_line(0x00B8); break;
 		case Errors::OtherGlu32:		       StringController::getStringf(0x00B9, ret, shared->error_data_int); log_line(0x00B9, shared->error_data_int); break;
 		case Errors::OtherOpengl32:		       StringController::getStringf(0x00BA, ret, shared->error_data_int); log_line(0x00BA, shared->error_data_int); break;
+		case Errors::MissinglibGLUdylib:	   StringController::getStringf(0x00DC, ret, shared->error_data_charptr); log_line(0x00DC, shared->error_data_charptr); break;
+		case Errors::MissinglibOPENGLdylib:	   StringController::getStringf(0x00DD, ret, shared->error_data_charptr); log_line(0x00DD, shared->error_data_charptr); break;
+		case Errors::MissinglibGLUso:		   StringController::getStringf(0x00DE, ret, shared->error_data_charptr); log_line(0x00DE, shared->error_data_charptr); break;
+		case Errors::MissinglibOPENGLso:	   StringController::getStringf(0x00DF, ret, shared->error_data_charptr); log_line(0x00DF, shared->error_data_charptr); break;
 		case Errors::Other:					   StringController::getStringf(0x0083, ret); log_line(0x0083); break;
 		default:							   StringController::getStringf(0x0084, ret); log_line(0x0084); break;
 	}
 	switch (shared->error)
 	{
-		case Errors::MissingSettingsFile:
-		case Errors::MissingBodyDataFile:
+		case Errors::CannotOpenSettingsFile:
+		case Errors::CannotOpenBodyDataFile:
 		case Errors::WrongSettingsFileHeader:
 		case Errors::WrongBodyDataFileHeader:
 		case Errors::WrongSettingsFileVersion:
@@ -99,4 +103,5 @@ void Errors::returnError(SharedData* shared)
 			break;			
 	}
 	printf("%s\n", ret);
+	free(ret);
 }

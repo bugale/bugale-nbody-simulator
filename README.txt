@@ -1,4 +1,4 @@
-This is the source code of Bugale N-Body Simulator version 0.2.0 (Beta 2.0).
+This is the source code of Bugale N-Body Simulator version 0.2.2 (Beta 2.2).
 
 This project simulates the behavior, dynamics, and motion of a group of celestial objects.
 
@@ -12,12 +12,9 @@ Bugale N-Body Data Editor provides a graphic user interface for creating and edi
 settings and body data files of Bugale N-Body Simulator. It can be found on SourceForge.
 
 What's new in this release:
-*Fixed a bug with the logging option
-*Fixed a bug with bodies overlapping the text
-*Fixed some bugs with not cleaning the screen in 2D
-*Added vertex/face count
-*Run-time loading of OpenGL to check for existance
-*Safer memory allocation
-*Increased graphic performance
-*Added a warning about large far/near plane distance
-*Source Code: Better string management
+*Added Up vector rotation using the mouse wheel
+*Better memory allocation fail messages
+*Less memory usage
+*Fixed a bug with the wireframe mode in 3D
+*Slightly improved graphics performance
+*Better error management

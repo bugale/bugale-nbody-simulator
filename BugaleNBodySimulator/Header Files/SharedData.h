@@ -23,7 +23,7 @@
 
 struct SharedData
 {
-	bool logging_now;
+	tthread::mutex logging_now;
 	char* log_file;
 	long long frames;
 	long long calculations;

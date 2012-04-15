@@ -35,6 +35,6 @@ void log_line(int stringID, ...);
 void end_log();
 void set_shared_data(SharedData* shared, Data* data);
 
-void* safe_malloc(int size);
+void* safe_malloc(int size, int fail_stringID);
 
 #endif

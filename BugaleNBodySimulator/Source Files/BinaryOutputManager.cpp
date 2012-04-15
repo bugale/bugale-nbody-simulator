@@ -32,8 +32,8 @@ BinaryOutputManager::BinaryOutputManager(Data* data, int buffer_frames, char* fi
 	this->_curpos_mem_buffer = 0;
 	this->_curpos_disk_buffer = 0;
 	this->_curpos_file = 0;
-	this->_mem_buffer  = (char*)safe_malloc(this->_buffer_size);
-	this->_disk_buffer = (char*)safe_malloc(this->_buffer_size);
+	this->_mem_buffer  = (char*)safe_malloc(this->_buffer_size, 0x00BF);
+	this->_disk_buffer = (char*)safe_malloc(this->_buffer_size, 0x00C0);
 	log_line(0x009B, this);
 }
 BinaryOutputManager::~BinaryOutputManager()

@@ -17,19 +17,63 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//Note: strings are not sorted by ID here!
+
+#pragma region Critical Errors
 #define LNG00_STRING0000 "Critical Error: getcwd failed!\n"
+#define LNG00_STRING00BF "Critical Error: Unable to allocate memory for Binary Output mem_buffer! Size is: %d."
+#define LNG00_STRING00C0 "Critical Error: Unable to allocate memory for Binary Output disk_buffer! Size is: %d."
+#define LNG00_STRING00C1 "Critical Error: Unable to allocate memory for the array of bodies! Size is: %d."
+#define LNG00_STRING00C2 "Critical Error: Unable to allocate memory for reading body data or settings file! Size is: %d."
+#define LNG00_STRING00C3 "Critical Error: Unable to allocate memory for the array dt_div_mass! Size is: %d."
+#define LNG00_STRING00C4 "Critical Error: Unable to allocate memory for the array dt_div_2mass! Size is: %d."
+#define LNG00_STRING00C5 "Critical Error: Unable to allocate memory for the array mass_mul_g! Size is: %d."
+#define LNG00_STRING00C6 "Critical Error: Unable to allocate memory for the array dt_squared_div_2mass! Size is: %d."
+#define LNG00_STRING00C7 "Critical Error: Unable to allocate memory for the array dt_squared_div_12mass! Size is: %d."
+#define LNG00_STRING00C8 "Critical Error: Unable to allocate memory for the array dt_pow_3_div_6mass! Size is: %d."
+#define LNG00_STRING00CB "Critical Error: Unable to allocate memory for error string! Size is: %d."
+#define LNG00_STRING00CC "Critical Error: Unable to allocate memory for 2D trail array (X)! Size is: %d."
+#define LNG00_STRING00CD "Critical Error: Unable to allocate memory for 2D trail array (Y)! Size is: %d."
+#define LNG00_STRING00CE "Critical Error: Unable to allocate memory for 2D keyboard array (start_time)! Size is: %d."
+#define LNG00_STRING00CF "Critical Error: Unable to allocate memory for 2D keyboard array (started)! Size is: %d."
+#define LNG00_STRING00D0 "Critical Error: Unable to allocate memory for 2D keyboard array (start_value)! Size is: %d."
+#define LNG00_STRING00D1 "Critical Error: Unable to allocate memory for 2D temporary string! Size is: %d."
+#define LNG00_STRING00D2 "Critical Error: Unable to allocate memory for 3D trail array (X)! Size is: %d."
+#define LNG00_STRING00D3 "Critical Error: Unable to allocate memory for 3D trail array (Y)! Size is: %d."
+#define LNG00_STRING00D4 "Critical Error: Unable to allocate memory for 3D trail array (Z)! Size is: %d."
+#define LNG00_STRING00D5 "Critical Error: Unable to allocate memory for 3D temporary string! Size is: %d."
+#define LNG00_STRING00D6 "Critical Error: Unable to allocate memory for working directory buffer! Size is: %d."
+#define LNG00_STRING00D7 "Critical Error: Unable to allocate memory for settings file path buffer! Size is: %d."
+#define LNG00_STRING00D8 "Critical Error: Unable to allocate memory for bodies file path buffer! Size is: %d."
+#define LNG00_STRING00D9 "Critical Error: Unable to allocate memory for binary output file path buffer! Size is: %d."
+#define LNG00_STRING00DA "Critical Error: Unable to allocate memory for log file path buffer! Size is: %d."
+#define LNG00_STRING00EA "Critical Error: Unable to allocate memory for CUDA data buffer! Size is: %d."
+#pragma endregion
+
+#pragma region General Messages
 #define LNG00_STRING0001 "Working Directory: %s\n\n"
-#define LNG00_STRING0002 "Logging started.\n\n"
 #define LNG00_STRING0003 "No data errors.\n"
-#define LNG00_STRING0004 "Welcome to %s version %s!\n"
-#define LNG00_STRING0005 "You may interrupt the console to close the program (usually Ctrl+C).\n"
-#define LNG00_STRING0006 "Please Wait...\n\n"
+#define LNG00_STRING0004 "Welcome to %s version %s!\n"\
+						 "You may interrupt the console to close the program (usually Ctrl+C).\n"\
+						 "Please Wait...\n\n"
+#define LNG00_STRING0002 "Logging started.\n\n"
+#define LNG00_STRING000C "Maximum Calculations Reached!\n"
+#define LNG00_STRING00BD "\nWarning: The ratio FarPlaneDistance/NearPlaneDistance is extremely large. If not in wireframe mode(w), you might get artifacts.\n"
+#pragma endregion
+
+#pragma region Algorithm Names
+#define LNG00_STRING001A "Euler"
+#define LNG00_STRING001B "Leapfrog"
+#define LNG00_STRING001C "ModifiedEuler"
+#define LNG00_STRING001D "Hermite"
+#pragma endregion
+
+#pragma region Log Text
 #define LNG00_STRING0007 "Entered exit_signal with shared at 0x%08X."
 #define LNG00_STRING0008 "Ended exit_signal."
 #define LNG00_STRING0009 "Entered GraphicThread with data at 0x%08X and shared at 0x%08X."
 #define LNG00_STRING000A "Ended GraphicThread."
 #define LNG00_STRING000B "Entered CalculationThread with engine at 0x%08X data at 0x%08X and shared at 0x%08X."
-#define LNG00_STRING000C "Maximum Calculations Reached!\n"
 #define LNG00_STRING000D "Ended CalculationThread."
 #define LNG00_STRING000E "Entered SharedCalculationsThread with engine at 0x%08X data at 0x%08X and shared at 0x%08X."
 #define LNG00_STRING000F "Ended SharedCalculationsThread."
@@ -43,10 +87,6 @@
 #define LNG00_STRING0017 "Entered getpath(4/4) with out as \"%s\"."
 #define LNG00_STRING0018 "Ended getpath(1/2) with result at 0x%08X."
 #define LNG00_STRING0019 "Ended getpath(2/2) with result as \"%s\"."
-#define LNG00_STRING001A "Euler"
-#define LNG00_STRING001B "Leapfrog"
-#define LNG00_STRING001C "ModifiedEuler"
-#define LNG00_STRING001D "Hermite"
 #define LNG00_STRING001E "--------------------------------\nStart of logging:\n"
 #define LNG00_STRING001F "Start Time: %s\n"
 #define LNG00_STRING0020 "Fetched Settings:\n"
@@ -70,26 +110,7 @@
 #define LNG00_STRING0032 "\n\nEnd of Log!\n"
 #define LNG00_STRING0033 "--------------------------------\n\n\n"
 #define LNG00_STRING0034 "Entered NewGraphic3D with data at 0x%08X and shared at 0x%08X."
-#define LNG00_STRING0035 "Bugale N-Body Simulator 3D Graphical Output Window"
-#define LNG00_STRING0036 "\n\n\n"\
-						 "3D Graphical Output Instructions:\n\n"\
-						 "            ESC          : Close the Simulator\n"\
-						 "      Left  Mouse Key    : Move Your Camera Around the Target\n"\
-						 " Left  Mouse Key and +/- : Move Your Target Against the Camera\n"\
-						 "      Right Mouse Key    : Move Your Target Around the Camera\n"\
-						 "           + or -        : Zoom In or Zoom Out\n"\
-						 "             r           : Reset Your Camera Position\n"\
-						 "             m           : Toggle Minimal Text Mode = Much Faster Rendering\n"\
-						 "             t           : Toggle Trail Showal\n"\
-						 "             c           : Toggle Screen Clearance After Every Frame\n"\
-						 "             h           : Toggle Crosshair Showal\n"\
-						 "             w           : Toggle Wireframe = faster rendering\n"\
-						 "             p           : Toggle Pause\n"\
-						 "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n"\
-						 "   Given Index on the Center of the Screen, or Press Space to Always show the\n"\
-						 "   Body with the Given Index on the Center of the Screen and press again to\n"\
-						 "   disable it.\n\n\n"
-#define LNG00_STRING0037 "Ended Glut Event Loop."
+#define LNG00_STRING0037 "Ended 3D Glut Event Loop."
 #define LNG00_STRING0038 "Ended NewGraphic3D."
 #define LNG00_STRING0039 "Entered Graphic3DInitialize."
 #define LNG00_STRING003A "Graphic3DInitialize - single buffer window set at 0x%08X."
@@ -97,101 +118,28 @@
 #define LNG00_STRING003C "Ended Graphic3DInitialize."
 #define LNG00_STRING003D "Entered Graphic3DRatioHandler with width as %d and height as %d."
 #define LNG00_STRING003E "Ended Graphic3DRatioHandler."
-#define LNG00_STRING003F "Frames Per Second: %G"
-#define LNG00_STRING0040 "Calculations Per Second:   %+E"
-#define LNG00_STRING0041 "Total Calculations Done:   %+E"
-#define LNG00_STRING0042 "DeltaTime:                 %+E"
-#define LNG00_STRING0043 "Simulated Seconds Past:    %+E"
-#define LNG00_STRING0044 "Simulated Years Past:      %+E"
-#define LNG00_STRING0045 "Real Seconds Past:         %+E"
-#define LNG00_STRING0046 "Simulated-Real Time Ratio: %+E"
-#define LNG00_STRING0047 "Gravitational Constant:    %+E"
-#define LNG00_STRING0048 "Number of Bodies: %d"
-#define LNG00_STRING0049 "Integration Algorithm: %s %s"
-#define LNG00_STRING004A "Energy Error: %+E"
-#define LNG00_STRING004B "Energy Error: Pause to Calculate..."
-#define LNG00_STRING004C "Momentum Error: %+E"
-#define LNG00_STRING004D "Momentum Error: Pause to Calculate..."
-#define LNG00_STRING004E "Camera Left:     (%+E,%+E,%+E)"
-#define LNG00_STRING004F "Camera Forward:  (%+E,%+E,%+E)"
-#define LNG00_STRING0050 "Camera Up:       (%+E,%+E,%+E)"
-#define LNG00_STRING0051 "Camera Target:   (%+E,%+E,%+E)"
-#define LNG00_STRING0052 "Camera Position: (%+E,%+E,%+E)"
 #define LNG00_STRING0053 "Entered Graphic3DProcessCameraMove(1/3) with angleVertical as %G angleHorizontal as %G zoom_duration_in as %G zoom_duration_out as %G forwardX as %G forwardY as %G."
-#define LNG00_STRING0054 "Entered Graphic3DProcessCameraMove(2/3) with forwardZ as %G upX as %G upY as %G upZ as %G leftX as %G."
+#define LNG00_STRING0054 "Entered Graphic3DProcessCameraMove(2/3) with forwardZ as %G upX as %G upY as %G upZ as %G."
 #define LNG00_STRING0055 "Entered Graphic3DProcessCameraMove(3/3) with leftX as %G leftY as %G and leftZ as %G."
 #define LNG00_STRING0056 "Graphic3DProcessCameraMove: Vertical rotate back about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G."
 #define LNG00_STRING0057 "Graphic3DProcessCameraMove: Horizontal rotate back about Z result is upX as %G upY as %G forwardX as %G forwardY as %G."
 #define LNG00_STRING0058 "Graphic3DProcessCameraMove: Zoom result is zoom_acceleration as %G zoom_distance_ratio as %G and forward_start_length as %G."
 #define LNG00_STRING0059 "Ended Graphic3DProcessCameraMove with result positionX as %G positionY as %G and positionZ as %G."
 #define LNG00_STRING005A "Entered Graphic3DProcessTargetMove(1/3) with angleVertical as %G angleHorizontal as %G zoom_duration_in as %G zoom_duration_out as %G forwardX as %G forwardY as %G."
-#define LNG00_STRING005B "Entered Graphic3DProcessTargetMove(2/3) with forwardZ as %G upX as %G upY as %G upZ as %G leftX as %G."
+#define LNG00_STRING005B "Entered Graphic3DProcessTargetMove(2/3) with forwardZ as %G upX as %G upY as %G upZ as %G."
 #define LNG00_STRING005C "Entered Graphic3DProcessTargetMove(3/3) with leftX as %G leftY as %G and leftZ as %G."
 #define LNG00_STRING005D "Graphic3DProcessTargetMove: Vertical rotate back about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G."
 #define LNG00_STRING005E "Graphic3DProcessTargetMove: Horizontal rotate back about Z result is upX as %G upY as %G forwardX as %G forwardY as %G."
 #define LNG00_STRING005F "Graphic3DProcessTargetMove: Zoom result is zoom_acceleration as %G zoom_distance_ratio as %G and forward_start_length as %G."
-#define LNG00_STRING0060 "Ended Graphic3DProcessTargetMoveVertical with result positionX as %G positionY as %G and positionZ as %G."
+#define LNG00_STRING0060 "Ended Graphic3DProcessTargetMove with result targetX as %G targetY as %G and targetZ as %G."
 #define LNG00_STRING0061 "Entered NewGraphic2D with data at 0x%08X and shared at 0x%08X."
 #define LNG00_STRING0062 "Bugale N-Body Simulator 2D Graphical Output Window"
-#define LNG00_STRING0063 "\n\n\n"\
-						 "2D Graphical Output Instructions:\n\n"\
-						 "    ESC  : Close the Simulator\n"\
-						 "   Arrows: Move Your Camera\n"\
-						 "   + or -: Zoom In or Zoom Out\n"\
-						 "     r   : Reset Your Camera Position\n"\
-						 "     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n"\
-						 "     t   : Toggle Trail Showal\n"\
-						 "     c   : Toggle Screen Clearance After Every Frame\n"\
-						 "     h   : Toggle Crosshair Showal\n"\
-						 "     p   : Toggle Pause\n"\
-						 "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n"\
-						 "   Given Index on the Center of the Screen, or Press Space to Always show the\n"\
-						 "   Body with the Given Index on the Center of the Screen and press again to\n"\
-						 "   disable it.\n\n\n"\
-						 "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n"
-#define LNG00_STRING0064 "Ended Glut Event Loop."
-#define LNG00_STRING0065 "Ended NewGraphic2D."
-#define LNG00_STRING0066 "Entered Graphic2DInitialize."
-#define LNG00_STRING0067 "Graphic2DInitialize - single buffer window set at 0x%08X."
-#define LNG00_STRING0068 "Graphic2DInitialize - double buffer window set at 0x%08X."
-#define LNG00_STRING0069 "Ended Graphic2DInitialize."
-#define LNG00_STRING006A "Entered Graphic2DRatioHandler with width as %d and height as %d."
-#define LNG00_STRING006B "Ended Graphic2DRatioHandler."
-#define LNG00_STRING006C "Camera Position Z: %+E"
-#define LNG00_STRING006D "Camera Position Y: %+E"
-#define LNG00_STRING006E "Camera Position X: %+E"
-#define LNG00_STRING006F "Screen Height in Meters: %E"
-#define LNG00_STRING0070 "Missing settings file(expected path: %s)!"
-#define LNG00_STRING0071 "Missing body data file(expected path: %s)!"
-#define LNG00_STRING0072 "Settings file is corrupted(wrong header)!"
-#define LNG00_STRING0073 "Body data file is corrupted(wrong header)!"
-#define LNG00_STRING0074 "Settings file is corrupted(wrong format version)!"
-#define LNG00_STRING0075 "Body data file is corrupted(wrong format version)!"
-#define LNG00_STRING0076 "Settings file is corrupted(wrong file size)!"
-#define LNG00_STRING0077 "Body data file is corrupted(wrong header size)!"
-#define LNG00_STRING0078 "Body data file is corrupted(wrong file size)!"
-#define LNG00_STRING0079 "Settings file is corrupted(negative DT)!"
-#define LNG00_STRING007A "Settings file is corrupted(non-positive field of view)!"
-#define LNG00_STRING007B "Settings file is corrupted(negative MoveSpeed0)!"
-#define LNG00_STRING007C "Settings file is corrupted(non-positive MoveSpeed1)!"
-#define LNG00_STRING007D "Settings file is corrupted(negative ZoomSpeed0)!"
-#define LNG00_STRING007E "Settings file is corrupted(non-positive ZoomSpeed1)!"
-#define LNG00_STRING007F "Body data file is corrupted(negative body mass)!"
-#define LNG00_STRING0080 "Body data file is corrupted(negative body radius)!"
-#define LNG00_STRING0081 "Body data file is corrupted(negative body trail width)!"
-#define LNG00_STRING0082 "Body data file is probably corrupted(too many bodies)!"
-#define LNG00_STRING0083 "Unidentified Error!"
-#define LNG00_STRING0084 "Unknown Error!"
-#define LNG00_STRING0085 "\nYou can use Bugale N-Body Data Editor to create and edit this file."\
-						 "\nBugale N-Body Data Editor can be found on SourceForge."\
-						 "\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge."
 #define LNG00_STRING0086 "Entered Engine constructor with data at 0x%08X."
 #define LNG00_STRING0087 "Ended Engine constructor with this at 0x%08X."
 #define LNG00_STRING0088 "Entered Engine::Precalculations."
-#define LNG00_STRING0089 "Ended Engine::Precalculations(1/4) with dt_div_2 as %d dt_div_12 as %d dt_squared_mul_g_div_12 as %d and dt_pow_3_div_6 as %d."
-#define LNG00_STRING008A "Ended Engine::Precalculations(2/4) with dt_squared_div_2 as %d dt_squared_div_12 as %d dt_div_mass at 0x%08X and dt_div_2mass at 0x%08X."
-#define LNG00_STRING008B "Ended Engine::Precalculations(3/4) with mass_mul_g at 0x%08X dt_squared_div_2mass at 0x%08X dt_squared_div_12mass at 0x%08X and dt_pow_3_div_6mass at 0x%08X."
-#define LNG00_STRING008C "Ended Engine::Precalculations(4/4) with mass1_mul_mass2_mul_g at 0x%08X."
+#define LNG00_STRING0089 "Ended Engine::Precalculations(1/3) with dt_div_2 as %d dt_div_12 as %d dt_squared_mul_g_div_12 as %d and dt_pow_3_div_6 as %d."
+#define LNG00_STRING008A "Ended Engine::Precalculations(2/3) with dt_squared_div_2 as %d dt_squared_div_12 as %d dt_div_mass at 0x%08X and dt_div_2mass at 0x%08X."
+#define LNG00_STRING008B "Ended Engine::Precalculations(3/3) with mass_mul_g at 0x%08X dt_squared_div_2mass at 0x%08X dt_squared_div_12mass at 0x%08X and dt_pow_3_div_6mass at 0x%08X."
 #define LNG00_STRING008D "Entered Engine::GetEnergySum2D."
 #define LNG00_STRING008E "Ended Engine::GetEnergySum2D with result as %G."
 #define LNG00_STRING008F "Entered Engine::GetEnergySum3D."
@@ -214,78 +162,157 @@
 #define LNG00_STRING00A0 "Ended BinaryOutputManager::Save."
 #define LNG00_STRING00A1 "Entered BinaryOutputManager::Finalize."
 #define LNG00_STRING00A2 "Ended BinaryOutputManager::Finalize."
-#define LNG00_STRING00A3 "Graphic3DProcessCameraMove: Vertical rotate about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G."
-#define LNG00_STRING00A4 "Graphic3DProcessCameraMove: Vertical rotate about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G."
+#define LNG00_STRING00A3 "Graphic3DProcessCameraMove: Vertical rotate about Z result is forwardX as %G and forwardY as %G."
+#define LNG00_STRING00A4 "Graphic3DProcessCameraMove: Vertical rotate about Y result is forwardX as %G and forwardZ as %G."
 #define LNG00_STRING00A5 "Graphic3DProcessCameraMove: Vertical rotate about X result is upY as %G upZ as %G forwardY as %G and forwardZ as %G."
 #define LNG00_STRING00A6 "Graphic3DProcessCameraMove: Vertical rotate back about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G."
-#define LNG00_STRING00A7 "Graphic3DProcessCameraMove: Horizontal rotate about Z result is upX as %G upY as %G forwardX as %G forwardY as %G leftX as %G and leftY as %G."
-#define LNG00_STRING00A8 "Graphic3DProcessCameraMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G leftX as %G and leftZ as %G."
+#define LNG00_STRING00A7 "Graphic3DProcessCameraMove: Horizontal rotate about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G."
+#define LNG00_STRING00A8 "Graphic3DProcessCameraMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G."
 #define LNG00_STRING00A9 "Graphic3DProcessCameraMove: Horizontal rotate about X result is upY as %G upZ as %G forwardY as %G forwardZ as %G."
 #define LNG00_STRING00AA "Graphic3DProcessCameraMove: Horizontal rotate back about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G."
-#define LNG00_STRING00AB "Graphic3DProcessTargetMove: Vertical rotate about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G."
-#define LNG00_STRING00AC "Graphic3DProcessTargetMove: Vertical rotate about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G."
+#define LNG00_STRING00AB "Graphic3DProcessTargetMove: Vertical rotate about Z result is forwardX as %G and forwardY as %G."
+#define LNG00_STRING00AC "Graphic3DProcessTargetMove: Vertical rotate about Y result is forwardX as %G and forwardZ as %G."
 #define LNG00_STRING00AD "Graphic3DProcessTargetMove: Vertical rotate about X result is upY as %G upZ as %G forwardY as %G and forwardZ as %G."
 #define LNG00_STRING00AE "Graphic3DProcessTargetMove: Vertical rotate back about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G."
-#define LNG00_STRING00AF "Graphic3DProcessTargetMove: Horizontal rotate about Z result is upX as %G upY as %G forwardX as %G forwardY as %G leftX as %G and leftY as %G."
-#define LNG00_STRING00B0 "Graphic3DProcessTargetMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G leftX as %G and leftZ as %G."
-#define LNG00_STRING00B1 "Graphic3DProcessTargetMove: Horizontal rotate about X result is upY as %G upZ as %G forwardY as %G forwardZ as %G."
+#define LNG00_STRING00AF "Graphic3DProcessTargetMove: Horizontal rotate about Z result is upX as %G upY as %G forwardX as %G and forwardY as %G."
+#define LNG00_STRING00B0 "Graphic3DProcessTargetMove: Horizontal rotate about Y result is upX as %G upZ as %G forwardX as %G and forwardZ as %G."
+#define LNG00_STRING00B1 "Graphic3DProcessTargetMove: Horizontal rotate about X result is upY as %G upZ as %G forwardY as %G and forwardZ as %G."
 #define LNG00_STRING00B2 "Graphic3DProcessTargetMove: Horizontal rotate back about Y result is upX as %G upZ as %G forwardX as %G forwardZ as %G."
-#define LNG00_STRING00B3 "Unable to open log file! It may be in use or read-only."
-#define LNG00_STRING00B4 "\nConsider disabling the logging in the settings file.\n"
+#define LNG00_STRING0005 "Entered Graphic3DProcessUpMove with angle as %G forwardX as %G forwardY as %G forwardZ as %G upX as %G upY as %G upZ as %G leftX as %G."
+#define LNG00_STRING0006 "Graphic3DProcessUpMove: Rotate about Z result is upX as %G upY as %G."
+#define LNG00_STRING008C "Graphic3DProcessUpMove: Rotate about Y result is upX as %G upZ as %G."
+#define LNG00_STRING00BC "Graphic3DProcessUpMove: Rotate about X result is upY as %G upZ as %G."
+#define LNG00_STRING00C9 "Graphic3DProcessUpMove: Rotate back about Y result is upX as %G upZ as %G."
+#define LNG00_STRING00CA "Graphic3DProcessUpMove: Rotate back about Z result is upX as %G upZ as %G."
+#define LNG00_STRING00DB "Ended Graphic3DProcessUpMove with result upX as %G upY as %G and upZ as %G."
+#define LNG00_STRING00E0 "Enetered CUDAHandler constructor with shared at 0x%08X and sata at 0x%08X."
+#define LNG00_STRING00E1 "Ended CUDAHandler constructor with this at 0x%08X."
+#define LNG00_STRING00E2 "Entered CUDAHandler::GetEnergySum2D."
+#define LNG00_STRING00E3 "Ended CUDAHandler::GetEnergySum2D with result as %G."
+#define LNG00_STRING00E4 "Entered CUDAHandler::GetEnergySum3D."
+#define LNG00_STRING00E5 "Ended CUDAHandler::GetEnergySum3D with result as %G."
+#define LNG00_STRING00E6 "Entered CUDAHandler::GetMomentumSum2D."
+#define LNG00_STRING00E7 "Ended CUDAHandler::GetMomentumSum2D with result as %G."
+#define LNG00_STRING00E8 "Entered CUDAHandler::GetMomentumSum3D."
+#define LNG00_STRING00E9 "Ended CUDAHandler::GetMomentumSum3D with result as %G."
+#pragma endregion
+
+#pragma region Graphical Output Text
+#define LNG00_STRING0035 "Bugale N-Body Simulator 3D Graphical Output Window"
+#define LNG00_STRING0036 "\n\n\n"\
+						 "3D Graphical Output Instructions:\n\n"\
+						 "            ESC          : Close the Simulator\n"\
+						 "     Left  Mouse Key     : Move Your Camera Around the Target\n"\
+						 " Left  Mouse Key and +/- : Move Your Target Against the Camera\n"\
+						 "     Right Mouse Key     : Move Your Target Around the Camera\n"\
+						 "       Mouse wheel       : Rotate Your Up Vector\n"\
+						 "           + or -        : Zoom In or Zoom Out\n"\
+						 "             r           : Reset Your Camera Position\n"\
+						 "             m           : Toggle Minimal Text Mode = Much Faster Rendering\n"\
+						 "             t           : Toggle Trail Visibility\n"\
+						 "             c           : Toggle Screen Clearing After Every Frame\n"\
+						 "             h           : Toggle Crosshair Visibility\n"\
+						 "             w           : Toggle Wireframe = faster rendering\n"\
+						 "             p           : Toggle Pause\n"\
+						 "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n"\
+						 "   Given Index on the Center of the Screen, or Press Space to Always show the\n"\
+						 "   Body with the Given Index on the Center of the Screen and press again to\n"\
+						 "   disable it.\n\n\n"
+#define LNG00_STRING003F "Frames Per Second: %G"
+#define LNG00_STRING0040 "Calculations Per Second:   %+E"
+#define LNG00_STRING0041 "Total Calculations Done:   %+E"
+#define LNG00_STRING0042 "DeltaTime:                 %+E"
+#define LNG00_STRING0043 "Simulated Seconds Past:    %+E"
+#define LNG00_STRING0044 "Simulated Years Past:      %+E"
+#define LNG00_STRING0045 "Real Seconds Past:         %+E"
+#define LNG00_STRING0046 "Simulated-Real Time Ratio: %+E"
+#define LNG00_STRING0047 "Gravitational Constant:    %+E"
+#define LNG00_STRING0048 "Number of Bodies: %d"
+#define LNG00_STRING0049 "Integration Algorithm: %s %s"
+#define LNG00_STRING004A "Energy Error: %+E"
+#define LNG00_STRING004B "Energy Error: Pause to Calculate..."
+#define LNG00_STRING004C "Momentum Error: %+E"
+#define LNG00_STRING004D "Momentum Error: Pause to Calculate..."
+#define LNG00_STRING004E "Camera Left:     (%+E,%+E,%+E)"
+#define LNG00_STRING004F "Camera Forward:  (%+E,%+E,%+E)"
+#define LNG00_STRING0050 "Camera Up:       (%+E,%+E,%+E)"
+#define LNG00_STRING0051 "Camera Target:   (%+E,%+E,%+E)"
+#define LNG00_STRING0052 "Camera Position: (%+E,%+E,%+E)"
+#define LNG00_STRING0063 "\n\n\n"\
+						 "2D Graphical Output Instructions:\n\n"\
+						 "    ESC  : Close the Simulator\n"\
+						 "   Arrows: Move Your Camera\n"\
+						 "   + or -: Zoom In or Zoom Out\n"\
+						 "     r   : Reset Your Camera Position\n"\
+						 "     m   : Toggle Minimal Text Mode = Much More Frames Per Second\n"\
+						 "     t   : Toggle Trail Visibility\n"\
+						 "     c   : Toggle Screen Clearing After Every Frame\n"\
+						 "     h   : Toggle Crosshair Visibility\n"\
+						 "     p   : Toggle Pause\n"\
+						 "   After a Number Has Been Assigned, Press Enter to Show the Body with the\n"\
+						 "   Given Index on the Center of the Screen, or Press Space to Always show the\n"\
+						 "   Body with the Given Index on the Center of the Screen and press again to\n"\
+						 "   disable it.\n\n\n"\
+						 "\nThank you for using Bugale N-Body Simulator, and have a pleasant day!\n\n\n\n"
+#define LNG00_STRING0064 "Ended 2D Glut Event Loop."
+#define LNG00_STRING0065 "Ended NewGraphic2D."
+#define LNG00_STRING0066 "Entered Graphic2DInitialize."
+#define LNG00_STRING0067 "Graphic2DInitialize - single buffer window set at 0x%08X."
+#define LNG00_STRING0068 "Graphic2DInitialize - double buffer window set at 0x%08X."
+#define LNG00_STRING0069 "Ended Graphic2DInitialize."
+#define LNG00_STRING006A "Entered Graphic2DRatioHandler with width as %d and height as %d."
+#define LNG00_STRING006B "Ended Graphic2DRatioHandler."
+#define LNG00_STRING006C "Camera Position Z: %+E"
+#define LNG00_STRING006D "Camera Position Y: %+E"
+#define LNG00_STRING006E "Camera Position X: %+E"
+#define LNG00_STRING006F "Screen Height in Meters: %E"
+#define LNG00_STRING00BE "Vertex/Face Count: %9d,%9d"
+#pragma endregion
+
+#pragma region Errors
+#define LNG00_STRING0070 "Unable to open settings file(expected path: %s)!"
+#define LNG00_STRING0071 "Unable to open data file(expected path: %s)!"
+#define LNG00_STRING0072 "Settings file is corrupted(wrong header)!"
+#define LNG00_STRING0073 "Body data file is corrupted(wrong header)!"
+#define LNG00_STRING0074 "Settings file is corrupted(wrong format version)!"
+#define LNG00_STRING0075 "Body data file is corrupted(wrong format version)!"
+#define LNG00_STRING0076 "Settings file is corrupted(wrong file size)!"
+#define LNG00_STRING0077 "Body data file is corrupted(wrong header size)!"
+#define LNG00_STRING0078 "Body data file is corrupted(wrong file size)!"
+#define LNG00_STRING0079 "Settings file is corrupted(negative DT)!"
+#define LNG00_STRING007A "Settings file is corrupted(non-positive field of view)!"
+#define LNG00_STRING007B "Settings file is corrupted(negative MoveSpeed0)!"
+#define LNG00_STRING007C "Settings file is corrupted(non-positive MoveSpeed1)!"
+#define LNG00_STRING007D "Settings file is corrupted(negative ZoomSpeed0)!"
+#define LNG00_STRING007E "Settings file is corrupted(non-positive ZoomSpeed1)!"
+#define LNG00_STRING007F "Body data file is corrupted(negative body mass)!"
+#define LNG00_STRING0080 "Body data file is corrupted(negative body radius)!"
+#define LNG00_STRING0081 "Body data file is corrupted(negative body trail width)!"
+#define LNG00_STRING0082 "Body data file is probably corrupted(too many bodies)!"
+#define LNG00_STRING0083 "Unidentified Error!"
+#define LNG00_STRING0084 "Unknown Error!"
+#define LNG00_STRING00B3 "Unable to open log file(expected path: %s)! It may be in use or read-only."
 #define LNG00_STRING00B5 "The file glu32.dll is corrupted!"
 #define LNG00_STRING00B6 "The file opengl32.dll is corrupted!"
 #define LNG00_STRING00B7 "Unable to find glu32.dll!"
 #define LNG00_STRING00B8 "Unable to find opengl32.dll!"
 #define LNG00_STRING00B9 "Unidentified error opening glu32.dll! Error code: %d."
 #define LNG00_STRING00BA "Unidentified error opening opengl32.dll! Error code: %d."
+#define LNG00_STRING00DC "Unable to open libGLU.dylib! Error is: %s."
+#define LNG00_STRING00DD "Unable to open libOPENGL.dylib! Error is: %s."
+#define LNG00_STRING00DE "Unable to open libGLU.so! Error is: %s."
+#define LNG00_STRING00DF "Unable to open libOPENGL.so! Error is: %s."
+#pragma endregion
+
+#pragma region Errors Help
+#define LNG00_STRING0085 "\nYou can use Bugale N-Body Data Editor to create and edit this file."\
+						 "\nBugale N-Body Data Editor can be found on SourceForge."\
+						 "\nAlternatively, you can download samples of this file for various simulations from this project's page in SourceForge."
+#define LNG00_STRING00B4 "\nConsider disabling the logging in the settings file.\n"
 #define LNG00_STRING00BB "\nPlease note that this application is using OpenGL and it must be present on your computer.\n"
-#define LNG00_STRING00BC "Critical Error: Unable to allocate enough memory. Size is: %d."
-#define LNG00_STRING00BD "\nWarning: The ratio FarPlaneDistance/NearPlaneDistance is extremely large. If not in wireframe mode(w), you might get artifacts.\n"
-#define LNG00_STRING00BE "Vertex/Face Count: %9d,%9d"
-#define LNG00_STRING00BF ""
-#define LNG00_STRING00C0 ""
-#define LNG00_STRING00C1 ""
-#define LNG00_STRING00C2 ""
-#define LNG00_STRING00C3 ""
-#define LNG00_STRING00C4 ""
-#define LNG00_STRING00C5 ""
-#define LNG00_STRING00C6 ""
-#define LNG00_STRING00C7 ""
-#define LNG00_STRING00C8 ""
-#define LNG00_STRING00C9 ""
-#define LNG00_STRING00CA ""
-#define LNG00_STRING00CB ""
-#define LNG00_STRING00CC ""
-#define LNG00_STRING00CD ""
-#define LNG00_STRING00CE ""
-#define LNG00_STRING00CF ""
-#define LNG00_STRING00D0 ""
-#define LNG00_STRING00D1 ""
-#define LNG00_STRING00D2 ""
-#define LNG00_STRING00D3 ""
-#define LNG00_STRING00D4 ""
-#define LNG00_STRING00D5 ""
-#define LNG00_STRING00D6 ""
-#define LNG00_STRING00D7 ""
-#define LNG00_STRING00D8 ""
-#define LNG00_STRING00D9 ""
-#define LNG00_STRING00DA ""
-#define LNG00_STRING00DB ""
-#define LNG00_STRING00DC ""
-#define LNG00_STRING00DD ""
-#define LNG00_STRING00DE ""
-#define LNG00_STRING00DF ""
-#define LNG00_STRING00E0 ""
-#define LNG00_STRING00E1 ""
-#define LNG00_STRING00E2 ""
-#define LNG00_STRING00E3 ""
-#define LNG00_STRING00E4 ""
-#define LNG00_STRING00E5 ""
-#define LNG00_STRING00E6 ""
-#define LNG00_STRING00E7 ""
-#define LNG00_STRING00E8 ""
-#define LNG00_STRING00E9 ""
-#define LNG00_STRING00EA ""
+#pragma endregion
+
+#pragma region Unused
 #define LNG00_STRING00EB ""
 #define LNG00_STRING00EC ""
 #define LNG00_STRING00ED ""
@@ -307,3 +334,4 @@
 #define LNG00_STRING00FD ""
 #define LNG00_STRING00FE ""
 #define LNG00_STRING00FF ""
+#pragma endregion

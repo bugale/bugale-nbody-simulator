@@ -36,7 +36,7 @@ void Data::parseSettings(char* filename)
 	//Check Error//
 	if (data == 0)
 	{
-		this->error = Errors::MissingSettingsFile;
+		this->error = Errors::CannotOpenSettingsFile;
 		return;
 	}
 	if (this->filelength != INFO_SETTINGS_SIZE)
@@ -114,7 +114,7 @@ void Data::parseBodies(char* filename)
 	//Check Error//
 	if (data == 0)
 	{
-		this->error = Errors::MissingBodyDataFile;
+		this->error = Errors::CannotOpenBodyDataFile;
 		return;
 	}
 	if (this->filelength < INFO_BODY_HEADER_SIZE)
@@ -148,7 +148,7 @@ void Data::parseBodies(char* filename)
 		return;
 	}
 
-	this->bodies = (Body3D*)safe_malloc(num_of_bodies * sizeof(Body3D));
+	this->bodies = (Body3D*)safe_malloc(num_of_bodies * sizeof(Body3D), 0x00C1);
 	for (int i = 0; i < this->num_of_bodies; i++)
 		readBody(data, i * INFO_BODY_SIZE + INFO_BODY_HEADER_SIZE, this->bodies, i);
 
@@ -217,7 +217,7 @@ unsigned char* Data::readData(char* filename)
 	{
 		fseek(data_file, 0, SEEK_END); //Seek to the End of the File
 		this->filelength = ftell(data_file); //Get Current Position = End of the File = File Length
-		unsigned char* data = (unsigned char*)safe_malloc(this->filelength);
+		unsigned char* data = (unsigned char*)safe_malloc(this->filelength, 0x00C2);
 		rewind(data_file); //Go Back to the Start of the File
 		fread(data, 1, this->filelength, data_file); //Read the File
 		fclose(data_file);

@@ -43,11 +43,16 @@
 		#define _SYSTEM_WIN
 	#else //POSIX
 		#include <unistd.h>
+		#include <dlfcn.h>
 		#define _SYSTEM_POSIX
+		#ifdef __APPLE__
+			#define _SYSTEM_MAC
+		#endif
 	#endif
 	
 	//Third-party
 	#include <freeglut.h>
+	#include <cuda.h>
 	#include <tinythread.h> //CPP is included in Main.cpp for convenience
 
 	//Internal
@@ -59,8 +64,10 @@
 	#include "Header Files/Body3D.h"
 	#include "Header Files/Data.h"
 	#include "Header Files/SharedFunctions.h"
+	#include "Header Files/LibraryLoader.h"
 	#include "Header Files/ErrorHandler.h"
 	#include "Header Files/Engine.h"
+	#include "Header Files/CUDAHandler.h"
 	#include "Header Files/Graphic2D.h"
 	#include "Header Files/Graphic3D.h"
 	#include "Header Files/BinaryOutputManager.h"

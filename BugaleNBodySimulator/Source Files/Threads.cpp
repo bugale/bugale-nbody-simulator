@@ -34,7 +34,7 @@ void Run(char* working_directory)
 
 	if (working_directory[strlen(working_directory)-1] == '\\' || working_directory[strlen(working_directory)-1] == '/')
 	{
-		char* buffer = (char*)safe_malloc(4096);
+		char* buffer = (char*)safe_malloc(4096, 0x00D6);
 		strcpy(buffer, working_directory);
 		working_directory = buffer;
 		working_directory[strlen(working_directory)-1] = 0;
@@ -45,10 +45,10 @@ void Run(char* working_directory)
 	
 	usleep(100000);
 
-	char* settings_path = (char*)safe_malloc(4096);
-	char* bodies_path = (char*)safe_malloc(4096);
-	char* binaryoutput_path = (char*)safe_malloc(4096);
-	char* log_path = (char*)safe_malloc(4096);
+	char* settings_path = (char*)safe_malloc(strlen(working_directory)+strlen(INFO_SETTINGS_FILENAME)+2, 0x00D7);
+	char* bodies_path = (char*)safe_malloc(strlen(working_directory)+strlen(INFO_BODIES_FILENAME)+2, 0x00D8);
+	char* binaryoutput_path = (char*)safe_malloc(strlen(working_directory)+strlen(INFO_BINARY_FILENAME)+2, 0x00D9);
+	char* log_path = (char*)safe_malloc(strlen(working_directory)+strlen(INFO_LOG_FILENAME)+2, 0x00DA);
 	settings_path[0] = 0;
 	bodies_path[0] = 0;
 	binaryoutput_path[0] = 0;
@@ -87,8 +87,8 @@ void Run(char* working_directory)
 		if (shared->error != Errors::NoError)
 		{
 			shared->exit = true;
-			if (shared->error == Errors::MissingBodyDataFile) shared->error_data_charptr = bodies_path;
-			if (shared->error == Errors::MissingSettingsFile) shared->error_data_charptr = settings_path;
+			if (shared->error == Errors::CannotOpenBodyDataFile) shared->error_data_charptr = bodies_path;
+			if (shared->error == Errors::CannotOpenSettingsFile) shared->error_data_charptr = settings_path;
 			Errors::returnError(shared);
 			while (!getchar());
 		}
@@ -112,8 +112,6 @@ void Run(char* working_directory)
 void InitializeConsole()
 {
 	StringController::printString(0x0004, INFO_PROGRAM_NAME, INFO_PROGRAM_VERSION);
-	StringController::printString(0x0005);
-	StringController::printString(0x0006);
 }
 void exit_signal(int sig)
 {
@@ -125,34 +123,7 @@ void exit_signal(int sig)
 void GraphicThread(void* arg)
 {
 	log_line(0x0009, data, shared);
-	#ifdef _SYSTEM_WIN //Load dll's
-		SetErrorMode(1); //Suppress error messages
-		if (LoadLibrary("glu32.dll") == 0)
-		{
-			int err = GetLastError();
-			switch (err)
-			{
-				case 1157:
-				case 126: shared->error = Errors::MissingGlu32; return;
-				case 1114:
-				case 193: shared->error = Errors::CorruptedGlu32; return;
-				default:  shared->error = Errors::OtherGlu32; shared->error_data_int = err; return;
-			}
-		}
-		if (LoadLibrary("opengl32.dll") == 0)
-		{
-			int err = GetLastError();
-			switch (err)
-			{
-				case 1157:
-				case 126: shared->error = Errors::MissingOpengl32; return;
-				case 1114:
-				case 193: shared->error = Errors::CorruptedOpengl32; return;
-				default:  shared->error = Errors::OtherOpengl32; shared->error_data_int = err; return;
-			}
-		}
-		SetErrorMode(0); //Return error messages back
-	#endif
+	if (!LoadOpenGL(shared)) return;
 	if (data->two_dimensional_graphic) NewGraphic2D(data, shared);
 	else NewGraphic3D(data, shared);
 	log_line(0x000A);
