@@ -22,6 +22,6 @@
 #include "../SharedHeader.h"
 
 bool LoadOpenGL(SharedData* shared);
-bool LoadCUDA(SharedData* shared);
+bool LoadCUDA(CUDAHandler* cuda);
 
 #endif

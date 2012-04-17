@@ -52,6 +52,9 @@
     <ClCompile Include="Source Files\LibraryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source Files\CUDAHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header Files\Body3D.h">
@@ -103,9 +106,6 @@
     </ClInclude>
     <ClInclude Include="Header Files\CUDAHandler.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source Files\CUDAHandler.cpp">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Header Files\LibraryLoader.h">
       <Filter>Header Files</Filter>

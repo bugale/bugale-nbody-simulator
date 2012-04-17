@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SharedHeader.h"
-#include <tinythread.cpp>
 
 int main(int argc, char* argv[])
 {
@@ -30,6 +29,5 @@ int main(int argc, char* argv[])
 		while (true);
 	}
 	Run(buffer);
-	free(buffer);
 	return 0;
 }

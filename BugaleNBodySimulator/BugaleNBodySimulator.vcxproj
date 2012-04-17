@@ -30,6 +30,7 @@
     <ProjectGuid>{B8A438E4-C5DD-443E-B5D1-73BEB36ABA7F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BugaleNBodySimulator</RootNamespace>
+    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath11)</VCTargetsPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -51,6 +52,15 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
     <PlatformToolset>v80</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Legacy|x64'">
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -110,11 +120,10 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>cuda.lib;TinyThread_debug.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <DelayLoadDLLs>glu32.dll;opengl32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>glu32.dll;opengl32.dll;nvcuda.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,16 +147,18 @@
       <DisableSpecificWarnings>4996;4099;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <OmitFramePointers>true</OmitFramePointers>
+      <CompileAsManaged>false</CompileAsManaged>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <StringPooling>true</StringPooling>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>cuda.lib;TinyThread.lib</AdditionalDependencies>
       <Profile>true</Profile>
-      <DelayLoadDLLs>glu32.dll;opengl32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>glu32.dll;opengl32.dll;nvcuda.dll</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -197,7 +208,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>freeglut_static_legacy.lib</AdditionalDependencies>
+      <AdditionalDependencies>freeglut_static_legacy.lib;cuda.lib;TinyThread_legacy.lib</AdditionalDependencies>
       <Profile>false</Profile>
       <EnableUAC>
       </EnableUAC>
@@ -210,7 +221,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>freeglut_static.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>glu32.dll;opengl32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>glu32.dll;opengl32.dll;nvcuda.dll</DelayLoadDLLs>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -262,7 +273,7 @@
     <ClInclude Include="Info.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SharedHeader.h" />
-    <ClInclude Include="Source Files\CUDAHandler.cpp" />
+    <ClCompile Include="Source Files\CUDAHandler.cpp" />
     <ClInclude Include="Strings\EnglishUS_Strings.h" />
     <ClInclude Include="Strings\StringController.h" />
   </ItemGroup>

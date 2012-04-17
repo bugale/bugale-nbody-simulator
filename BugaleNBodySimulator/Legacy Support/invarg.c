@@ -8,6 +8,7 @@
 *
 *
 *******************************************************************************/
+#ifdef _LEGACY
 #define _CRTBLD
 #include <cruntime.h>
 #include <sect_attribs.h>
@@ -277,3 +278,4 @@ extern "C++" void __cdecl _invoke_watson(
 
 #endif  /* __cplusplus */
 
+#endif

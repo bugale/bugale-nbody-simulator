@@ -160,7 +160,7 @@ void Graphic3DInitialize()
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_CULL_FACE);
-	if (!graphic3d->wireframe) glEnable(GL_DEPTH_TEST);
+	//if (!graphic3d->wireframe) glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
@@ -659,7 +659,7 @@ void Graphic3DCalculateTemp()
 }
 void Graphic3DDrawBodies()
 {
-	glEnable(GL_DEPTH_TEST);
+	if (graphic3d->clear_screen) glEnable(GL_DEPTH_TEST);
 	if (!graphic3d->wireframe) glEnable(GL_LIGHTING);
 	for (int i = 0; i < graphic3d->data->num_of_bodies; i++)
 	{
@@ -820,7 +820,7 @@ void Graphic3DDrawTrails()
 {
 	if (graphic3d->data->max_trails == 0) return;
 	if (!graphic3d->show_trails) return;
-	glEnable(GL_DEPTH_TEST);
+	if (graphic3d->clear_screen) glEnable(GL_DEPTH_TEST);
 	if (!graphic3d->wireframe) glEnable(GL_LIGHTING);
 	for (int trail = graphic3d->trail_curpos; trail < graphic3d->data->max_trails; trail++)
 		for (int body = 0; body < graphic3d->data->num_of_bodies; body++)

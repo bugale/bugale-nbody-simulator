@@ -40,6 +40,7 @@ public:
 	bool wireframe;
 	bool paused;
 	bool log;
+	bool cuda;
 	unsigned char algorithm;
 	char* algorithm_name;
 	float graphic_max_rate;

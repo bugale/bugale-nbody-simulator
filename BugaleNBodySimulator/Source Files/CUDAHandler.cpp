@@ -19,8 +19,6 @@
 #include "..\SharedHeader.h"
 #include "..\CUDA\PTXFile.h"
 
-#ifdef _DEBUG
-
 CUDAHandler::CUDAHandler(SharedData* shared, Data* data)
 {
 	log_line(0x00E0, shared, data);
@@ -29,152 +27,120 @@ CUDAHandler::CUDAHandler(SharedData* shared, Data* data)
 	this->dt = data->dt;;
 	this->g = data->g;
 	this->max_calculations = data->max_calculations;
-	this->data = safe_malloc(10, 0x00EA);
-	((char*)this->data)[0] = (char)shared->exit;
-	((char*)this->data)[1] = (char)shared->pause;
-	*(long long*)(((char*)this->data)[2]) = shared->calculations;
+	this->data = safe_malloc(2, 0x00EA);
+	this->exit = &shared->exit;
+	this->pause = &shared->pause;
+	this->calculations = &shared->calculations;
+	((char*)this->data)[0] = (char)*this->exit;
+	((char*)this->data)[1] = (char)*this->pause;
 	this->Precalculations();
 
 	this->initial_energy_sum_2d = this->GetEnergySum2D();
 	this->initial_energy_sum_3d = this->GetEnergySum3D();
 	this->initial_momentum_sum_2d = this->GetMomentumSum2D();
 	this->initial_momentum_sum_3d = this->GetMomentumSum3D();
-	log_line(0x00E1, this);
+
+	this->InitializeCUDA();
+	log_line(0x00E1, this, this->data);
 }
 CUDAHandler::~CUDAHandler()
 {
+	this->DeinitializeCUDA();
+	if (this->data != 0) free(this->data);
+	if (this->_data != 0) cuMemFree(this->_data);
+	if (this->_bodies != 0) cuMemFree(this->_bodies);
+	if (this->_bodies != 0) cuMemFree(this->_mutex);
 }
 
-Errors::Error CUDAHandler::getError(CUresult r, Caller c)
+bool CUDAHandler::getError(CUresult r, Caller c)
 {
 	switch (c)
 	{
-		case CUDAHandler::Init:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAInitInvalidValue;
-				case CUDA_ERROR_INVALID_DEVICE: return Errors::CUDAInitInvalidDevice;
-				default: this->error_data_int = r; return Errors::CUDAInitUnrecognizedError;
-			}
-		case CUDAHandler::DeviceGet:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDADeviceGetDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDADeviceGetNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDADeviceGetInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDADeviceGetInvalidValue;
-				case CUDA_ERROR_INVALID_DEVICE: return Errors::CUDADeviceGetInvalidDevice;
-				default: this->error_data_int = r; return Errors::CUDADeviceGetUnrecognizedError;
-			}
-		case CUDAHandler::CtxCreate:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDACtxCreateDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDACtxCreateNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDACtxCreateInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDACtxCreateInvalidValue;
-				case CUDA_ERROR_INVALID_DEVICE: return Errors::CUDACtxCreateInvalidDevice;
-				case CUDA_ERROR_OUT_OF_MEMORY: return Errors::CUDACtxCreateOutOfMemory;
-				case CUDA_ERROR_UNKNOWN: return Errors::CUDACtxCreateUnknownError;
-				default: this->error_data_int = r; return Errors::CUDACtxCreateUnrecognizedError;
-			}
-		case CUDAHandler::ModuleLoadData:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDAModuleLoadDataDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDAModuleLoadDataNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDAModuleLoadDataInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAModuleLoadDataInvalidValue;
-				case CUDA_ERROR_INVALID_DEVICE: return Errors::CUDAModuleLoadDataInvalidDevice;
-				case CUDA_ERROR_OUT_OF_MEMORY: return Errors::CUDAModuleLoadDataOutOfMemory;
-				case CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND: return Errors::CUDAModuleLoadDataSymbolNotFound;
-				case CUDA_ERROR_SHARED_OBJECT_INIT_FAILED: return Errors::CUDAModuleLoadDataInitFailed;
-				default: this->error_data_int = r; return Errors::CUDAModuleLoadDataUnrecognizedError;
-			}
-		case CUDAHandler::ModuleGetFunction:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDAModuleGetFunctionDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDAModuleGetFunctionNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDAModuleGetFunctionInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAModuleGetFunctionInvalidValue;
-				case CUDA_ERROR_NOT_FOUND: return Errors::CUDAModuleGetFunctionNotFound;
-				default: this->error_data_int = r; return Errors::CUDAModuleGetFunctionUnrecognizedError;
-			}
-		case CUDAHandler::MemAllocData:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDAMemAllocDataDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDAMemAllocDataNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDAMemAllocDataInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAMemAllocDataInvalidValue;
-				case CUDA_ERROR_OUT_OF_MEMORY: this->error_data_int = 10; return Errors::CUDAMemAllocDataOutOfMemory;
-				default: this->error_data_int = r; return Errors::CUDAMemAllocDataUnrecognizedError;
-			}
-		case CUDAHandler::MemAllocBodies:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDAMemAllocBodiesDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDAMemAllocBodiesNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDAMemAllocBodiesInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAMemAllocBodiesInvalidValue;
-				case CUDA_ERROR_OUT_OF_MEMORY: this->error_data_int = sizeof(Body3D)*this->num_of_bodies; return Errors::CUDAMemAllocBodiesOutOfMemory;
-				default: this->error_data_int = r; return Errors::CUDAMemAllocBodiesUnrecognizedError;
-			}
-		case CUDAHandler::MemCpyHtoDData:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDAMemCpyHtoDDataDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDAMemCpyHtoDDataNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDAMemCpyHtoDDataInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAMemCpyHtoDDataInvalidValue;
-				default: this->error_data_int = r; return Errors::CUDAMemCpyHtoDDataUnrecognizedError;
-			}
-		case CUDAHandler::MemCpyHtoDBodies:
-			switch (r)
-			{
-				case CUDA_SUCCESS: return Errors::NoError;
-				case CUDA_ERROR_DEINITIALIZED: return Errors::CUDAMemCpyHtoDBodiesDeinitialized;
-				case CUDA_ERROR_NOT_INITIALIZED: return Errors::CUDAMemCpyHtoDBodiesNotInitialized;
-				case CUDA_ERROR_INVALID_CONTEXT: return Errors::CUDAMemCpyHtoDBodiesInvalidContext;
-				case CUDA_ERROR_INVALID_VALUE: return Errors::CUDAMemCpyHtoDBodiesInvalidValue;
-				default: this->error_data_int = r; return Errors::CUDAMemCpyHtoDBodiesUnrecognizedError;
-			}
+		case CUDAHandler::Init:              this->error_data_charptr = StringController::getStringh(0x00F1); break;
+		case CUDAHandler::DeviceGet:         this->error_data_charptr = StringController::getStringh(0x00F2); break;
+		case CUDAHandler::CtxCreate:         this->error_data_charptr = StringController::getStringh(0x00F3); break;
+		case CUDAHandler::ModuleLoadData:    this->error_data_charptr = StringController::getStringh(0x00F4); break;
+		case CUDAHandler::ModuleGetFunction: this->error_data_charptr = StringController::getStringh(0x00F5); break;
+		case CUDAHandler::MemAllocData:      this->error_data_charptr = StringController::getStringh(0x00F6); this->error_data_int = 10; break;
+		case CUDAHandler::MemAllocBodies:    this->error_data_charptr = StringController::getStringh(0x00F7); this->error_data_int = sizeof(Body3D)*this->num_of_bodies; break;
+		case CUDAHandler::MemAllocMutex:     this->error_data_charptr = StringController::getStringh(0x00F8); this->error_data_int = this->num_of_threads; break;
+		case CUDAHandler::MemsetMutex:       this->error_data_charptr = StringController::getStringh(0x0121); break;
+		case CUDAHandler::MemCpyHtoDData:    this->error_data_charptr = StringController::getStringh(0x00F9); break;
+		case CUDAHandler::MemCpyDtoHData:    this->error_data_charptr = StringController::getStringh(0x00FA); break;
+		case CUDAHandler::MemCpyHtoDBodies:  this->error_data_charptr = StringController::getStringh(0x00FB); break;
+		case CUDAHandler::MemCpyDtoHBodies:  this->error_data_charptr = StringController::getStringh(0x00FC); break;
+		case CUDAHandler::LaunchKernel:      this->error_data_charptr = StringController::getStringh(0x00FD); break;
+		default: this->error = CUDAErrors::Other; return true;
 	}
+	switch (r)
+	{
+		case CUDA_SUCCESS:                             this->error = CUDAErrors::NoError; return false;
+		case CUDA_ERROR_INVALID_VALUE:                 this->error = CUDAErrors::InvalidValue; break;
+		case CUDA_ERROR_OUT_OF_MEMORY:                 this->error = CUDAErrors::OutOfMemory; break;
+		case CUDA_ERROR_NOT_INITIALIZED:               this->error = CUDAErrors::NotInitialized; break;
+		case CUDA_ERROR_DEINITIALIZED:                 this->error = CUDAErrors::Deinitalized; break;
+		case CUDA_ERROR_NO_DEVICE:                     this->error = CUDAErrors::NoDevice; break;
+		case CUDA_ERROR_INVALID_DEVICE:                this->error = CUDAErrors::InvalidDevice; break;
+		case CUDA_ERROR_INVALID_IMAGE:                 this->error = CUDAErrors::InvalidImage; break;
+		case CUDA_ERROR_INVALID_CONTEXT:               this->error = CUDAErrors::InvalidContext; break;
+		case CUDA_ERROR_CONTEXT_ALREADY_CURRENT:       this->error = CUDAErrors::ContextAlreadyCurrent; break;
+		case CUDA_ERROR_MAP_FAILED:                    this->error = CUDAErrors::MapFailed; break;
+		case CUDA_ERROR_UNMAP_FAILED:                  this->error = CUDAErrors::UnmapFailed; break;
+		case CUDA_ERROR_ARRAY_IS_MAPPED:               this->error = CUDAErrors::ArrayIsMapped; break;
+		case CUDA_ERROR_ALREADY_MAPPED:                this->error = CUDAErrors::AlreadyMapped; break;
+		case CUDA_ERROR_NO_BINARY_FOR_GPU:             this->error = CUDAErrors::NoBinaryForGPU; break;
+		case CUDA_ERROR_ALREADY_ACQUIRED:              this->error = CUDAErrors::AlreadyAcquired; break;
+		case CUDA_ERROR_NOT_MAPPED:                    this->error = CUDAErrors::NotMapped; break;
+		case CUDA_ERROR_INVALID_SOURCE:                this->error = CUDAErrors::InvalidSource; break;
+		case CUDA_ERROR_FILE_NOT_FOUND:                this->error = CUDAErrors::FileNotFound; break;
+		case CUDA_ERROR_INVALID_HANDLE:                this->error = CUDAErrors::InvalidHandle; break;
+		case CUDA_ERROR_NOT_FOUND:                     this->error = CUDAErrors::NotFound; break;
+		case CUDA_ERROR_NOT_READY:                     this->error = CUDAErrors::NotReady; break;
+		case CUDA_ERROR_LAUNCH_FAILED:                 this->error = CUDAErrors::LaunchFailed; break;
+		case CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES:       this->error = CUDAErrors::LaunchOutOfResources; break;
+		case CUDA_ERROR_LAUNCH_TIMEOUT:                this->error = CUDAErrors::LaunchTimeout; break;
+		case CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING: this->error = CUDAErrors::LaunchIncompatibleTexturing; break;
+		case CUDA_ERROR_UNKNOWN:                       this->error = CUDAErrors::Unknown; break;
+		default: this->error = CUDAErrors::Other; this->error_data_int = r; break;
+	}
+	return true;
 }
 
 void CUDAHandler::InitializeCUDA()
 {
-	if (!(this->error = getError(cuInit(0),
-		CUDAHandler::Init))) return;
-	if (!(this->error = getError(cuDeviceGet(&this->_device, 0),
-		CUDAHandler::DeviceGet))) return;
-	if (!(this->error = getError(cuCtxCreate(&this->_context, 0, this->_device),
-		CUDAHandler::CtxCreate))) return;
-	if (!(this->error = getError(cuModuleLoadData(&this->_module, PTX_DATA),
-		CUDAHandler::ModuleLoadData))) return;
-	if (!(this->error = getError(cuModuleGetFunction(&_function, this->_module, PTX_F_NAME),
-		CUDAHandler::ModuleGetFunction))) return;
-	if (!(this->error = getError(cuMemAlloc(&this->_data, 10),
-		CUDAHandler::MemAllocData))) return;
-	if (!(this->error = getError(cuMemAlloc(&this->_bodies, sizeof(Body3D)*this->num_of_bodies),
-		CUDAHandler::MemAllocBodies))) return;
-	if (!(this->error = getError(cuMemcpyHtoD(this->_data, this->data, 10),
-		CUDAHandler::MemCpyHtoDData))) return;
-	if (!(this->error = getError(cuMemcpyHtoD(this->_bodies, this->bodies, sizeof(Body3D)*this->num_of_bodies),
-		CUDAHandler::MemCpyHtoDBodies))) return;
+	log_line(0x00EE);
+	if (getError(cuInit(0),
+		CUDAHandler::Init)) return;
+	if (getError(cuDeviceGet(&this->_device, 0),
+		CUDAHandler::DeviceGet)) return;
+	if (getError(cuCtxCreate(&this->_context, 0, this->_device),
+		CUDAHandler::CtxCreate)) return;
+	if (getError(cuModuleLoadData(&this->_module, PTX_DATA),
+		CUDAHandler::ModuleLoadData)) return;
+	if (getError(cuModuleGetFunction(&this->_function, this->_module, PTX_F_NAME),
+		CUDAHandler::ModuleGetFunction)) return;
+	if (getError(cuMemAlloc(&this->_data, 10),
+		CUDAHandler::MemAllocData)) return;
+	if (getError(cuMemAlloc(&this->_bodies, sizeof(Body3D)*this->num_of_bodies),
+		CUDAHandler::MemAllocBodies)) return;
+	if (getError(cuMemAlloc(&this->_mutex, this->num_of_threads),
+		CUDAHandler::MemAllocMutex)) return;
+	if (getError(cuMemsetD8(this->_mutex, 0, this->num_of_threads),
+		CUDAHandler::MemsetMutex)) return;
+	if (getError(cuMemcpyHtoD(this->_data, this->data, 10),
+		CUDAHandler::MemCpyHtoDData)) return;
+	if (getError(cuMemcpyHtoD(this->_bodies, this->bodies, sizeof(Body3D)*this->num_of_bodies),
+		CUDAHandler::MemCpyHtoDBodies)) return;
 
 	void *args[] = { &this->_bodies, &this->data, &this->num_of_bodies, &this->max_calculations, &this->num_of_threads };
-	if (!(this->error = getError(cuLaunchKernel(this->_function, 1, 1, 1, this->num_of_threads, 1, 1, 0, NULL, args, NULL),
-		CUDAHandler::LaunchKernel))) return;
+	if (!getError(cuLaunchKernel(this->_function, 1, 1, 1, this->num_of_threads, 1, 1, 0, NULL, args, NULL),
+		CUDAHandler::LaunchKernel)) return;
+	log_line(0x00EF, this->_device, this->_context, this->_module, this->_function, this->_data, this->_bodies);
+}
+void CUDAHandler::DeinitializeCUDA()
+{
+	cuModuleUnload(this->_module);
+	cuCtxDestroy(this->_context);
 }
 
 void CUDAHandler::Precalculations()
@@ -206,6 +172,7 @@ double CUDAHandler::GetEnergySum3D()
 {
 	log_line(0x00E4);
 	double energy_kin = 0;
+
 	double energy_pot = 0;
 	double dX, dY, dZ;
 	double length;
@@ -274,4 +241,15 @@ double CUDAHandler::GetMomentumError3D()
 {
 	return (this->GetMomentumSum3D() - this->initial_momentum_sum_3d) / this->initial_momentum_sum_3d;
 }
-#endif
+
+void CUDAHandler::UpdateCUDA()
+{
+	((char*)this->data)[0] = (char)*this->exit;
+	((char*)this->data)[1] = (char)*this->pause;
+	if (getError(cuMemcpyHtoD(this->_data, this->data, 2),
+		CUDAHandler::MemCpyHtoDData)) return;
+	if (getError(cuMemcpyDtoH(this->calculations, this->_data+2, 8),
+		CUDAHandler::MemCpyDtoHData)) return;
+	if (getError(cuMemcpyDtoH(this->bodies, this->_bodies, sizeof(Body3D)*this->num_of_bodies),
+		CUDAHandler::MemCpyDtoHBodies)) return;
+}

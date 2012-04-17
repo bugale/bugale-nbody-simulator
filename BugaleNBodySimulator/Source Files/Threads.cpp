@@ -22,6 +22,7 @@ SharedData* shared = 0;
 Data* data = 0;
 BinaryOutputManager* bom = 0;
 Engine* engine = 0;
+CUDAHandler* cuda_engine = 0;
 
 tthread::thread* thread_graphic = 0;
 tthread::thread* thread_shared_calc = 0;
@@ -72,6 +73,8 @@ void Run(char* working_directory)
 		}
 		log_line(0x0003);
 		shared->pause = data->paused;
+		if (data->cuda)
+			cuda_engine    = new CUDAHandler(shared, data);
 		bom                = new BinaryOutputManager(data, 100, binaryoutput_path);
 		engine             = new Engine(data);
 		thread_graphic     = new tthread::thread(GraphicThread, 0);
@@ -102,6 +105,7 @@ void Run(char* working_directory)
 	if (thread_graphic != 0)     delete(thread_graphic);
 	if (engine != 0)             delete(engine);
 	if (bom != 0)                delete(bom);
+	if (cuda_engine != 0)        delete(cuda_engine);
 	if (data != 0)               delete(data);
 	if (shared != 0)             delete(shared);
 	if (settings_path != 0)      free(settings_path);
@@ -111,6 +115,11 @@ void Run(char* working_directory)
 }
 void InitializeConsole()
 {
+	#ifdef _SYSTEM_WIN
+		SetConsoleTitle(INFO_PROGRAM_NAME);
+		SMALL_RECT windowSize = {0, 0, 79, 40};
+		SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &windowSize);
+	#endif
 	StringController::printString(0x0004, INFO_PROGRAM_NAME, INFO_PROGRAM_VERSION);
 }
 void exit_signal(int sig)
@@ -130,9 +139,38 @@ void GraphicThread(void* arg)
 }
 void CalculationThread(void* arg)
 {
-	log_line(0x000B, engine, data, shared);
+	log_line(0x000B, engine, cuda_engine, data, shared);
 	if (data->max_calculations == 0) return;
-	while (!shared->exit)
+	bool cont = true;
+	if (data->cuda)
+	{
+		LoadCUDA(cuda_engine);
+		cont = false;
+		if (cuda_engine->error != CUDAErrors::NoError)
+		{
+			CUDAErrors::returnError(cuda_engine, true);
+			cont = true;
+		}
+		while (!shared->exit && !cont)
+		{
+			if (cuda_engine->error != CUDAErrors::NoError)
+			{
+				CUDAErrors::returnError(cuda_engine, false);
+				shared->error = Errors::CUDAError;
+				return;
+			}
+			if (data->max_calculations > 0 && shared->calculations >= data->max_calculations) 
+			{
+				shared->pause = true;
+				shared->reached_max_calculations = true;
+				StringController::printString(0x000C);
+			}
+			usleep(10000);
+			if (shared->pause) usleep(100000);
+			cuda_engine->UpdateCUDA();
+		}
+	}
+	while (!shared->exit && cont)
 	{
 		if (shared->pause) usleep(100000);
 		if (shared->pause) continue;

@@ -76,7 +76,37 @@ bool LoadOpenGL(SharedData* shared)
 	#endif
 	return true;
 }
-bool LoadCUDA(SharedData* shared)
+bool LoadCUDA(CUDAHandler* cuda)
 {
+	#ifdef _SYSTEM_WIN //Load dll's
+		SetErrorMode(1); //Suppress error messages
+		if (!LoadLibrary("nvcuda.dll"))
+		{
+			int err = GetLastError();
+			switch (err)
+			{
+				case 1157:
+				case 126: cuda->error = CUDAErrors::MissingNvcuda; return false;
+				case 1114:
+				case 193: cuda->error = CUDAErrors::CorruptedNvcuda; return false;
+				default:  cuda->error = CUDAErrors::OtherNvcuda; cuda->error_data_int = err; return false;
+			}
+		}
+		SetErrorMode(0); //Return error messages back
+	#elif _SYSTEM_MAC
+		if (!dlopen("libcuda.dylib", RTLD_NOW))
+		{
+			cuda->error_data_charptr = dlerror();
+			cuda->error = CUDAErrors::MissinglibCUDAdylib;
+			return false;
+		}
+	#elif _SYSTEM_POSIX
+		if (!dlopen("libcuda.so", RTLD_NOW))
+		{
+			cuda->error_data_charptr = dlerror();
+			cuda->error = CUDAErrors::MissingCUDAGLUso;
+			return false;
+		}
+	#endif
 	return false;
 }

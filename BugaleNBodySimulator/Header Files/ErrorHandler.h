@@ -25,4 +25,9 @@ namespace Errors
 	void returnError(SharedData* shared);
 }
 
+namespace CUDAErrors
+{
+	void returnError(CUDAHandler* cuda, bool cont);
+}
+
 #endif

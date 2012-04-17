@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifdef _DEBUG
 #ifndef __CUDAHANDLER_INCLUDED__
 #define __CUDAHANDLER_INCLUDED__
 
@@ -31,13 +30,36 @@ private:
 	CUfunction _function;
 	CUdeviceptr _bodies; //Device Memory
 	CUdeviceptr _data; //Device Memory - exit(char),pause(char),calculations(long long)
+	CUdeviceptr _mutex; //Device memory - byte for every thread
 
-	enum Caller {Init, DeviceGet, CtxCreate, ModuleLoadData, ModuleGetFunction, MemAllocData, MemAllocBodies, MemCpyHtoDData, MemCpyHtoDBodies, LaunchKernel};
-	Errors::Error getError(CUresult r, Caller c);
+	enum Caller {
+		Init,
+		DeviceGet,
+		CtxCreate, 
+		ModuleLoadData,
+		ModuleGetFunction, 
+		MemAllocData,
+		MemAllocBodies,
+		MemAllocMutex,
+		MemsetMutex,
+		MemCpyHtoDData,
+		MemCpyDtoHData,
+		MemCpyHtoDBodies,
+		MemCpyDtoHBodies,
+		LaunchKernel
+	};
+
+	bool getError(CUresult r, Caller c);
+
+	void InitializeCUDA();
+	void DeinitializeCUDA();
 
 public:
 	Body3D* bodies; //Host Memory
-	void* data; //Host Memory - exit(char),pause(char),calculations(long long)
+	void* data; //Host Memory - exit(char),pause(char)
+	bool* exit;
+	bool* pause;
+	long long* calculations;
 	long long max_calculations;
 	int num_of_bodies;
 	double dt;
@@ -47,13 +69,12 @@ public:
 	double initial_momentum_sum_2d;
 	double initial_momentum_sum_3d;
 	int num_of_threads;
-	Errors::Error error;
+	CUDAErrors::Error error;
 	int error_data_int;
+	char* error_data_charptr;
 
 	CUDAHandler(SharedData* shared, Data* data);
 	~CUDAHandler();
-
-	void InitializeCUDA();
 
 	void Precalculations(); //Precalculate some constant expressions which are commonly used in the algorithms
 	
@@ -69,9 +90,8 @@ public:
 	double GetMomentumError2D();
 	double GetMomentumError3D();
 
-	void RefreshData();
+	void UpdateCUDA();
 
 };
 
-#endif
 #endif

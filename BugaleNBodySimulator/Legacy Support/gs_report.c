@@ -11,6 +11,7 @@
 *            __report_gsfailure
 *
 *******************************************************************************/
+#ifdef _LEGACY
 #define _CRTBLD
 #include <windows.h>
 
@@ -318,3 +319,4 @@ __declspec(noreturn) void __cdecl __report_gsfailure(ULONGLONG StackCookie)
 
     TerminateProcess(GetCurrentProcess(), STATUS_STACK_BUFFER_OVERRUN);
 }
+#endif

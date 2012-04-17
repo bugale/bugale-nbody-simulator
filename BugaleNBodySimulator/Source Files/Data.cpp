@@ -49,9 +49,14 @@ void Data::parseSettings(char* filename)
 		this->error = Errors::WrongSettingsFileHeader;
 		return;
 	}
-	if (*(int*)&data[8] != INFO_DATA_FILES_VERSION)
+	if (*(int*)&data[8] < INFO_DATA_FILES_VERSION)
 	{
-		this->error = Errors::WrongSettingsFileVersion;
+		this->error = Errors::OldSettingsFileVersion;
+		return;
+	}
+	if (*(int*)&data[8] < INFO_DATA_FILES_VERSION)
+	{
+		this->error = Errors::NewSettingsFileVersion;
 		return;
 	}
 
@@ -71,6 +76,7 @@ void Data::parseSettings(char* filename)
 	this->wireframe                   = this->readBool(data, 13, cur++);
 	this->paused                      = this->readBool(data, 13, cur++);
 	this->log                         = this->readBool(data, 13, cur++);
+	this->cuda                        = false;//this->readBool(data, 13, cur++);
 
 	cur = 14;
 	this->width                = *(unsigned int*)&data[cur]; cur += 4;
@@ -127,9 +133,14 @@ void Data::parseBodies(char* filename)
 		this->error = Errors::WrongBodyDataFileHeader;
 		return;
 	}
-	if (*(int*)&data[8] != INFO_DATA_FILES_VERSION)
+	if (*(int*)&data[8] < INFO_DATA_FILES_VERSION)
 	{
-		this->error = Errors::WrongBodyDataFileVersion;
+		this->error = Errors::OldBodyDataFileVersion;
+		return;
+	}
+	if (*(int*)&data[8] > INFO_DATA_FILES_VERSION)
+	{
+		this->error = Errors::NewBodyDataFileVersion;
 		return;
 	}
 

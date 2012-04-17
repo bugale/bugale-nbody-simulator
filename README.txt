@@ -1,4 +1,4 @@
-This is the source code of Bugale N-Body Simulator version 0.2.2 (Beta 2.2).
+This is the source code of Bugale N-Body Simulator version 0.2.3 (Beta 2.3).
 
 This project simulates the behavior, dynamics, and motion of a group of celestial objects.
 
@@ -12,9 +12,7 @@ Bugale N-Body Data Editor provides a graphic user interface for creating and edi
 settings and body data files of Bugale N-Body Simulator. It can be found on SourceForge.
 
 What's new in this release:
-*Added Up vector rotation using the mouse wheel
-*Better memory allocation fail messages
-*Less memory usage
-*Fixed a bug with the wireframe mode in 3D
-*Slightly improved graphics performance
-*Better error management
+*Fixed many bugs
+*Enlarged the console to see all of the information
+*Source Code: Migrated to VS11 Beta (still using v100 compiler and linker)
+*Source Code: Added the structures for CUDA calculation - will be usable soon
