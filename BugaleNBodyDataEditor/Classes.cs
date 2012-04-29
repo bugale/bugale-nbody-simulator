@@ -26,8 +26,8 @@ namespace BugaleNBodyDataEditor
     public enum AlgorithmType { ModifiedEuler = 0, Hermite = 1, Euler = 2, Leapfrog = 3 }
     public class MainSettings
     {
-        private int width;
-        private int height;
+        private uint width;
+        private uint height;
         private bool two_dimensional_calculation;
         private bool two_dimensional_graphic;
         private bool two_dimensional_binary;
@@ -39,16 +39,17 @@ namespace BugaleNBodyDataEditor
         private bool wireframe;
         private bool paused;
         private bool log;
+        private bool opencl;
         private AlgorithmType algorithm;
         private double g;
         private double dt;
         private float graphic_max_rate;
         private float binary_max_rate;
         private long max_calculations;
-        private int max_trails;
+        private uint max_trails;
         private uint stick_to_body;
-        private int sphere_slices;
-        private int sphere_stacks;
+        private uint sphere_slices;
+        private uint sphere_stacks;
         private float field_of_view;
         private double near_plane_distance;
         private double far_plane_distance;
@@ -65,6 +66,9 @@ namespace BugaleNBodyDataEditor
         private float keyboard_move_speed1;
         private float keyboard_zoom_speed0;
         private float keyboard_zoom_speed1;
+        private uint cl_num_of_threads;
+        private uint cl_threads_in_workgroup;
+        private uint cl_calcs_in_run;
 
         public MainSettings()
         {
@@ -81,6 +85,7 @@ namespace BugaleNBodyDataEditor
             this.wireframe = false;
             this.paused = false;
             this.log = false;
+            this.opencl = false;
             this.algorithm = AlgorithmType.Hermite;
             this.g = 0;
             this.dt = 0;
@@ -105,17 +110,19 @@ namespace BugaleNBodyDataEditor
             this.keyboard_move_speed1 = 0;
             this.keyboard_zoom_speed0 = 0;
             this.keyboard_zoom_speed1 = 0;
+            this.cl_num_of_threads = 2048;
+            this.cl_threads_in_workgroup = 512;
         }
 
         [DescriptionAttribute("The width in pixels of the screen.")]
-        public int Width
+        public uint Width
         {
             get { return this.width; }
             set { this.width = value; }
         }
 
         [DescriptionAttribute("The height in pixels of the screen.")]
-        public int Height
+        public uint Height
         {
             get { return this.height; }
             set { this.height = value; }
@@ -198,6 +205,13 @@ namespace BugaleNBodyDataEditor
             set { this.log = value; }
         }
 
+        [DescriptionAttribute("Determines whether the OpenCL (GPU calculation) will be used when possible.")]
+        public bool OpenCL
+        {
+            get { return this.opencl; }
+            set { this.opencl = value; }
+        }
+
         [DescriptionAttribute("Determines which integration algorithm will be used.")]
         public AlgorithmType Algorithm
         {
@@ -241,7 +255,7 @@ namespace BugaleNBodyDataEditor
         }
 
         [DescriptionAttribute("The maximal amount of trails saved for each body.")]
-        public int MaxTrails
+        public uint MaxTrails
         {
             get { return this.max_trails; }
             set { this.max_trails = value; }
@@ -255,14 +269,14 @@ namespace BugaleNBodyDataEditor
         }
 
         [DescriptionAttribute("The number of slices in the rendered spheres. More slices = better looking spheres.")]
-        public int SphereSlices
+        public uint SphereSlices
         {
             get { return this.sphere_slices; }
             set { this.sphere_slices = value; }
         }
 
         [DescriptionAttribute("The number of stacks in the rendered spheres. More stacks = better looking spheres.")]
-        public int SphereStacks
+        public uint SphereStacks
         {
             get { return this.sphere_stacks; }
             set { this.sphere_stacks = value; }
@@ -380,6 +394,27 @@ namespace BugaleNBodyDataEditor
             set { this.keyboard_zoom_speed1 = value; }
         }
 
+        [DescriptionAttribute("The number of threads that will be used in OpenCL.")]
+        public uint OpenCLNumberOfThreads
+        {
+            get { return this.cl_num_of_threads; }
+            set { this.cl_num_of_threads = value; }
+        }
+
+        [DescriptionAttribute("The number of threads in each workgroup in OpenCL.")]
+        public uint OpenCLNumberOfThreadsInWorkgroup
+        {
+            get { return this.cl_threads_in_workgroup; }
+            set { this.cl_threads_in_workgroup = value; }
+        }
+
+        [DescriptionAttribute("The number of calculations in each run in OpenCL. A large number of calculations will make it more efficient, but the program will also hang for more time.")]
+        public uint OpenCLNumberOfCalculationsInEachRun
+        {
+            get { return this.cl_calcs_in_run; }
+            set { this.cl_calcs_in_run = value; }
+        }
+
         public void FromBytes0(byte[] data, double g)
         {
             this.g = g;
@@ -392,16 +427,16 @@ namespace BugaleNBodyDataEditor
             this.log = ((bools >> cur++) & 1) == 1 ? true : false;
 
             cur = 1;
-            this.width = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.height = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.width = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.height = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
             this.algorithm = (AlgorithmType)data[cur]; cur += sizeof(byte);
             this.dt = BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.graphic_max_rate = (float)BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.binary_max_rate = (float)BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.max_calculations = BitConverter.ToInt64(data, cur); cur += sizeof(long);
-            this.max_trails = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.sphere_slices = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.sphere_stacks = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.max_trails = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.sphere_slices = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.sphere_stacks = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
             this.field_of_view = (float)BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.near_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.far_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
@@ -437,17 +472,17 @@ namespace BugaleNBodyDataEditor
             this.log = ((bools >> cur++) & 1) == 1 ? true : false;
 
             cur = 14;
-            this.width = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.height = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.width = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.height = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
             this.algorithm = (AlgorithmType)data[cur]; cur += sizeof(byte);
             this.dt = BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.graphic_max_rate = (float)BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.binary_max_rate = (float)BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.max_calculations = BitConverter.ToInt64(data, cur); cur += sizeof(long);
-            this.max_trails = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.max_trails = BitConverter.ToUInt32(data, cur); cur += sizeof(int);
             this.stick_to_body = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
-            this.sphere_slices = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.sphere_stacks = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.sphere_slices = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.sphere_stacks = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
             this.field_of_view = (float)BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.near_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.far_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
@@ -484,17 +519,17 @@ namespace BugaleNBodyDataEditor
             this.log = ((bools >> cur++) & 1) == 1 ? true : false;
 
             cur = 14;
-            this.width = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.height = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.width = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.height = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
             this.algorithm = (AlgorithmType)data[cur]; cur += sizeof(byte);
             this.dt = BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.graphic_max_rate = BitConverter.ToSingle(data, cur); cur += sizeof(float);
             this.binary_max_rate = BitConverter.ToSingle(data, cur); cur += sizeof(float);
             this.max_calculations = BitConverter.ToInt64(data, cur); cur += sizeof(long);
-            this.max_trails = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.max_trails = BitConverter.ToUInt32(data, cur); cur += sizeof(int);
             this.stick_to_body = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
-            this.sphere_slices = BitConverter.ToInt32(data, cur); cur += sizeof(int);
-            this.sphere_stacks = BitConverter.ToInt32(data, cur); cur += sizeof(int);
+            this.sphere_slices = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.sphere_stacks = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
             this.field_of_view = BitConverter.ToSingle(data, cur); cur += sizeof(float);
             this.near_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
             this.far_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
@@ -513,6 +548,57 @@ namespace BugaleNBodyDataEditor
             this.keyboard_zoom_speed1 = BitConverter.ToSingle(data, cur); cur += sizeof(float);
         }
 
+        public void FromBytes3(byte[] data, double g)
+        {
+            this.g = g;
+            ushort bools = (ushort)(((ushort)data[13] << 8) + (ushort)data[12]);
+            int cur = 0;
+            this.two_dimensional_calculation = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.two_dimensional_graphic = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.two_dimensional_binary = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.fullscreen = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.clear_screen = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.show_trails = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.min_text = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.crosshair = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.wireframe = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.paused = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.log = ((bools >> cur++) & 1) == 1 ? true : false;
+            this.opencl = ((bools >> cur++) & 1) == 1 ? true : false;
+
+            cur = 14;
+            this.width = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.height = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.algorithm = (AlgorithmType)data[cur]; cur += sizeof(byte);
+            this.dt = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.graphic_max_rate = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.binary_max_rate = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.max_calculations = BitConverter.ToInt64(data, cur); cur += sizeof(long);
+            this.max_trails = BitConverter.ToUInt32(data, cur); cur += sizeof(int);
+            this.stick_to_body = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.sphere_slices = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.sphere_stacks = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.field_of_view = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.near_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.far_plane_distance = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_positionX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_positionY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_positionZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_targetX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_targetY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_targetZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.camera_upX = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.camera_upY = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.camera_upZ = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.keyboard_move_speed0 = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.keyboard_move_speed1 = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.keyboard_zoom_speed0 = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.keyboard_zoom_speed1 = BitConverter.ToSingle(data, cur); cur += sizeof(float);
+            this.cl_num_of_threads = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.cl_threads_in_workgroup = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+            this.cl_calcs_in_run = BitConverter.ToUInt32(data, cur); cur += sizeof(uint);
+        }
+
         public bool FromBytes(byte[] data, double g)
         {
             uint ver = BitConverter.ToUInt32(data, 8);
@@ -521,8 +607,11 @@ namespace BugaleNBodyDataEditor
                 case 1:
                     FromBytes1(data, g);
                     return false;
-                default:
+                case 2:
                     FromBytes2(data, g);
+                    return false;
+                default:
+                    FromBytes3(data, g);
                     return true;
             }
         }
@@ -542,10 +631,11 @@ namespace BugaleNBodyDataEditor
             bools |= (ushort)((this.wireframe ? 1 : 0) << cur++);
             bools |= (ushort)((this.paused ? 1 : 0) << cur++);
             bools |= (ushort)((this.log ? 1 : 0) << cur++);
+            bools |= (ushort)((this.opencl ? 1 : 0) << cur++);
 
             List<byte> list = new List<byte>();
             list.AddRange(BitConverter.GetBytes((ulong)0xBDF0BDF01111BDF0));
-            list.AddRange(BitConverter.GetBytes((uint)0x00000002));
+            list.AddRange(BitConverter.GetBytes((uint)0x00000003));
             list.AddRange(BitConverter.GetBytes(bools));
             list.AddRange(BitConverter.GetBytes(this.width));
             list.AddRange(BitConverter.GetBytes(this.height));
@@ -574,6 +664,9 @@ namespace BugaleNBodyDataEditor
             list.AddRange(BitConverter.GetBytes(this.keyboard_move_speed1));
             list.AddRange(BitConverter.GetBytes(this.keyboard_zoom_speed0));
             list.AddRange(BitConverter.GetBytes(this.keyboard_zoom_speed1));
+            list.AddRange(BitConverter.GetBytes(this.cl_num_of_threads));
+            list.AddRange(BitConverter.GetBytes(this.cl_threads_in_workgroup));
+            list.AddRange(BitConverter.GetBytes(this.cl_calcs_in_run));
             return list.ToArray();
         }
     }
@@ -694,7 +787,55 @@ namespace BugaleNBodyDataEditor
             set { this.trailcolor = value; }
         }
 
-        private void FromBytes(byte[] data, int byte_index)
+        private void FromBytes0(byte[] data, int byte_index)
+        {
+            int cur = byte_index;
+            this.positionX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.positionY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.positionZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.mass = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.radius = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.trailwidth = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.color = Color.FromArgb((int)data[cur + 3], (int)data[cur + 0], (int)data[cur + 1], (int)data[cur + 2]); cur += 4 * sizeof(byte);
+            this.trailcolor = Color.FromArgb((int)data[cur + 3], (int)data[cur + 0], (int)data[cur + 1], (int)data[cur + 2]); cur += 4 * sizeof(byte);
+        }
+
+        private void FromBytes1(byte[] data, int byte_index)
+        {
+            int cur = byte_index;
+            this.positionX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.positionY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.positionZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.mass = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.radius = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.trailwidth = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.color = Color.FromArgb((int)data[cur + 3], (int)data[cur + 0], (int)data[cur + 1], (int)data[cur + 2]); cur += 4 * sizeof(byte);
+            this.trailcolor = Color.FromArgb((int)data[cur + 3], (int)data[cur + 0], (int)data[cur + 1], (int)data[cur + 2]); cur += 4 * sizeof(byte);
+        }
+
+        private void FromBytes2(byte[] data, int byte_index)
+        {
+            int cur = byte_index;
+            this.positionX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.positionY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.positionZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityY = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.velocityZ = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.mass = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.radius = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.trailwidth = BitConverter.ToDouble(data, cur); cur += sizeof(double);
+            this.color = Color.FromArgb((int)data[cur + 3], (int)data[cur + 0], (int)data[cur + 1], (int)data[cur + 2]); cur += 4 * sizeof(byte);
+            this.trailcolor = Color.FromArgb((int)data[cur + 3], (int)data[cur + 0], (int)data[cur + 1], (int)data[cur + 2]); cur += 4 * sizeof(byte);
+        }
+
+        private void FromBytes3(byte[] data, int byte_index)
         {
             int cur = byte_index;
             this.positionX = BitConverter.ToDouble(data, cur); cur += sizeof(double);
@@ -739,7 +880,7 @@ namespace BugaleNBodyDataEditor
             for (int i = 0; i < list.Capacity; i++)
             {
                 list.Add(new Body3D());
-                list[i].FromBytes(data, byte_size * i + (sizeof(int) + sizeof(double)));
+                list[i].FromBytes0(data, byte_size * i + (sizeof(int) + sizeof(double)));
             }
 
             char[] names = new char[data.Length - list.Count * byte_size - (sizeof(int) + sizeof(double))];
@@ -758,7 +899,7 @@ namespace BugaleNBodyDataEditor
             for (int i = 0; i < list.Capacity; i++)
             {
                 list.Add(new Body3D());
-                list[i].FromBytes(data, byte_size * i + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
+                list[i].FromBytes1(data, byte_size * i + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
             }
 
             char[] names = new char[data.Length - list.Count * byte_size - (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double))];
@@ -777,7 +918,26 @@ namespace BugaleNBodyDataEditor
             for (int i = 0; i < list.Capacity; i++)
             {
                 list.Add(new Body3D());
-                list[i].FromBytes(data, byte_size * i + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
+                list[i].FromBytes2(data, byte_size * i + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
+            }
+
+            char[] names = new char[data.Length - list.Count * byte_size - (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double))];
+            for (int i = list.Count * byte_size + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)); i < data.Length; i++)
+                names[i - list.Count * byte_size - (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double))] = (char)data[i];
+            string[] names_s = new string(names).Split('\0');
+            for (int i = 0; i < list.Count; i++)
+                list[i].Name = names_s[i];
+
+            return list;
+        }
+
+        public static List<Body3D> ListFromBytes3(byte[] data)
+        {
+            List<Body3D> list = new List<Body3D>(BitConverter.ToInt32(data, sizeof(ulong) + sizeof(uint) + sizeof(double)));
+            for (int i = 0; i < list.Capacity; i++)
+            {
+                list.Add(new Body3D());
+                list[i].FromBytes3(data, byte_size * i + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
             }
 
             char[] names = new char[data.Length - list.Count * byte_size - (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double))];
@@ -798,9 +958,12 @@ namespace BugaleNBodyDataEditor
                 case 1:
                     ret = false;
                     return ListFromBytes1(data);
+                case 2:
+                    ret = false;
+                    return ListFromBytes2(data);
                 default:
                     ret = true;
-                    return ListFromBytes2(data);
+                    return ListFromBytes3(data);
             }
         }
 
@@ -808,7 +971,7 @@ namespace BugaleNBodyDataEditor
         {
             List<byte> bytes = new List<byte>((byte_size + 5) * list.Count + (sizeof(ulong) + sizeof(uint) + sizeof(int) + sizeof(double)));
             bytes.AddRange(BitConverter.GetBytes((ulong)0xBDF0BDF02222BDF0));
-            bytes.AddRange(BitConverter.GetBytes((uint)0x00000002));
+            bytes.AddRange(BitConverter.GetBytes((uint)0x00000003));
             bytes.AddRange(BitConverter.GetBytes(g));
             bytes.AddRange(BitConverter.GetBytes(list.Count));
             for (int i = 0; i < list.Count; i++)

@@ -40,7 +40,7 @@ public:
 	bool wireframe;
 	bool paused;
 	bool log;
-	bool cuda;
+	bool opencl;
 	unsigned char algorithm;
 	char* algorithm_name;
 	float graphic_max_rate;
@@ -68,6 +68,9 @@ public:
 	float keyboard_move_speed1; //The move speed of the screen after one second in screens per second
 	float keyboard_zoom_speed0; //The starting zoom speed 
 	float keyboard_zoom_speed1; //The zoom speed after one second
+    unsigned int cl_num_of_threads;
+    unsigned int cl_threads_in_workgroup;
+    unsigned int cl_calcs_in_run;
 
 	//Body Related
 	int num_of_bodies;

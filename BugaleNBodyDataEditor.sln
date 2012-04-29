@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual C# Express 2011
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BugaleNBodyDataEditor", "BugaleNBodyDataEditor\BugaleNBodyDataEditor.csproj", "{15B97025-802C-4883-B9F9-F1248BCA30D4}"
 EndProject
 Global

@@ -52,7 +52,7 @@
 	
 	//Third-party
 	#include <freeglut.h>
-	#include <cuda.h>
+	#include <opencl.h>
 	#include <tinythread.h>
 
 	//Internal
@@ -64,7 +64,7 @@
 	#include "Header Files/Body3D.h"
 	#include "Header Files/Data.h"
 	#include "Header Files/SharedFunctions.h"
-	#include "Header Files/CUDAHandler.h"
+	#include "Header Files/OpenCLHandler.h"
 	#include "Header Files/LibraryLoader.h"
 	#include "Header Files/ErrorHandler.h"
 	#include "Header Files/Engine.h"

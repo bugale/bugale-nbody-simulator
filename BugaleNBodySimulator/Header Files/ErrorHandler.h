@@ -25,9 +25,9 @@ namespace Errors
 	void returnError(SharedData* shared);
 }
 
-namespace CUDAErrors
+namespace OpenCLErrors
 {
-	void returnError(CUDAHandler* cuda, bool cont);
+	void returnError(OpenCLHandler* opencl, bool cont);
 }
 
 #endif

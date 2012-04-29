@@ -76,36 +76,39 @@ void Data::parseSettings(char* filename)
 	this->wireframe                   = this->readBool(data, 13, cur++);
 	this->paused                      = this->readBool(data, 13, cur++);
 	this->log                         = this->readBool(data, 13, cur++);
-	this->cuda                        = false;//this->readBool(data, 13, cur++);
+	this->opencl                      = this->readBool(data, 13, cur++);
 
 	cur = 14;
-	this->width                = *(unsigned int*)&data[cur]; cur += 4;
-	this->height               = *(unsigned int*)&data[cur]; cur += 4;
-	this->algorithm            =                  data[cur]; cur += 1;
-	this->dt                   = *(double      *)&data[cur]; cur += 8;
-	this->graphic_max_rate     = *(float       *)&data[cur]; cur += 4;
-	this->binary_max_rate      = *(float       *)&data[cur]; cur += 4;
-	this->max_calculations     = *(long long   *)&data[cur]; cur += 8;
-	this->max_trails           = *(unsigned int*)&data[cur]; cur += 4;
-	this->stick_to_body        = *(unsigned int*)&data[cur]; cur += 4;
-	this->sphere_slices        = *(unsigned int*)&data[cur]; cur += 4;
-	this->sphere_stacks        = *(unsigned int*)&data[cur]; cur += 4;
-	this->field_of_view        = *(float       *)&data[cur]; cur += 4;
-	this->near_plane_distance  = *(double      *)&data[cur]; cur += 8;
-	this->far_plane_distance   = *(double      *)&data[cur]; cur += 8;
-	this->camera_positionX     = *(double      *)&data[cur]; cur += 8;
-	this->camera_positionY     = *(double      *)&data[cur]; cur += 8;
-	this->camera_positionZ     = *(double      *)&data[cur]; cur += 8;
-	this->camera_targetX       = *(double      *)&data[cur]; cur += 8;
-	this->camera_targetY       = *(double      *)&data[cur]; cur += 8;
-	this->camera_targetZ       = *(double      *)&data[cur]; cur += 8;
-	this->camera_upX           = *(float       *)&data[cur]; cur += 4;
-	this->camera_upY           = *(float       *)&data[cur]; cur += 4;
-	this->camera_upZ           = *(float       *)&data[cur]; cur += 4;
-	this->keyboard_move_speed0 = *(float       *)&data[cur]; cur += 4;
-	this->keyboard_move_speed1 = *(float       *)&data[cur]; cur += 4;
-	this->keyboard_zoom_speed0 = *(float       *)&data[cur]; cur += 4;
-	this->keyboard_zoom_speed1 = *(float       *)&data[cur]; cur += 4;
+	this->width                   = *(unsigned int*)&data[cur]; cur += 4;
+	this->height                  = *(unsigned int*)&data[cur]; cur += 4;
+	this->algorithm               =                  data[cur]; cur += 1;
+	this->dt                      = *(double      *)&data[cur]; cur += 8;
+	this->graphic_max_rate        = *(float       *)&data[cur]; cur += 4;
+	this->binary_max_rate         = *(float       *)&data[cur]; cur += 4;
+	this->max_calculations        = *(long long   *)&data[cur]; cur += 8;
+	this->max_trails              = *(unsigned int*)&data[cur]; cur += 4;
+	this->stick_to_body           = *(unsigned int*)&data[cur]; cur += 4;
+	this->sphere_slices           = *(unsigned int*)&data[cur]; cur += 4;
+	this->sphere_stacks           = *(unsigned int*)&data[cur]; cur += 4;
+	this->field_of_view           = *(float       *)&data[cur]; cur += 4;
+	this->near_plane_distance     = *(double      *)&data[cur]; cur += 8;
+	this->far_plane_distance      = *(double      *)&data[cur]; cur += 8;
+	this->camera_positionX        = *(double      *)&data[cur]; cur += 8;
+	this->camera_positionY        = *(double      *)&data[cur]; cur += 8;
+	this->camera_positionZ        = *(double      *)&data[cur]; cur += 8;
+	this->camera_targetX          = *(double      *)&data[cur]; cur += 8;
+	this->camera_targetY          = *(double      *)&data[cur]; cur += 8;
+	this->camera_targetZ          = *(double      *)&data[cur]; cur += 8;
+	this->camera_upX              = *(float       *)&data[cur]; cur += 4;
+	this->camera_upY              = *(float       *)&data[cur]; cur += 4;
+	this->camera_upZ              = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_move_speed0    = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_move_speed1    = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_zoom_speed0    = *(float       *)&data[cur]; cur += 4;
+	this->keyboard_zoom_speed1    = *(float       *)&data[cur]; cur += 4;
+	this->cl_num_of_threads       = *(unsigned int*)&data[cur]; cur += 4;
+	this->cl_threads_in_workgroup = *(unsigned int*)&data[cur]; cur += 4;
+	this->cl_calcs_in_run         = *(unsigned int*)&data[cur]; cur += 4;
 
 	free(data);
 
@@ -238,12 +241,15 @@ unsigned char* Data::readData(char* filename)
 }
 void Data::validateData()
 {
-	if (this->dt < 0)                    this->error = Errors::NegativeDT;
-	if (this->field_of_view <= 0)        this->error = Errors::NonPositiveFieldOfView;
-	if (this->keyboard_move_speed0 < 0)  this->error = Errors::NegativeMoveSpeed0;
-	if (this->keyboard_move_speed1 <= 0) this->error = Errors::NonPositiveMoveSpeed1;
-	if (this->keyboard_zoom_speed0 < 0)  this->error = Errors::NegativeZoomSpeed0;
-	if (this->keyboard_zoom_speed1 <= 0) this->error = Errors::NonPositiveZoomSpeed1;
+	if (this->dt < 0)                       this->error = Errors::NegativeDT;
+	if (this->field_of_view <= 0)           this->error = Errors::NonPositiveFieldOfView;
+	if (this->keyboard_move_speed0 < 0)     this->error = Errors::NegativeMoveSpeed0;
+	if (this->keyboard_move_speed1 <= 0)    this->error = Errors::NonPositiveMoveSpeed1;
+	if (this->keyboard_zoom_speed0 < 0)     this->error = Errors::NegativeZoomSpeed0;
+	if (this->keyboard_zoom_speed1 <= 0)    this->error = Errors::NonPositiveZoomSpeed1;
+	if (this->cl_num_of_threads == 0)       this->error = Errors::ZeroOpenCLThreads;
+	if (this->cl_threads_in_workgroup == 0) this->error = Errors::ZeroOpenCLThreadsInWorkgroup;
+	if (this->cl_num_of_threads % this->cl_threads_in_workgroup != 0) this->error = Errors::OpenCLThreadsNotDivisible;
 }
 void Data::validateBodies()
 {

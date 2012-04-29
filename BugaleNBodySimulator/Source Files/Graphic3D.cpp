@@ -103,7 +103,7 @@ void NewGraphic3D(Data* data, SharedData* shared)
 
 	StringController::printString(0x0036);
 
-	if (graphic3d->data->far_plane_distance / graphic3d->data->near_plane_distance > 100000000)
+	if (graphic3d->data->far_plane_distance / graphic3d->data->near_plane_distance > 10000000000)
 		StringController::printString(0x00BD);
 
 	Graphic3DInitialize();
@@ -160,7 +160,6 @@ void Graphic3DInitialize()
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHT0);
 	glEnable(GL_CULL_FACE);
-	//if (!graphic3d->wireframe) glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
@@ -178,6 +177,14 @@ void Graphic3DInitialize()
 	glutMotionFunc    (Graphic3DMotionHandler      );
 	
 	log_line(0x003B, graphic3d->doublebuf_window);
+	
+	glutSetWindow(graphic3d->doublebuf_window);
+	if (!graphic3d->clear_screen)
+	{
+		glutHideWindow();
+		glutSetWindow(graphic3d->singlebuf_window);
+		glutShowWindow();
+	}
 
 	log_line(0x003C);
 }

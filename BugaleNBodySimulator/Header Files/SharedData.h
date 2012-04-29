@@ -43,6 +43,7 @@ struct SharedData
 	bool calculated_energy;
 	bool calculated_momentum;
 	bool reached_max_calculations;
+	bool halt_graphics;
 
 	Errors::Error error;
 	int error_data_int;

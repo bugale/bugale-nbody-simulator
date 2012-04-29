@@ -79,7 +79,7 @@
     <LinkIncremental>
     </LinkIncremental>
     <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Include;C:\ProgramData\NVIDIA Corporation\NVIDIA GPU Computing SDK 4.1\OpenCL\common\inc;$(IncludePath)</IncludePath>
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
@@ -89,14 +89,14 @@
     <LinkIncremental>
     </LinkIncremental>
     <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Include;C:\ProgramData\NVIDIA Corporation\NVIDIA GPU Computing SDK 4.1\OpenCL\common\inc;$(IncludePath)</IncludePath>
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">
     <LinkIncremental>
     </LinkIncremental>
     <LibraryPath>$(ProjectDir)Libraries;$(LibraryPath)</LibraryPath>
-    <IncludePath>$(ProjectDir)Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Include;C:\ProgramData\NVIDIA Corporation\NVIDIA GPU Computing SDK 4.1\OpenCL\common\inc;$(IncludePath)</IncludePath>
     <ReferencePath>$(ProjectDir)Libraries;$(VCInstallDir)atlmfc\lib;$(VCInstallDir)lib</ReferencePath>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
@@ -120,10 +120,10 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cuda.lib;TinyThread_debug.lib</AdditionalDependencies>
+      <AdditionalDependencies>OpenCL.lib;TinyThread_debug.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <DelayLoadDLLs>glu32.dll;opengl32.dll;nvcuda.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>glu32.dll;opengl32.dll;OpenCL.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -156,9 +156,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>cuda.lib;TinyThread.lib</AdditionalDependencies>
+      <AdditionalDependencies>OpenCL.lib;TinyThread.lib</AdditionalDependencies>
       <Profile>true</Profile>
-      <DelayLoadDLLs>glu32.dll;opengl32.dll;nvcuda.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>glu32.dll;opengl32.dll;OpenCL.dll</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -208,7 +208,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>freeglut_static_legacy.lib;cuda.lib;TinyThread_legacy.lib</AdditionalDependencies>
+      <AdditionalDependencies>freeglut_static_legacy.lib;OpenCL.lib;TinyThread_legacy.lib</AdditionalDependencies>
       <Profile>false</Profile>
       <EnableUAC>
       </EnableUAC>
@@ -221,7 +221,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>freeglut_static.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>glu32.dll;opengl32.dll;nvcuda.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>glu32.dll;opengl32.dll;OpenCL.dll</DelayLoadDLLs>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -261,8 +261,7 @@
     <ClCompile Include="Source Files\LibraryLoader.cpp" />
     <ClCompile Include="Source Files\Threads.cpp" />
     <ClCompile Include="Strings\StringController.cpp" />
-    <ClInclude Include="CUDA\PTXFile.h" />
-    <ClInclude Include="Header Files\CUDAHandler.h" />
+    <ClInclude Include="Header Files\OpenCLHandler.h" />
     <ClInclude Include="Header Files\ErrorHandler.h" />
     <ClInclude Include="Header Files\Errors.h" />
     <ClInclude Include="Header Files\Graphic3D.h" />
@@ -271,9 +270,10 @@
     <ClInclude Include="Header Files\SharedFunctions.h" />
     <ClInclude Include="Header Files\Threads.h" />
     <ClInclude Include="Info.h" />
+    <ClInclude Include="OpenCL Kernels\KernelsData.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SharedHeader.h" />
-    <ClCompile Include="Source Files\CUDAHandler.cpp" />
+    <ClCompile Include="Source Files\OpenCLHandler.cpp" />
     <ClInclude Include="Strings\EnglishUS_Strings.h" />
     <ClInclude Include="Strings\StringController.h" />
   </ItemGroup>
@@ -293,6 +293,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="GalaxyIcon.ico" />
+    <None Include="OpenCL Kernels\KernelsCode.cl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Legacy|Win32'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BugaleNBodySimulator.rc" />

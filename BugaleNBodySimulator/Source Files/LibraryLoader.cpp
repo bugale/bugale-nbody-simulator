@@ -76,35 +76,35 @@ bool LoadOpenGL(SharedData* shared)
 	#endif
 	return true;
 }
-bool LoadCUDA(CUDAHandler* cuda)
+bool LoadOpenCL(OpenCLHandler* opencl)
 {
 	#ifdef _SYSTEM_WIN //Load dll's
 		SetErrorMode(1); //Suppress error messages
-		if (!LoadLibrary("nvcuda.dll"))
+		if (!LoadLibrary("OpenCL.dll"))
 		{
 			int err = GetLastError();
 			switch (err)
 			{
 				case 1157:
-				case 126: cuda->error = CUDAErrors::MissingNvcuda; return false;
+				case 126: opencl->error = OpenCLErrors::MissingOpenCL; return false;
 				case 1114:
-				case 193: cuda->error = CUDAErrors::CorruptedNvcuda; return false;
-				default:  cuda->error = CUDAErrors::OtherNvcuda; cuda->error_data_int = err; return false;
+				case 193: opencl->error = OpenCLErrors::CorruptedOpenCL; return false;
+				default:  opencl->error = OpenCLErrors::OtherOpenCL; opencl->error_data_int = err; return false;
 			}
 		}
 		SetErrorMode(0); //Return error messages back
 	#elif _SYSTEM_MAC
-		if (!dlopen("libcuda.dylib", RTLD_NOW))
+		if (!dlopen("libOpenCL.dylib", RTLD_NOW))
 		{
-			cuda->error_data_charptr = dlerror();
-			cuda->error = CUDAErrors::MissinglibCUDAdylib;
+			opencl->error_data_charptr = dlerror();
+			opencl->error = OpenCLErrors::MissinglibOpenCLdylib;
 			return false;
 		}
 	#elif _SYSTEM_POSIX
-		if (!dlopen("libcuda.so", RTLD_NOW))
+		if (!dlopen("libOpenCL.so", RTLD_NOW))
 		{
-			cuda->error_data_charptr = dlerror();
-			cuda->error = CUDAErrors::MissingCUDAGLUso;
+			opencl->error_data_charptr = dlerror();
+			opencl->error = OpenCLErrors::MissingOpenCLGLUso;
 			return false;
 		}
 	#endif

@@ -22,7 +22,7 @@ SharedData* shared = 0;
 Data* data = 0;
 BinaryOutputManager* bom = 0;
 Engine* engine = 0;
-CUDAHandler* cuda_engine = 0;
+OpenCLHandler* opencl_engine = 0;
 
 tthread::thread* thread_graphic = 0;
 tthread::thread* thread_shared_calc = 0;
@@ -72,15 +72,29 @@ void Run(char* working_directory)
 			start_log(log_path);
 		}
 		log_line(0x0003);
+
+		if (data->opencl)
+		{
+			//data->opencl = false;
+			StringController::printString(0x0152);
+		}
+
 		shared->pause = data->paused;
-		if (data->cuda)
-			cuda_engine    = new CUDAHandler(shared, data);
-		bom                = new BinaryOutputManager(data, 100, binaryoutput_path);
-		engine             = new Engine(data);
-		thread_graphic     = new tthread::thread(GraphicThread, 0);
+
+		if (data->opencl)
+			opencl_engine  = new OpenCLHandler(shared, data);
+		else engine        = new Engine(data);
+		if (data->binary_max_rate != 0)
+			bom            = new BinaryOutputManager(data, 100, binaryoutput_path);
+
+		if (data->graphic_max_rate != 0)
+			thread_graphic = new tthread::thread(GraphicThread, 0);
+		else StringController::printString(0x0153);
+
 		thread_shared_calc = new tthread::thread(SharedCalculationsThread, 0);
 		thread_calculation = new tthread::thread(CalculationThread, 0);
-		thread_binary      = new tthread::thread(BinaryOutputThread, 0);
+		if (data->binary_max_rate != 0)
+			thread_binary  = new tthread::thread(BinaryOutputThread, 0);
 	}
 	else shared->error = data->error;
 
@@ -105,7 +119,7 @@ void Run(char* working_directory)
 	if (thread_graphic != 0)     delete(thread_graphic);
 	if (engine != 0)             delete(engine);
 	if (bom != 0)                delete(bom);
-	if (cuda_engine != 0)        delete(cuda_engine);
+	if (opencl_engine != 0)      delete(opencl_engine);
 	if (data != 0)               delete(data);
 	if (shared != 0)             delete(shared);
 	if (settings_path != 0)      free(settings_path);
@@ -132,6 +146,8 @@ void exit_signal(int sig)
 void GraphicThread(void* arg)
 {
 	log_line(0x0009, data, shared);
+	if (data->graphic_max_rate == 0) return;
+	while (shared->halt_graphics) usleep(10000);
 	if (!LoadOpenGL(shared)) return;
 	if (data->two_dimensional_graphic) NewGraphic2D(data, shared);
 	else NewGraphic3D(data, shared);
@@ -139,26 +155,50 @@ void GraphicThread(void* arg)
 }
 void CalculationThread(void* arg)
 {
-	log_line(0x000B, engine, cuda_engine, data, shared);
+	log_line(0x000B, engine, opencl_engine, data, shared);
 	if (data->max_calculations == 0) return;
 	bool cont = true;
-	if (data->cuda)
+	if (data->opencl)
 	{
-		LoadCUDA(cuda_engine);
+		LoadOpenCL(opencl_engine);
 		cont = false;
-		if (cuda_engine->error != CUDAErrors::NoError)
+		if (opencl_engine->error != OpenCLErrors::NoError)
 		{
-			CUDAErrors::returnError(cuda_engine, true);
+			OpenCLErrors::returnError(opencl_engine, true);
 			cont = true;
+			engine = new Engine(data);
 		}
+		else
+		{
+			opencl_engine->InitializeOpenCL();
+			if (opencl_engine->error != OpenCLErrors::NoError)
+			{
+				OpenCLErrors::returnError(opencl_engine, true);
+				cont = true;
+				engine = new Engine(data);
+			}
+		}
+		if (opencl_engine->algorithm == 0x01) shared->calculations++; //Hermite Initialization
+		shared->halt_graphics = false;
 		while (!shared->exit && !cont)
 		{
-			if (cuda_engine->error != CUDAErrors::NoError)
+			if (shared->pause) usleep(100000);
+			if (shared->pause) continue;
+			opencl_engine->UpdateOpenCL();
+			if (opencl_engine->error != OpenCLErrors::NoError)
 			{
-				CUDAErrors::returnError(cuda_engine, false);
-				shared->error = Errors::CUDAError;
+				OpenCLErrors::returnError(opencl_engine, false);
+				shared->error = Errors::OpenCLError;
 				return;
 			}
+			opencl_engine->RunKernel();
+			if (opencl_engine->error != OpenCLErrors::NoError)
+			{
+				OpenCLErrors::returnError(opencl_engine, false);
+				shared->error = Errors::OpenCLError;
+				return;
+			}
+			shared->calculations += data->cl_calcs_in_run;
 			if (data->max_calculations > 0 && shared->calculations >= data->max_calculations) 
 			{
 				shared->pause = true;
@@ -166,10 +206,10 @@ void CalculationThread(void* arg)
 				StringController::printString(0x000C);
 			}
 			usleep(10000);
-			if (shared->pause) usleep(100000);
-			cuda_engine->UpdateCUDA();
 		}
+		if (!cont) opencl_engine->DeinitializeOpenCL();
 	}
+	shared->halt_graphics = false;
 	while (!shared->exit && cont)
 	{
 		if (shared->pause) usleep(100000);
@@ -225,12 +265,24 @@ void SharedCalculationsThread(void* arg)
 		}
 		if (shared->pause)
 		{
-			if ( data->two_dimensional_calculation) shared->error_energy = engine->GetEnergyError2D();
-			if (!data->two_dimensional_calculation) shared->error_energy = engine->GetEnergyError3D();
-			shared->calculated_energy = true;
-			if ( data->two_dimensional_calculation) shared->error_momentum = engine->GetMomentumError2D();
-			if (!data->two_dimensional_calculation) shared->error_momentum = engine->GetMomentumError3D();
-			shared->calculated_momentum = true;
+			if (engine)
+			{
+				if ( data->two_dimensional_calculation) shared->error_energy = engine->GetEnergyError2D();
+				if (!data->two_dimensional_calculation) shared->error_energy = engine->GetEnergyError3D();
+				shared->calculated_energy = true;
+				if ( data->two_dimensional_calculation) shared->error_momentum = engine->GetMomentumError2D();
+				if (!data->two_dimensional_calculation) shared->error_momentum = engine->GetMomentumError3D();
+				shared->calculated_momentum = true;
+			}
+			else
+			{
+				if ( data->two_dimensional_calculation) shared->error_energy = opencl_engine->GetEnergyError2D();
+				if (!data->two_dimensional_calculation) shared->error_energy = opencl_engine->GetEnergyError3D();
+				shared->calculated_energy = true;
+				if ( data->two_dimensional_calculation) shared->error_momentum = opencl_engine->GetMomentumError2D();
+				if (!data->two_dimensional_calculation) shared->error_momentum = opencl_engine->GetMomentumError3D();
+				shared->calculated_momentum = true;
+			}
 		}
 		else
 		{
@@ -254,10 +306,10 @@ void BinaryOutputThread(void* arg)
 void ExitThreads()
 {
 	log_line(0x0012, thread_shared_calc, thread_calculation, thread_binary, data);
-	thread_shared_calc->join();
-	thread_calculation->join();
-	thread_graphic    ->join();
-	thread_binary     ->join();
+	if (thread_shared_calc != 0) thread_shared_calc->join();
+	if (thread_calculation != 0) thread_calculation->join();
+	if (thread_graphic     != 0) thread_graphic    ->join();
+	if (thread_binary      != 0) thread_binary     ->join();
 	log_line(0x0013);
 	if (data->log) end_log();
 }

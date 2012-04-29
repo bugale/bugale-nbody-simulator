@@ -126,6 +126,15 @@ void Graphic2DInitialize()
 
 	log_line(0x0068, graphic2d->doublebuf_window);
 
+	glutSetWindow(graphic2d->doublebuf_window);
+	if (!graphic2d->clear_screen)
+	{
+		glutHideWindow();
+		glutSetWindow(graphic2d->singlebuf_window);
+		glutShowWindow();
+	}
+
+
 	log_line(0x0069);
 }
 

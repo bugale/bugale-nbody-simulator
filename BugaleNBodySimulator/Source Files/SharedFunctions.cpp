@@ -96,6 +96,7 @@ void reset_shared_data()
 	_shared->error = Errors::NoError;
 	_shared->error_data_int = 0;
 	_shared->error_data_charptr = 0;
+	_shared->halt_graphics = true;
 }
 float getAngle(float x, float y)
 {

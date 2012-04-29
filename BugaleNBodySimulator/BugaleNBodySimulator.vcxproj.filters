@@ -18,8 +18,8 @@
     <Filter Include="Legacy Support">
       <UniqueIdentifier>{8bd88354-ebdc-418c-9a31-e865306c4cb2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CUDA">
-      <UniqueIdentifier>{16ead406-7760-46f1-9c57-89861a312188}</UniqueIdentifier>
+    <Filter Include="OpenCL Kernels">
+      <UniqueIdentifier>{df516cf9-16f3-4c62-b5e5-aaebcaca99b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -52,7 +52,7 @@
     <ClCompile Include="Source Files\LibraryLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\CUDAHandler.cpp">
+    <ClCompile Include="Source Files\OpenCLHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -101,14 +101,14 @@
     <ClInclude Include="Header Files\ErrorHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CUDA\PTXFile.h">
-      <Filter>CUDA</Filter>
-    </ClInclude>
-    <ClInclude Include="Header Files\CUDAHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Header Files\LibraryLoader.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header Files\OpenCLHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenCL Kernels\KernelsData.h">
+      <Filter>OpenCL Kernels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -125,6 +125,9 @@
   <ItemGroup>
     <None Include="GalaxyIcon.ico">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="OpenCL Kernels\KernelsCode.cl">
+      <Filter>OpenCL Kernels</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
